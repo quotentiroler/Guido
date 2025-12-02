@@ -1,0 +1,263 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Guido Registry Definition",
+  "description": "Schema for defining how Guido interacts with template registries",
+  "type": "object",
+  "$defs": {
+    "httpMethod": {
+      "type": "string",
+      "enum": ["GET", "POST"],
+      "default": "GET"
+    },
+    "paginationType": {
+      "type": "string",
+      "enum": ["offset", "cursor", "page"],
+      "description": "Pagination strategy"
+    },
+    "paginationParams": {
+      "type": "object",
+      "description": "Parameter names for pagination",
+      "properties": {
+        "page": { "type": "string", "description": "Page number parameter name" },
+        "limit": { "type": "string", "description": "Items per page parameter name" },
+        "offset": { "type": "string", "description": "Offset parameter name" },
+        "cursor": { "type": "string", "description": "Cursor parameter name" }
+      }
+    },
+    "searchFilter": {
+      "type": "object",
+      "description": "Optional filter to append to search queries. Leave empty for unrestricted search.",
+      "properties": {
+        "suffix": {
+          "type": "string",
+          "description": "Text to append to the search query (e.g., 'topic:guido-template')"
+        },
+        "prefix": {
+          "type": "string",
+          "description": "Text to prepend to the search query"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether the filter is enabled. Set to false to disable filtering."
+        }
+      }
+    },
+    "pagination": {
+      "type": "object",
+      "description": "Pagination configuration",
+      "properties": {
+        "type": { "$ref": "#/$defs/paginationType" },
+        "params": { "$ref": "#/$defs/paginationParams" },
+        "defaultLimit": { 
+          "type": "integer", 
+          "default": 20,
+          "minimum": 1,
+          "maximum": 100,
+          "description": "Default number of items per page"
+        }
+      },
+      "required": ["type"]
+    },
+    "itemMapping": {
+      "type": "object",
+      "description": "JSONPath mappings for individual result items",
+      "properties": {
+        "name": { "type": "string", "description": "JSONPath to item name/title" },
+        "version": { "type": "string", "description": "JSONPath to item version" },
+        "description": { "type": "string", "description": "JSONPath to item description" },
+        "author": { "type": "string", "description": "JSONPath to item author/owner" },
+        "downloadUrl": { "type": "string", "description": "JSONPath to download URL" },
+        "homepage": { "type": "string", "description": "JSONPath to homepage URL" },
+        "repository": { "type": "string", "description": "JSONPath to repository URL" }
+      },
+      "required": ["name"]
+    },
+    "responseMapping": {
+      "type": "object",
+      "description": "JSONPath mappings for response data",
+      "properties": {
+        "items": { 
+          "type": "string", 
+          "description": "JSONPath to the array of results (e.g., '$.items[*]', '$[*]') or object with version keys (e.g., '$.versions')"
+        },
+        "item": { "$ref": "#/$defs/itemMapping" },
+        "total": { 
+          "type": "string", 
+          "description": "JSONPath to total count (for pagination)"
+        },
+        "nextCursor": {
+          "type": "string",
+          "description": "JSONPath to next cursor value (for cursor pagination)"
+        },
+        "template": {
+          "type": "string",
+          "description": "JSONPath to template content in fetch response"
+        }
+      }
+    },
+    "versionsResponseMapping": {
+      "type": "object",
+      "description": "JSONPath mappings for versions response data",
+      "properties": {
+        "items": { 
+          "type": "string", 
+          "description": "JSONPath to the array of version strings or object with version keys (e.g., '$.versions')"
+        },
+        "item": { 
+          "type": "object",
+          "properties": {
+            "version": { "type": "string", "description": "JSONPath to version string within each item" }
+          }
+        }
+      }
+    },
+    "endpoint": {
+      "type": "object",
+      "description": "API endpoint configuration",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "URL path with placeholders: {query}, {name}, {version}, {owner}, {repo}"
+        },
+        "method": { "$ref": "#/$defs/httpMethod" },
+        "filter": { "$ref": "#/$defs/searchFilter" },
+        "queryParams": {
+          "type": "object",
+          "description": "Query parameters. Values can include placeholders like {query}, {limit}, {page}"
+        },
+        "body": {
+          "type": "object",
+          "description": "Request body template for POST requests"
+        },
+        "headers": {
+          "type": "object",
+          "description": "Additional headers for this endpoint"
+        },
+        "pagination": { "$ref": "#/$defs/pagination" },
+        "response": { "$ref": "#/$defs/responseMapping" }
+      },
+      "required": ["path", "method", "response"]
+    },
+    "versionsEndpoint": {
+      "type": "object",
+      "description": "API endpoint configuration for versions listing",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "URL path with placeholders: {name}, {owner}, {repo}"
+        },
+        "method": { "$ref": "#/$defs/httpMethod" },
+        "queryParams": {
+          "type": "object",
+          "description": "Query parameters"
+        },
+        "headers": {
+          "type": "object",
+          "description": "Additional headers for this endpoint"
+        },
+        "response": { "$ref": "#/$defs/versionsResponseMapping" }
+      },
+      "required": ["path", "method", "response"]
+    }
+  },
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "./registry.schema.json",
+      "description": "Reference to this schema"
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable name of the registry",
+      "minLength": 1
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of what this registry contains"
+    },
+    "baseUrl": {
+      "type": "string",
+      "format": "uri",
+      "description": "Base URL for API calls (e.g., 'https://api.github.com')"
+    },
+    "headers": {
+      "type": "object",
+      "description": "Default headers to include in all requests"
+    },
+    "api": {
+      "type": "object",
+      "description": "API endpoint definitions",
+      "properties": {
+        "search": {
+          "allOf": [{ "$ref": "#/$defs/endpoint" }],
+          "description": "Search for templates by query (required)"
+        },
+        "list": {
+          "allOf": [{ "$ref": "#/$defs/endpoint" }],
+          "description": "List all available templates (optional)"
+        },
+        "fetch": {
+          "allOf": [{ "$ref": "#/$defs/endpoint" }],
+          "description": "Fetch a specific template by name/id (required)"
+        },
+        "versions": {
+          "allOf": [{ "$ref": "#/$defs/versionsEndpoint" }],
+          "description": "List available versions of a template (optional)"
+        }
+      },
+      "required": ["search", "fetch"]
+    },
+    "auth": {
+      "type": "object",
+      "description": "Authentication configuration",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["none", "bearer", "apiKey", "basic"],
+          "default": "none",
+          "description": "Authentication type"
+        },
+        "location": {
+          "type": "string",
+          "enum": ["header", "query"],
+          "default": "header",
+          "description": "Where to send the auth token"
+        },
+        "name": {
+          "type": "string",
+          "description": "Header or query param name for the auth token (e.g., 'Authorization', 'api_key')"
+        },
+        "prefix": {
+          "type": "string",
+          "description": "Prefix for the token value (e.g., 'Bearer ', 'token ')"
+        }
+      },
+      "if": {
+        "properties": { "type": { "not": { "const": "none" } } }
+      },
+      "then": {
+        "required": ["name"]
+      }
+    },
+    "templateDetection": {
+      "type": "object",
+      "description": "How to detect if a package is a Guido template",
+      "properties": {
+        "filePattern": {
+          "type": "string",
+          "description": "Glob pattern for template files (e.g., '*.guido.json')"
+        },
+        "keyword": {
+          "type": "string",
+          "description": "Package keyword that indicates a Guido template"
+        },
+        "packageType": {
+          "type": "string",
+          "description": "Package type field value for templates"
+        }
+      }
+    }
+  },
+  "required": ["name", "baseUrl", "api"]
+}

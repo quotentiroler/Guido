@@ -1,0 +1,320 @@
+:root {
+  color-scheme: light;
+  
+  --dark-blue: #194960;
+  --mid-blue: #226280;
+  --vibrant-blue: #3AB0DB;
+  --light-blue: #B9E6F4;
+  --lighter-blue: #CEEFF8;
+  --lightest-blue: #E3F8FC;
+
+  --dark-yellow: #BF9217;
+  --mid-yellow: #CCA31B;
+  --vibrant-yellow: #FDD106;
+  --light-yellow: #F4E7B9;
+  --lighter-yellow: #F8EFCE;
+  --lightest-yellow: #FCF7E3;
+
+  --g800: #20272B;
+  --g700: #3E494F;
+  --g600: #626B6F;
+  --g500: #848A8D;
+  --g400: #A4A9AB;
+  --g300: #C3C6C7;
+  --g200: #E1E2E3;
+  --g100: #F0F1F1;
+  --g0: #FFFFFF;
+
+  --grn800: #196136;
+  --grn700: #228349;
+  --grn600: #3FD37B;
+  --grn200: #C5F1D7;
+  --grn150: #D8F5E4;
+  --grn100: #EBFAF1;
+
+  --red800: #68251B;
+  --red700: #8C3225;
+  --red600: #E05843;
+  --red200: #F5CCC6;
+  --red150: #F8DDD9;
+  --red100: #FCEEEB;
+
+  --background-color: light-dark(#FFFFFF, #171F2B);
+  --border-radius: 5px;
+  --border-color: light-dark(#E1E2E3, #2a3344);
+  --border-color-strong: light-dark(#C3C6C7, #3a4555);
+  --primary-text-color: light-dark(#20272B, #e8eaf0);
+  --secondary-text-color: light-dark(#3E494F, #a8adb8);
+  --disabled-text-color: light-dark(#848A8D, #6b7280);
+  --disabled-background-color: light-dark(#F0F1F1, #1e2735);
+  
+  /* Surface colors that auto-adjust - using #171F2B as base dark */
+  --surface-0: light-dark(#FFFFFF, #171F2B);        /* Main background */
+  --surface-1: light-dark(#FAFAFA, #1c2532);        /* Slightly elevated - cards */
+  --surface-2: light-dark(#F5F5F5, #222b3a);        /* More elevated - dropdowns, inputs */
+  --surface-3: light-dark(#F0F1F1, #2a3344);        /* Hover states */
+  --surface-4: light-dark(#E8E9EA, #333c4e);        /* Active states */
+  --surface-5: light-dark(#E1E2E3, #3a4555);        /* Strong contrast */
+  
+  /* Hover colors */
+  --hover-bg: light-dark(#F5F5F5, #222b3a);
+  --active-bg: light-dark(#E8E9EA, #2a3344);
+  
+  /* Field input border */
+  --field-border-color: light-dark(#C3C6C7, #3a4555);
+  
+  /* Theme-aware button backgrounds */
+  --btn-secondary-light-bg: light-dark(#E3F8FC, #1d3a4a);
+  --btn-error-light-bg: light-dark(#FCEEEB, #3a2525);
+  --btn-primary-light-bg: light-dark(#FCF7E3, #3a3520);
+  
+  /* Theme-aware validation/status backgrounds */
+  --validation-error-bg: light-dark(#FCEEEB, #2d1f1f);
+  --validation-error-text: light-dark(#68251B, #f5a8a0);
+  --validation-success-bg: light-dark(#EBFAF1, #1a2e22);
+  --validation-success-text: light-dark(#196136, #7dd3a0);
+  --validation-warning-bg: light-dark(#FEF3CD, #3a3520);
+  --validation-warning-text: light-dark(#856404, #ffd966);
+  
+  /* Blend mode variables (set by JS) */
+  --theme-blend: 0;
+  --glass-opacity: 1;
+  --glass-blur: 0px;
+}
+
+/* Dark mode - just flip color-scheme */
+:root.dark {
+  color-scheme: dark;
+}
+
+/* Zone 1: Light+ (25-50%) - Light with light blue tint */
+:root.blend-mode.zone-light-plus {
+  color-scheme: light;
+  /* Light blues: #E3F8FC -> #B9E6F4 */
+  --surface-0: var(--zone-surface-0);
+  --surface-1: var(--zone-surface-1);
+  --surface-2: var(--zone-surface-2);
+  --surface-3: var(--zone-surface-3);
+  --surface-4: var(--zone-surface-4);
+  --surface-5: var(--zone-surface-5);
+  
+  /* Dark text for readability */
+  --primary-text-color: #20272B;
+  --secondary-text-color: #3E494F;
+  
+  --border-color: var(--zone-border);
+  --border-color-strong: var(--zone-border-strong);
+  --hover-bg: var(--zone-hover);
+  --active-bg: var(--zone-active);
+}
+
+/* Zone 2: Dark+ (50-75%) - Dark with dark blue tint */
+:root.blend-mode.zone-dark-plus {
+  color-scheme: dark;
+  /* Dark blues: #194960 -> #0f2a38 */
+  --surface-0: var(--zone-surface-0);
+  --surface-1: var(--zone-surface-1);
+  --surface-2: var(--zone-surface-2);
+  --surface-3: var(--zone-surface-3);
+  --surface-4: var(--zone-surface-4);
+  --surface-5: var(--zone-surface-5);
+  
+  /* Light text for readability */
+  --primary-text-color: #e8f4f8;
+  --secondary-text-color: #a8c8d8;
+  
+  --border-color: var(--zone-border);
+  --border-color-strong: var(--zone-border-strong);
+  --hover-bg: var(--zone-hover);
+  --active-bg: var(--zone-active);
+}
+
+/* Enhanced glass effect for Light+ and Dark+ blend modes */
+:root.blend-mode .blend-glass {
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  backdrop-filter: blur(16px) saturate(160%);
+}
+
+:root.blend-mode.zone-light-plus .blend-glass {
+  background-color: rgba(185, 230, 244, 0.6); /* Light blue with more transparency */
+  border-color: rgba(160, 216, 236, 0.5);
+}
+
+:root.blend-mode.zone-dark-plus .blend-glass {
+  background-color: rgba(25, 73, 96, 0.6); /* Dark blue with more transparency */
+  border-color: rgba(58, 176, 219, 0.25);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+/* Markdown content styling */
+.markdown-content {
+  line-height: 1.6;
+  color: var(--primary-text-color);
+}
+
+.markdown-content h1 {
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  font-size: 1.75rem;
+  font-weight: bold;
+  border-bottom: 1px solid var(--surface-3);
+  padding-bottom: 0.5rem;
+}
+
+.markdown-content h2 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 1.35rem;
+  font-weight: bold;
+}
+
+.markdown-content h3 {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.markdown-content h4 {
+  margin-top: 0.75rem;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+.markdown-content p {
+  margin-bottom: 0.75rem;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  margin-bottom: 0.75rem;
+  padding-left: 1.5rem;
+}
+
+.markdown-content li {
+  margin-bottom: 0.25rem;
+  list-style-type: disc;
+}
+
+.markdown-content ol li {
+  list-style-type: decimal;
+}
+
+.markdown-content li > ul,
+.markdown-content li > ol {
+  margin-top: 0.25rem;
+  margin-bottom: 0;
+}
+
+.markdown-content a {
+  color: var(--vibrant-blue);
+  text-decoration: none;
+}
+
+.markdown-content a:hover {
+  text-decoration: underline;
+}
+
+.markdown-content strong {
+  font-weight: 600;
+}
+
+.markdown-content code {
+  background-color: var(--surface-1);
+  color: var(--primary-text-color);
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.9em;
+}
+
+.markdown-content pre {
+  background-color: var(--surface-1);
+  color: var(--primary-text-color);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.markdown-content pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.875rem;
+}
+
+.markdown-content blockquote {
+  border-left: 4px solid var(--vibrant-blue);
+  padding-left: 1rem;
+  margin: 1rem 0;
+  color: var(--secondary-text-color);
+  font-style: italic;
+}
+
+.markdown-content hr {
+  border: none;
+  border-top: 1px solid var(--surface-3);
+  margin: 1.5rem 0;
+}
+
+/* Markdown table styling */
+.markdown-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0;
+}
+
+.markdown-content th,
+.markdown-content td {
+  border: 1px solid var(--surface-3);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.markdown-content th {
+  background-color: var(--surface-1);
+  font-weight: bold;
+}
+
+.markdown-content tr:nth-child(even) {
+  background-color: var(--surface-1);
+}
+
+/* Custom scrollbar styling - theme aware */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface-3) var(--surface-1);
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--surface-1);
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--surface-3);
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--surface-2);
+}

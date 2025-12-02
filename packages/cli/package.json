@@ -1,0 +1,80 @@
+{
+  "name": "@guido/cli",
+  "version": "1.0.0",
+  "description": "CLI tools for Guido template validation and schema conversion",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "bin": {
+    "guido-validate-template": "./dist/validateTemplate.js",
+    "guido-validate-settings": "./dist/validateSettings.js",
+    "guido-apply-rules": "./dist/applyRules.js",
+    "guido-schema-to-guido": "./dist/schemaToGuido.js",
+    "guido-to-schema": "./dist/guidoToSchema.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "development": "./src/index.ts",
+      "default": "./dist/index.js"
+    },
+    "./validateTemplate": {
+      "types": "./src/validateTemplate.ts",
+      "development": "./src/validateTemplate.ts",
+      "default": "./dist/validateTemplate.js"
+    },
+    "./validateSettings": {
+      "types": "./src/validateSettings.ts",
+      "development": "./src/validateSettings.ts",
+      "default": "./dist/validateSettings.js"
+    },
+    "./applyRules": {
+      "types": "./src/applyRules.ts",
+      "development": "./src/applyRules.ts",
+      "default": "./dist/applyRules.js"
+    },
+    "./schemaToGuido": {
+      "types": "./src/schemaToGuido.ts",
+      "development": "./src/schemaToGuido.ts",
+      "default": "./dist/schemaToGuido.js"
+    },
+    "./guidoToSchema": {
+      "types": "./src/guidoToSchema.ts",
+      "development": "./src/guidoToSchema.ts",
+      "default": "./dist/guidoToSchema.js"
+    }
+  },
+  "publishConfig": {
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "validate-template": "node dist/validateTemplate.js",
+    "validate-settings": "node dist/validateSettings.js",
+    "apply-rules": "node dist/applyRules.js",
+    "schema-to-guido": "node dist/schemaToGuido.js",
+    "guido-to-schema": "node dist/guidoToSchema.js"
+  },
+  "keywords": [
+    "guido",
+    "cli",
+    "json-schema",
+    "configuration",
+    "validation"
+  ],
+  "author": "Maximilian Nussbaumer",
+  "dependencies": {
+    "@guido/core": "*",
+    "@guido/types": "*",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

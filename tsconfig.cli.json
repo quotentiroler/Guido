@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "target": "ES2022",
+    "lib": ["ES2023"],
+    "moduleResolution": "Bundler",
+    "outDir": "./dist-cli",
+    "rootDir": "./src",
+    "composite": false,
+    "noEmit": false,
+    "esModuleInterop": true
+  },
+  "include": ["src/cli/**/*", "src/utils/validateRules.ts", "src/interface/**/*"],
+  "exclude": ["node_modules", "dist", "dist-cli", "**/*.test.ts"]
+}

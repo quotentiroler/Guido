@@ -1,0 +1,60 @@
+{
+  "$schema": "./registry.schema.json",
+  "name": "Simplifier FHIR Registry",
+  "description": "Simplifier.net registry for FHIR packages and Guido templates",
+  "baseUrl": "https://packages.simplifier.net",
+  "headers": {
+    "Accept": "application/json"
+  },
+  "api": {
+    "search": {
+      "path": "/catalog",
+      "method": "GET",
+      "queryParams": {
+        "name": "{query}",
+        "prerelease": "true"
+      },
+      "pagination": {
+        "type": "offset",
+        "params": {
+          "offset": "start",
+          "limit": "count"
+        },
+        "defaultLimit": 50
+      },
+      "response": {
+        "items": "$[*]",
+        "item": {
+          "name": "Name",
+          "version": "Version",
+          "description": "Description",
+          "author": "Author"
+        }
+      }
+    },
+    "fetch": {
+      "path": "/{name}/{version}",
+      "method": "GET",
+      "headers": {
+        "Accept": "application/gzip"
+      },
+      "response": {
+        "template": "$"
+      }
+    },
+    "versions": {
+      "path": "/{name}",
+      "method": "GET",
+      "response": {
+        "items": "$.versions"
+      }
+    }
+  },
+  "auth": {
+    "type": "none"
+  },
+  "templateDetection": {
+    "filePattern": "*.guido.json",
+    "packageType": "guido"
+  }
+}

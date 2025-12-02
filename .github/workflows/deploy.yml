@@ -1,0 +1,276 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get version and build tag
+        id: version
+        run: |
+          VERSION=$(node -p "require('./guido/package.json').version")
+          # Create timestamp in format YYYYMMDD.HHmmss
+          TIMESTAMP=$(date -u +"%Y%m%d.%H%M%S")
+          
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
+          # For alpha/beta versions, append timestamp to make each release unique
+          if [[ "$VERSION" == *"alpha"* ]] || [[ "$VERSION" == *"beta"* ]]; then
+            echo "tag=v${VERSION}+${TIMESTAMP}" >> $GITHUB_OUTPUT
+            echo "is_prerelease=true" >> $GITHUB_OUTPUT
+          else
+            echo "tag=v${VERSION}" >> $GITHUB_OUTPUT
+            echo "is_prerelease=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./guido
+
+      - name: Fix dependencies
+        run: npm audit fix
+        working-directory: ./guido
+
+      - name: Run linting
+        run: npm run lint
+        working-directory: ./guido
+
+      - name: Run tests with coverage
+        id: coverage
+        run: |
+          # Run tests with coverage and capture output
+          npx vitest run --coverage --coverage.reporter=text --coverage.reporter=json-summary --coverage.reporter=html 2>&1 | tee coverage-output.txt
+          
+          # Extract summary metrics for release notes
+          if [ -f coverage/coverage-summary.json ]; then
+            STATEMENTS=$(jq '.total.statements.pct' coverage/coverage-summary.json)
+            BRANCHES=$(jq '.total.branches.pct' coverage/coverage-summary.json)
+            FUNCTIONS=$(jq '.total.functions.pct' coverage/coverage-summary.json)
+            LINES=$(jq '.total.lines.pct' coverage/coverage-summary.json)
+            
+            echo "statements=$STATEMENTS" >> $GITHUB_OUTPUT
+            echo "branches=$BRANCHES" >> $GITHUB_OUTPUT
+            echo "functions=$FUNCTIONS" >> $GITHUB_OUTPUT
+            echo "lines=$LINES" >> $GITHUB_OUTPUT
+          fi
+          
+          # Count tests
+          TESTS_PASSED=$(grep -oP '\d+(?= passed)' coverage-output.txt | tail -1 || echo "0")
+          echo "tests_passed=$TESTS_PASSED" >> $GITHUB_OUTPUT
+        working-directory: ./guido
+
+      - name: Package coverage report
+        run: |
+          cd coverage
+          zip -r ../coverage-report.zip .
+        working-directory: ./guido
+
+      - name: Build the project
+        id: build
+        run: |
+          # Run build and capture output
+          npm run build 2>&1 | tee build-output.txt
+          
+          # Parse Vite build output for bundle sizes
+          # Format: dist/assets/index-HGHX8RIi.js   580.75 kB │ gzip: 168.86 kB
+          
+          # Extract JS bundle size (number only, without kB)
+          JS_SIZE=$(grep 'index-.*\.js' build-output.txt | grep -oP '^\S+\s+\K[\d.]+(?=\s*kB)' | head -1)
+          JS_GZIP=$(grep 'index-.*\.js' build-output.txt | grep -oP 'gzip:\s*\K[\d.]+(?=\s*kB)' | head -1)
+          
+          # Extract CSS bundle size (number only, without kB)
+          CSS_SIZE=$(grep 'index-.*\.css' build-output.txt | grep -oP '^\S+\s+\K[\d.]+(?=\s*kB)' | head -1)
+          CSS_GZIP=$(grep 'index-.*\.css' build-output.txt | grep -oP 'gzip:\s*\K[\d.]+(?=\s*kB)' | head -1)
+          
+          # Default to 0 if not found
+          JS_SIZE=${JS_SIZE:-0}
+          JS_GZIP=${JS_GZIP:-0}
+          CSS_SIZE=${CSS_SIZE:-0}
+          CSS_GZIP=${CSS_GZIP:-0}
+          
+          # Calculate total using awk (more reliable than bc)
+          TOTAL_SIZE=$(awk "BEGIN {printf \"%.2f\", $JS_SIZE + $CSS_SIZE}")
+          TOTAL_GZIP=$(awk "BEGIN {printf \"%.2f\", $JS_GZIP + $CSS_GZIP}")
+          
+          echo "js_size=${JS_SIZE}" >> $GITHUB_OUTPUT
+          echo "js_gzip=${JS_GZIP}" >> $GITHUB_OUTPUT
+          echo "css_size=${CSS_SIZE}" >> $GITHUB_OUTPUT
+          echo "css_gzip=${CSS_GZIP}" >> $GITHUB_OUTPUT
+          echo "total_size=${TOTAL_SIZE}" >> $GITHUB_OUTPUT
+          echo "total_gzip=${TOTAL_GZIP}" >> $GITHUB_OUTPUT
+          
+          echo "Build sizes - JS: ${JS_SIZE}kB (gzip: ${JS_GZIP}kB), CSS: ${CSS_SIZE}kB (gzip: ${CSS_GZIP}kB), Total: ${TOTAL_SIZE}kB (gzip: ${TOTAL_GZIP}kB)"
+        working-directory: ./guido
+        env:
+          VITE_BUILD_TIMESTAMP: ${{ github.event.head_commit.timestamp }}
+
+      - name: Update README badges
+        env:
+          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+          BADGE_GIST_ID: ${{ secrets.BADGE_GIST_ID }}
+        run: |
+          # Update badges via GitHub Gist (works for private repos)
+          # Requires GIST_TOKEN secret with gist scope and BADGE_GIST_ID secret
+          
+          # Get values (strip any existing kB suffix to avoid duplication)
+          TOTAL_GZIP=$(echo "${{ steps.build.outputs.total_gzip }}" | sed 's/kB$//')
+          JS_GZIP=$(echo "${{ steps.build.outputs.js_gzip }}" | sed 's/kB$//')
+          CSS_GZIP=$(echo "${{ steps.build.outputs.css_gzip }}" | sed 's/kB$//')
+          COVERAGE="${{ steps.coverage.outputs.lines }}"
+          TESTS="${{ steps.coverage.outputs.tests_passed }}"
+          VERSION="${{ steps.version.outputs.version }}"
+          
+          # Update gist if token and gist ID exist
+          if [ -n "$GIST_TOKEN" ] && [ -n "$BADGE_GIST_ID" ]; then
+            # Build the JSON payload with proper escaping
+            PAYLOAD='{"files":{'
+            PAYLOAD+="\"version.json\":{\"content\":\"{\\\"schemaVersion\\\":1,\\\"label\\\":\\\"version\\\",\\\"message\\\":\\\"v${VERSION}\\\",\\\"color\\\":\\\"blue\\\"}\"},"
+            PAYLOAD+="\"build-size.json\":{\"content\":\"{\\\"schemaVersion\\\":1,\\\"label\\\":\\\"build size\\\",\\\"message\\\":\\\"${TOTAL_GZIP}kB gzip\\\",\\\"color\\\":\\\"blue\\\"}\"},"
+            PAYLOAD+="\"js-size.json\":{\"content\":\"{\\\"schemaVersion\\\":1,\\\"label\\\":\\\"JS\\\",\\\"message\\\":\\\"${JS_GZIP}kB gzip\\\",\\\"color\\\":\\\"yellow\\\"}\"},"
+            PAYLOAD+="\"css-size.json\":{\"content\":\"{\\\"schemaVersion\\\":1,\\\"label\\\":\\\"CSS\\\",\\\"message\\\":\\\"${CSS_GZIP}kB gzip\\\",\\\"color\\\":\\\"purple\\\"}\"},"
+            PAYLOAD+="\"coverage.json\":{\"content\":\"{\\\"schemaVersion\\\":1,\\\"label\\\":\\\"coverage\\\",\\\"message\\\":\\\"${COVERAGE}%\\\",\\\"color\\\":\\\"brightgreen\\\"}\"},"
+            PAYLOAD+="\"tests.json\":{\"content\":\"{\\\"schemaVersion\\\":1,\\\"label\\\":\\\"tests\\\",\\\"message\\\":\\\"${TESTS} passed\\\",\\\"color\\\":\\\"brightgreen\\\"}\"}"
+            PAYLOAD+='}}'
+            
+            echo "Updating gist with badge data..."
+            RESPONSE=$(curl -s -X PATCH \
+              -H "Authorization: token $GIST_TOKEN" \
+              -H "Accept: application/vnd.github.v3+json" \
+              "https://api.github.com/gists/$BADGE_GIST_ID" \
+              -d "$PAYLOAD")
+            
+            if echo "$RESPONSE" | grep -q '"url"'; then
+              echo "✅ Badges updated in gist successfully"
+            else
+              echo "❌ Failed to update gist:"
+              echo "$RESPONSE"
+            fi
+          else
+            echo "Missing GIST_TOKEN or BADGE_GIST_ID, skipping gist update"
+          fi
+          
+          # Also update badges branch (for when repo becomes public)
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          CURRENT_SHA=$(git rev-parse HEAD)
+          git fetch origin badges:badges 2>/dev/null || true
+          
+          BADGE_DIR=$(mktemp -d)
+          echo "{\"schemaVersion\":1,\"label\":\"build size\",\"message\":\"${TOTAL_GZIP}kB gzip\",\"color\":\"blue\"}" > "$BADGE_DIR/build-size.json"
+          echo "{\"schemaVersion\":1,\"label\":\"JS\",\"message\":\"${JS_GZIP}kB gzip\",\"color\":\"yellow\"}" > "$BADGE_DIR/js-size.json"
+          echo "{\"schemaVersion\":1,\"label\":\"CSS\",\"message\":\"${CSS_GZIP}kB gzip\",\"color\":\"purple\"}" > "$BADGE_DIR/css-size.json"
+          echo "{\"schemaVersion\":1,\"label\":\"coverage\",\"message\":\"${COVERAGE}%\",\"color\":\"brightgreen\"}" > "$BADGE_DIR/coverage.json"
+          echo "{\"schemaVersion\":1,\"label\":\"tests\",\"message\":\"${TESTS} passed\",\"color\":\"brightgreen\"}" > "$BADGE_DIR/tests.json"
+          
+          if git show-ref --verify --quiet refs/heads/badges; then
+            git checkout badges
+          else
+            git checkout --orphan badges
+            git rm -rf . 2>/dev/null || true
+          fi
+          
+          mkdir -p .github/badges
+          cp "$BADGE_DIR"/*.json .github/badges/
+          
+          git add .github/badges/
+          git commit -m "chore: update badges" --allow-empty
+          git push origin badges --force
+          
+          git checkout $CURRENT_SHA
+          rm -rf "$BADGE_DIR"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: Guido ${{ steps.version.outputs.tag }}
+          files: |
+            guido/coverage-report.zip
+          body: |
+            ## Guido ${{ steps.version.outputs.tag }}
+            
+            Deployed to GitHub Pages: https://quotentiroler.github.io/Guido/
+            
+            ### Build Size
+            | Asset | Size | Gzip |
+            |-------|------|------|
+            | JavaScript | ${{ steps.build.outputs.js_size }} kB | ${{ steps.build.outputs.js_gzip }} kB |
+            | CSS | ${{ steps.build.outputs.css_size }} kB | ${{ steps.build.outputs.css_gzip }} kB |
+            | **Total** | **${{ steps.build.outputs.total_size }} kB** | **${{ steps.build.outputs.total_gzip }} kB** |
+            
+            ### Test Coverage
+            | Metric | Coverage |
+            |--------|----------|
+            | Statements | ${{ steps.coverage.outputs.statements }}% |
+            | Branches | ${{ steps.coverage.outputs.branches }}% |
+            | Functions | ${{ steps.coverage.outputs.functions }}% |
+            | Lines | ${{ steps.coverage.outputs.lines }}% |
+            
+            **Tests Passed:** ${{ steps.coverage.outputs.tests_passed }}
+            
+            Built from commit: ${{ github.sha }}
+          draft: false
+          prerelease: ${{ steps.version.outputs.is_prerelease }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cleanup old prerelease versions
+        if: steps.version.outputs.is_prerelease == 'true'
+        run: |
+          # Get all releases and filter/cleanup old alpha and beta versions
+          # Keep only the 2 most recent of each type
+          
+          echo "Fetching all releases..."
+          RELEASES=$(gh release list --json tagName,isPrerelease --limit 100)
+          
+          # Get alpha releases (sorted by version, newest first)
+          ALPHA_RELEASES=$(echo "$RELEASES" | jq -r '[.[] | select(.tagName | contains("alpha"))] | .[].tagName' | sort -V -r)
+          ALPHA_COUNT=0
+          for tag in $ALPHA_RELEASES; do
+            ALPHA_COUNT=$((ALPHA_COUNT + 1))
+            if [ $ALPHA_COUNT -gt 2 ]; then
+              echo "Deleting old alpha release: $tag"
+              gh release delete "$tag" --yes --cleanup-tag
+            fi
+          done
+          
+          # Get beta releases (sorted by version, newest first)
+          BETA_RELEASES=$(echo "$RELEASES" | jq -r '[.[] | select(.tagName | contains("beta"))] | .[].tagName' | sort -V -r)
+          BETA_COUNT=0
+          for tag in $BETA_RELEASES; do
+            BETA_COUNT=$((BETA_COUNT + 1))
+            if [ $BETA_COUNT -gt 2 ]; then
+              echo "Deleting old beta release: $tag"
+              gh release delete "$tag" --yes --cleanup-tag
+            fi
+          done
+          
+          echo "Cleanup complete!"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./guido/dist

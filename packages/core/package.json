@@ -1,0 +1,36 @@
+{
+  "name": "@guido/core",
+  "version": "1.0.0",
+  "description": "Core utilities for Guido template management - validation, rule application, settings utilities",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "development": "./src/index.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "publishConfig": {
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts"
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": [
+    "guido",
+    "validation",
+    "rules",
+    "configuration"
+  ],
+  "author": "Maximilian Nussbaumer",
+  "dependencies": {
+    "@guido/logger": "*",
+    "@guido/types": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}

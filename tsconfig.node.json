@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+    "target": "ES2022",
+    "lib": ["ES2023"],
+    "module": "ESNext",
+    "composite": true,
+    "moduleResolution": "Bundler",
+    "moduleDetection": "force",
+    "noUncheckedSideEffectImports": true
+  },
+  "include": ["vite.config.ts", "vite-plugin-templates.ts"]
+}

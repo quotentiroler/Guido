@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+/* Enable class-based dark mode for Tailwind v4 - MUST come after tailwindcss import */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@config "../tailwind.config.js";
+
+/* Import App.css first so CSS variables are defined */
+@import "./App.css";
+
+/* Define custom colors for Tailwind v4 utilities - use literal hex values */
+@theme {
+  --color-field-error: #E05843;
+  --color-field-warning: #F8B524;
+  --color-field-success: #3FD37B;
+  --color-field-border: var(--field-border-color);
+  
+  /* Section accent colors for left border */
+  --color-accent-blue: #3B82F6;
+  --color-accent-emerald: #10B981;
+  --color-accent-violet: #8B5CF6;
+  --color-accent-amber: #F59E0B;
+  --color-accent-rose: #F43F5E;
+  --color-accent-cyan: #06B6D4;
+}
+
+/* Tailwind v4 changed default border-color to currentColor, restore v3 behavior.
+   Use :where() to ensure utility classes can override this default */
+@layer base {
+  :where(*, ::after, ::before, ::backdrop, ::file-selector-button) {
+    border-color: var(--border-color, currentColor);
+  }
+
+  /* Fix text-size-adjust for cross-browser compatibility */
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* Global body/html - transparent to show Mars background */
+  html, body {
+    background-color: transparent;
+    color: var(--primary-text-color);
+    /* Force emoji characters like ▶▼ to render as text, not colored emoji */
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    /* Prevent over-scrolling / elastic bounce */
+    overscroll-behavior: none;
+  }
+
+  html {
+    /* Prevent pull-to-refresh and over-scroll on the document */
+    overflow: hidden;
+    height: 100%;
+  }
+
+  body {
+    overflow: auto;
+    height: 100%;
+    /* Additional mobile prevention */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* All interactive elements should have pointer cursor */
+  button, [role="button"], a[href], label, input[type="checkbox"], input[type="radio"], select, summary {
+    cursor: pointer;
+  }
+}
+
+/* Guido mascot animations */
+@keyframes wave {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(20deg); }
+  75% { transform: rotate(-20deg); }
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+  75% { transform: rotate(-5deg); }
+}
+
+@keyframes spin-slow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(-5px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.animate-wave {
+  animation: wave 0.5s ease-in-out;
+}
+
+.animate-wiggle {
+  animation: wiggle 0.5s ease-in-out;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 1s linear;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}

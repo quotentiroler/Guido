@@ -1,0 +1,102 @@
+{
+  "$schema": "./registry.schema.json",
+  "name": "Custom Registry Template",
+  "description": "Template for creating a custom registry adapter. Copy this file and customize for your registry.",
+  "baseUrl": "{baseUrl}",
+  "headers": {
+    "Accept": "application/json",
+    "User-Agent": "Guido/1.0"
+  },
+  "api": {
+    "search": {
+      "path": "/api/templates/search",
+      "method": "GET",
+      "filter": {
+        "suffix": "type:guido-template",
+        "enabled": false
+      },
+      "queryParams": {
+        "q": "{query}",
+        "limit": "{limit}",
+        "offset": "{offset}"
+      },
+      "pagination": {
+        "type": "offset",
+        "params": {
+          "offset": "offset",
+          "limit": "limit"
+        },
+        "defaultLimit": 20
+      },
+      "response": {
+        "items": "$.data.templates[*]",
+        "item": {
+          "name": "name",
+          "version": "latestVersion",
+          "description": "description",
+          "author": "author.name",
+          "downloadUrl": "downloadUrl",
+          "homepage": "homepage"
+        },
+        "total": "$.meta.totalCount"
+      }
+    },
+    "list": {
+      "path": "/api/templates",
+      "method": "GET",
+      "queryParams": {
+        "type": "guido",
+        "limit": "{limit}",
+        "page": "{page}"
+      },
+      "pagination": {
+        "type": "page",
+        "params": {
+          "page": "page",
+          "limit": "limit"
+        },
+        "defaultLimit": 50
+      },
+      "response": {
+        "items": "$.templates[*]",
+        "item": {
+          "name": "name",
+          "version": "version",
+          "description": "description"
+        },
+        "total": "$.total"
+      }
+    },
+    "fetch": {
+      "path": "/api/templates/{name}/versions/{version}",
+      "method": "GET",
+      "response": {
+        "item": {
+          "name": "template.name",
+          "version": "template.version",
+          "description": "template.description"
+        }
+      }
+    },
+    "versions": {
+      "path": "/api/templates/{name}/versions",
+      "method": "GET",
+      "response": {
+        "items": "$.versions[*]",
+        "item": {
+          "version": "version",
+          "downloadUrl": "downloadUrl"
+        }
+      }
+    }
+  },
+  "auth": {
+    "type": "apiKey",
+    "location": "header",
+    "name": "X-API-Key"
+  },
+  "templateDetection": {
+    "filePattern": "*.guido.json",
+    "keyword": "guido-template"
+  }
+}

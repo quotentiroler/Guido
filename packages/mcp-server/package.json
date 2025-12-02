@@ -1,0 +1,44 @@
+{
+  "name": "@guido/mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server for Guido template management - CRUD operations for fields and rules",
+  "type": "module",
+  "main": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./definitions": "./dist/exports.js"
+  },
+  "bin": {
+    "guido-mcp": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "watch": "tsc --watch"
+  },
+  "keywords": [
+    "mcp",
+    "guido",
+    "settings",
+    "configuration"
+  ],
+  "author": "Maximilian Nussbaumer",
+  "license": "MIT",
+  "dependencies": {
+    "@guido/core": "*",
+    "@guido/types": "*",
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "js-yaml": "^4.1.0",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,7 @@
+// Root tsconfig for IDE support - Vite uses its own config for building
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "noEmit": true
+  }
+}

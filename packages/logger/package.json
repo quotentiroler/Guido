@@ -1,0 +1,35 @@
+{
+  "name": "@guido/logger",
+  "version": "1.0.0",
+  "description": "Logging utilities for Guido packages",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "development": "./src/index.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "publishConfig": {
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts"
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": [
+    "guido",
+    "logger",
+    "logging"
+  ],
+  "author": "Maximilian Nussbaumer",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
