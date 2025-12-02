@@ -22,7 +22,7 @@ jobs:
       - name: Get version and build tag
         id: version
         run: |
-          VERSION=$(node -p "require('./guido/package.json').version")
+          VERSION=$(node -p "require('./package.json').version")
           # Create timestamp in format YYYYMMDD.HHmmss
           TIMESTAMP=$(date -u +"%Y%m%d.%H%M%S")
           
@@ -44,15 +44,12 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-        working-directory: ./guido
 
       - name: Fix dependencies
         run: npm audit fix
-        working-directory: ./guido
 
       - name: Run linting
         run: npm run lint
-        working-directory: ./guido
 
       - name: Run tests with coverage
         id: coverage
@@ -76,13 +73,11 @@ jobs:
           # Count tests
           TESTS_PASSED=$(grep -oP '\d+(?= passed)' coverage-output.txt | tail -1 || echo "0")
           echo "tests_passed=$TESTS_PASSED" >> $GITHUB_OUTPUT
-        working-directory: ./guido
 
       - name: Package coverage report
         run: |
           cd coverage
           zip -r ../coverage-report.zip .
-        working-directory: ./guido
 
       - name: Build the project
         id: build
@@ -119,7 +114,6 @@ jobs:
           echo "total_gzip=${TOTAL_GZIP}" >> $GITHUB_OUTPUT
           
           echo "Build sizes - JS: ${JS_SIZE}kB (gzip: ${JS_GZIP}kB), CSS: ${CSS_SIZE}kB (gzip: ${CSS_GZIP}kB), Total: ${TOTAL_SIZE}kB (gzip: ${TOTAL_GZIP}kB)"
-        working-directory: ./guido
         env:
           VITE_BUILD_TIMESTAMP: ${{ github.event.head_commit.timestamp }}
 
@@ -205,7 +199,7 @@ jobs:
           tag_name: ${{ steps.version.outputs.tag }}
           name: Guido ${{ steps.version.outputs.tag }}
           files: |
-            guido/coverage-report.zip
+            coverage-report.zip
           body: |
             ## Guido ${{ steps.version.outputs.tag }}
             
@@ -273,4 +267,4 @@ jobs:
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./guido/dist
+          publish_dir: ./dist

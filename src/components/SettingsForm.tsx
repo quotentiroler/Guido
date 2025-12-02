@@ -10,7 +10,7 @@ import TemplateSearch from "./TemplateSearch";
 import SettingsTabs from "./SettingsTabs";
 import ChangeHistory from "./ChangeHistory";
 import GuidoMascot from "./GuidoMascot";
-import guidoImage from "@/assets/guido_transparent.png";
+import guidoImage from "@/assets/guido.png";
 import { HistoryEntry } from "@/hooks/useHistory";
 
 const SettingsForm: React.FC = () => {

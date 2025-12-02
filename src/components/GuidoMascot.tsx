@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import guidoImage from "@/assets/guido_transparent.png";
+import guidoImage from "@/assets/guido.png";
 import { useAI } from "@/hooks/useAI";
 import AISetupModal from "./AISetupModal";
 
@@ -20,7 +20,7 @@ const GuidoMascot: React.FC<GuidoMascotProps> = ({ onToggleChat }) => {
   const [currentEmote, setCurrentEmote] = useState<string | null>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [showSetupModal, setShowSetupModal] = useState(false);
-  const { isConfigured, chatPhase, currentToolName, chatResponse, setShowFullResponse, setChatPhase, setChatResponse, speakResponse, isSpeaking, cancelSpeech, speechEnabled } = useAI();
+  const { isConfigured, chatPhase, currentToolName, chatResponse, setShowFullResponse, setChatPhase, setChatResponse, speakResponse, isSpeaking, speechEnabled } = useAI();
 
   // Random emote every 30 seconds
   useEffect(() => {
