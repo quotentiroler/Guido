@@ -118,6 +118,7 @@ jobs:
           VITE_BUILD_TIMESTAMP: ${{ github.event.head_commit.timestamp }}
 
       - name: Update README badges
+        continue-on-error: true
         env:
           GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
           BADGE_GIST_ID: ${{ secrets.BADGE_GIST_ID }}
@@ -155,11 +156,12 @@ jobs:
             if echo "$RESPONSE" | grep -q '"url"'; then
               echo "✅ Badges updated in gist successfully"
             else
-              echo "❌ Failed to update gist:"
+              echo "⚠️ Failed to update gist (non-critical):"
               echo "$RESPONSE"
             fi
           else
-            echo "Missing GIST_TOKEN or BADGE_GIST_ID, skipping gist update"
+            echo "⚠️ Skipping gist update: GIST_TOKEN or BADGE_GIST_ID not configured"
+            echo "   To enable badge updates, set these repository secrets."
           fi
           
           # Also update badges branch (for when repo becomes public)
