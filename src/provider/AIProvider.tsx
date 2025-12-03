@@ -3,6 +3,7 @@ import localforage from 'localforage';
 import { AIContext, LLMConfig, ChatPosition, ChatPhase, ChatHistoryItem } from '@/context/AIContext';
 import type { ChatMessageWithTools } from '@/services/llmService';
 import { useSpeechSynthesis } from '@/hooks/useSpeechSynthesis';
+import { useTheme } from '@/hooks/useTheme';
 
 const STORAGE_KEY = 'guido-ai-config';
 const HISTORY_STORAGE_KEY = 'guido-chat-history';
@@ -15,6 +16,7 @@ interface AIProviderProps {
 }
 
 export const AIProvider: React.FC<AIProviderProps> = ({ children }) => {
+  const { secretSpaceMode } = useTheme();
   const [config, setConfigState] = useState<LLMConfig | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatPosition, setChatPosition] = useState<ChatPosition>({ x: 0, y: 0 });
@@ -121,16 +123,22 @@ export const AIProvider: React.FC<AIProviderProps> = ({ children }) => {
   const speakResponse = useCallback((text: string) => {
     if (speechEnabled && text && text !== lastSpokenRef.current) {
       lastSpokenRef.current = text;
-      speech.speak(text, { rate: speechRate, volume: speechVolume });
+      // Use default values (1.0) when not in secret mode
+      const rate = secretSpaceMode ? speechRate : 1.1;
+      const volume = secretSpaceMode ? speechVolume : 1.0;
+      speech.speak(text, { rate, volume });
     }
-  }, [speechEnabled, speech, speechRate, speechVolume]);
+  }, [speechEnabled, speech, speechRate, speechVolume, secretSpaceMode]);
 
   const speakResponseAsync = useCallback(async (text: string): Promise<void> => {
     if (speechEnabled && text && text !== lastSpokenRef.current) {
       lastSpokenRef.current = text;
-      await speech.speakAsync(text, { rate: speechRate, volume: speechVolume });
+      // Use default values (1.0) when not in secret mode
+      const rate = secretSpaceMode ? speechRate : 1.0;
+      const volume = secretSpaceMode ? speechVolume : 1.0;
+      await speech.speakAsync(text, { rate, volume });
     }
-  }, [speechEnabled, speech, speechRate, speechVolume]);
+  }, [speechEnabled, speech, speechRate, speechVolume, secretSpaceMode]);
 
   const cancelSpeech = useCallback(() => {
     speech.cancel();

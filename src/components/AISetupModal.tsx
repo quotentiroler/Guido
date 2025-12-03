@@ -10,7 +10,7 @@ interface AISetupModalProps {
 }
 
 const AISetupModal: React.FC<AISetupModalProps> = ({ onClose }) => {
-  const { config, setConfig } = useAI();
+  const { config, setConfig, speechRate, setSpeechRate, speechVolume, setSpeechVolume, speechEnabled, setSpeechEnabled } = useAI();
   
   const [provider, setProvider] = useState<LLMProvider>(config?.provider || 'ollama');
   const [apiKey, setApiKey] = useState(config?.apiKey || '');
@@ -206,6 +206,73 @@ const AISetupModal: React.FC<AISetupModalProps> = ({ onClose }) => {
               </select>
             </label>
           )}
+
+          {/* Speech Settings Section */}
+          <div className="mt-6 pt-6 border-t border-border">
+            <h3 className="text-lg font-semibold mb-4 text-text-primary flex items-center gap-2">
+              <span>🔊</span> Speech Settings
+            </h3>
+            
+            {/* Speech Enabled Toggle */}
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-text-primary">Enable Speech</span>
+              <button
+                type="button"
+                onClick={() => setSpeechEnabled(!speechEnabled)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  speechEnabled ? 'bg-primary-default' : 'bg-surface-3'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    speechEnabled ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Volume Slider */}
+            <label className="block mb-4 text-text-primary">
+              <div className="flex items-center justify-between mb-1">
+                <span>Volume</span>
+                <span className="text-sm text-text-secondary">{Math.round(speechVolume * 100)}%</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🔈</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.1"
+                  value={speechVolume}
+                  onChange={(e) => setSpeechVolume(parseFloat(e.target.value))}
+                  className="flex-1 h-2 bg-surface-4 rounded-lg appearance-none cursor-pointer accent-primary-default"
+                />
+                <span className="text-lg">🔊</span>
+              </div>
+            </label>
+
+            {/* Speed Slider */}
+            <label className="block mb-4 text-text-primary">
+              <div className="flex items-center justify-between mb-1">
+                <span>Speed</span>
+                <span className="text-sm text-text-secondary">{speechRate.toFixed(1)}x</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🐢</span>
+                <input
+                  type="range"
+                  min="0.5"
+                  max="2"
+                  step="0.1"
+                  value={speechRate}
+                  onChange={(e) => setSpeechRate(parseFloat(e.target.value))}
+                  className="flex-1 h-2 bg-surface-4 rounded-lg appearance-none cursor-pointer accent-primary-default"
+                />
+                <span className="text-lg">🐇</span>
+              </div>
+            </label>
+          </div>
 
           {/* Actions */}
           <div className="flex justify-between mt-6">
