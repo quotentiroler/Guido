@@ -118,7 +118,7 @@ interface ThemeProviderProps {
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const [theme, setThemeState] = useState<Theme>("system");
   const [themeBlend, setThemeBlendState] = useState<number>(0);
-  const [marsBackground, setMarsBackgroundState] = useState<boolean>(false);
+  const [marsBackground, setMarsBackgroundState] = useState<boolean>(true);
   const [secretSpaceMode, setSecretSpaceModeState] = useState<boolean>(false);
 
   // Load theme from localforage on mount
@@ -131,7 +131,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     ]).then(([storedTheme, storedBlend, storedMarsBg, storedSecretSpace]) => {
       const blend = storedBlend ?? 0;
       const theme = storedTheme ?? "system";
-      const marsBg = storedMarsBg ?? false;
+      const marsBg = storedMarsBg ?? true;
       const secretSpace = storedSecretSpace ?? false;
       setThemeState(theme);
       setThemeBlendState(blend);
