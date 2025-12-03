@@ -173,22 +173,26 @@ const SettingsDropdown: React.FC<SettingsDropdownProps> = ({
             </button>
           )}
 
-          {/* Divider */}
-          <div className="my-1 border-t border-border" />
+          {/* AI Setup - Only visible in Secret Space Mode */}
+          {secretSpaceMode && (
+            <>
+              {/* Divider */}
+              <div className="my-1 border-t border-border" />
 
-          {/* AI Setup */}
-          <button
-            type="button"
-            onClick={() => {
-              setIsOpen(false);
-              setShowThemeSubmenu(false);
-              onOpenAISetup();
-            }}
-            className="w-full px-4 py-2 text-left text-base text-text-secondary hover:bg-surface-hover flex items-center gap-2"
-          >
-            <span>🤖</span>
-            <span>AI Setup</span>
-          </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsOpen(false);
+                  setShowThemeSubmenu(false);
+                  onOpenAISetup();
+                }}
+                className="w-full px-4 py-2 text-left text-base text-text-secondary hover:bg-surface-hover flex items-center gap-2"
+              >
+                <span>🤖</span>
+                <span>AI Setup</span>
+              </button>
+            </>
+          )}
 
           {/* Chat History */}
           <button
