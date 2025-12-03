@@ -385,7 +385,7 @@ export function convertMessagesToAISDK(messages: ChatMessageWithTools[]) {
             // Try to parse result as JSON, otherwise use as text
             let output: { type: string; value: unknown };
             try {
-              const parsed = JSON.parse(tr.result);
+              const parsed: unknown = JSON.parse(tr.result);
               output = { type: 'json', value: parsed };
             } catch {
               output = { type: 'text', value: tr.result };

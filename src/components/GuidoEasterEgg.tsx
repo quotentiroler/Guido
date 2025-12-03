@@ -216,7 +216,7 @@ const GuidoEasterEgg: React.FC<GuidoEasterEggProps> = ({ isActive, onComplete })
         processLine(line, index);
         
         // Strip emojis for cleaner speech
-        const cleanText = line.text.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F600}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{1FA00}-\u{1FAFF}]|[✕✓★⬇️]/gu, '').trim();
+        const cleanText = line.text.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F600}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{1FA00}-\u{1FAFF}]|[✕✓★]|⬇️/gu, '').trim();
         
         // Check if this is an action description (wrapped in asterisks like *action*)
         const isActionDescription = /^\*.*\*$/.test(cleanText);
@@ -244,7 +244,6 @@ const GuidoEasterEgg: React.FC<GuidoEasterEggProps> = ({ isActive, onComplete })
     void runAnimation();
 
     return () => {
-      console.log('[EasterEgg] CLEANUP running!');
       animationCancelledRef.current = true;
       clearTimeout(overlayTimeout);
       // Reset state when deactivating

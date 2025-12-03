@@ -591,7 +591,7 @@ function executeToolInternal(
       // Parse value - try JSON for arrays, otherwise use as string
       let parsedValue: Field['value'];
       try {
-        const parsed = JSON.parse(valueStr);
+        const parsed: unknown = JSON.parse(valueStr);
         if (Array.isArray(parsed)) {
           parsedValue = parsed as string[] | number[];
         } else if (typeof parsed === 'boolean' || typeof parsed === 'number') {
@@ -659,11 +659,12 @@ function executeToolInternal(
       );
       
       if (matches.length === 0) {
-        return { message: `No fields found matching "${args.query}"`, results: [] };
+        return { message: `No fields found matching "${query}"`, results: [] };
       }
       
       return {
-        message: `Found ${matches.length} field(s) matching "${args.query}"`,
+        message: `Found ${matches.length} field(s) matching "${query}"`,
+
         results: matches.map(f => ({
           name: f.name,
           info: f.info,

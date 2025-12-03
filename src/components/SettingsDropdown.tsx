@@ -216,20 +216,23 @@ const SettingsDropdown: React.FC<SettingsDropdownProps> = ({
               // Confirm before clearing using fancy confirm
               confirm(
                 'Are you sure you want to clear all local data? This will remove your template, settings, AI configuration, and preferences. This cannot be undone.',
-                async () => {
+                () => {
                   setIsClearing(true);
-                  try {
-                    await localforage.clear();
-                    alert('All local data has been cleared. Refreshing...');
-                    // Reload the page after a short delay to apply changes
-                    setTimeout(() => {
-                      window.location.reload();
-                    }, 500);
-                  } catch (error) {
-                    console.error('Failed to clear data:', error);
-                    alert('Failed to clear data');
-                    setIsClearing(false);
-                  }
+                  localforage.clear()
+                    .then(() => {
+                      alert('All local data has been cleared. Refreshing...');
+                      // Reload the page after a short delay to apply changes
+                      setTimeout(() => {
+                        window.location.reload();
+                      }, 500);
+                    })
+                    .catch((error: unknown) => {
+                      console.error('Failed to clear data:', error);
+                      alert('Failed to clear data');
+                    })
+                    .finally(() => {
+                      setIsClearing(false);
+                    });
                 }
               );
             }}

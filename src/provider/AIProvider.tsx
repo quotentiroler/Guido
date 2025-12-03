@@ -67,25 +67,25 @@ export const AIProvider: React.FC<AIProviderProps> = ({ children }) => {
     void loadData();
   }, [speech]);
 
-  const setConfig = (newConfig: LLMConfig | null) => {
+  const setConfig = useCallback((newConfig: LLMConfig | null) => {
     setConfigState(newConfig);
     if (newConfig) {
       void localforage.setItem(STORAGE_KEY, newConfig);
     } else {
       void localforage.removeItem(STORAGE_KEY);
     }
-  };
+  }, []);
 
   const isConfigured = config !== null && (
     config.provider === 'ollama' || // Ollama doesn't need API key
     Boolean(config.apiKey && config.apiKey.length > 0)
   );
 
-  const openChatAt = (position: ChatPosition) => {
+  const openChatAt = useCallback((position: ChatPosition) => {
     setChatPosition(position);
     setChatPhase('input');
     setIsChatOpen(true);
-  };
+  }, []);
 
   const addChatHistoryItem = useCallback((item: Omit<ChatHistoryItem, 'id' | 'timestamp'>) => {
     const newItem: ChatHistoryItem = {
