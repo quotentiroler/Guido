@@ -9,7 +9,13 @@
     "moduleDetection": "force",
     "noUncheckedSideEffectImports": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@guido/core": ["./packages/core/src/index.ts"],
+      "@guido/types": ["./packages/types/src/index.ts"],
+      "@guido/types/*": ["./packages/types/src/*"],
+      "@guido/logger": ["./packages/logger/src/index.ts"],
+      "@guido/mcp-server": ["./packages/mcp-server/src/index.ts"],
+      "@guido/mcp-server/definitions": ["./packages/mcp-server/src/exports.ts"]
     }
   },
   "include": ["src"]
