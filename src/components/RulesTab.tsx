@@ -23,12 +23,14 @@ const RulesTab: React.FC = () => {
   const currentRuleSet = ruleSets[selectedRuleSetIndex];
   
   // Calculate inherited rules count for each ruleset
+  // Use a derived template with current ruleSets to avoid stale data after rule edits
   const ruleSetStats = useMemo(() => {
+    const currentTemplate = { ...template, ruleSets };
     return ruleSets.map((rs, index) => {
       const ownRules = rs.rules.length;
       let totalRules = ownRules;
       try {
-        totalRules = resolveRuleSetRules(template, index).length;
+        totalRules = resolveRuleSetRules(currentTemplate, index).length;
       } catch {
         // Ignore inheritance errors for display
       }

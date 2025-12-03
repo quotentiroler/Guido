@@ -50,7 +50,7 @@ const FancyAlert: React.FC<FancyAlertProps> = ({ message, onClose }) => {
         <div className="flex justify-center mb-3 sm:mb-4">
           <img src="/Guido/guido_icon.png" alt="Guido" className="h-10 sm:h-12 opacity-90" />
         </div>
-        <div className="markdown-content mb-3 sm:mb-4 max-h-[60vh] overflow-y-auto overflow-x-auto text-text-primary text-sm sm:text-base text-center">
+        <div className={`markdown-content mb-3 sm:mb-4 max-h-[60vh] overflow-y-auto overflow-x-auto text-text-primary text-sm sm:text-base ${isComplexContent ? 'text-left' : 'text-center'}`}>
           <Interweave content={sanitizedMessage} />
         </div>
         <div className="flex justify-center">
