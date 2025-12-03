@@ -1,0 +1,767 @@
+{
+  "name": "Guido Registry Definition",
+  "version": "1.0.0",
+  "description": "Schema for defining how Guido interacts with template registries",
+  "owner": "Max",
+  "fileName": "custom.registry.json",
+  "application": "Guido",
+  "docs": "https://github.com/quotentiroler/Guido",
+  "fields": [
+    {
+      "name": "$schema",
+      "value": "./registry.schema.json",
+      "info": "Reference to this schema",
+      "example": "",
+      "range": "string",
+      "checked": true
+    },
+    {
+      "name": "name",
+      "value": "",
+      "info": "Human-readable name of the registry",
+      "example": "",
+      "range": "string(1..)",
+      "checked": true
+    },
+    {
+      "name": "description",
+      "value": "",
+      "info": "Description of what this registry contains",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "baseUrl",
+      "value": "",
+      "info": "Base URL for API calls (e.g., 'https://api.github.com')",
+      "example": "https://example.com",
+      "range": "url",
+      "checked": true
+    },
+    {
+      "name": "headers",
+      "value": "",
+      "info": "Default headers to include in all requests",
+      "example": "{}",
+      "range": "string"
+    },
+    {
+      "name": "api.search.path",
+      "value": "",
+      "info": "URL path with placeholders: {query}, {name}, {version}, {owner}, {repo}",
+      "example": "",
+      "range": "string",
+      "checked": true
+    },
+    {
+      "name": "api.search.method",
+      "value": "GET",
+      "info": "",
+      "example": "GET",
+      "range": "GET||POST",
+      "checked": true
+    },
+    {
+      "name": "api.search.filter.suffix",
+      "value": "",
+      "info": "Text to append to the search query (e.g., 'topic:guido-template')",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.search.filter.prefix",
+      "value": "",
+      "info": "Text to prepend to the search query",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.search.filter.enabled",
+      "value": "true",
+      "info": "Whether the filter is enabled. Set to false to disable filtering.",
+      "example": "true",
+      "range": "boolean"
+    },
+    {
+      "name": "api.search.queryParams",
+      "value": "",
+      "info": "Query parameters. Values can include placeholders like {query}, {limit}, {page}",
+      "example": "{}",
+      "range": "string"
+    },
+    {
+      "name": "api.search.body",
+      "value": "",
+      "info": "Request body template for POST requests",
+      "example": "{}",
+      "range": "string"
+    },
+    {
+      "name": "api.search.headers",
+      "value": "",
+      "info": "Additional headers for this endpoint",
+      "example": "{}",
+      "range": "string"
+    },
+    {
+      "name": "api.search.pagination.type",
+      "value": "",
+      "info": "Pagination strategy",
+      "example": "offset",
+      "range": "offset||cursor||page",
+      "checked": true
+    },
+    {
+      "name": "api.search.pagination.params.page",
+      "value": "",
+      "info": "Page number parameter name",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.search.pagination.params.limit",
+      "value": "",
+      "info": "Items per page parameter name",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.search.pagination.params.offset",
+      "value": "",
+      "info": "Offset parameter name",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.search.pagination.params.cursor",
+      "value": "",
+      "info": "Cursor parameter name",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.search.pagination.defaultLimit",
+      "value": "20",
+      "info": "Default number of items per page",
+      "example": "20",
+      "range": "integer(1..100)"
+    },
+    {
+      "name": "api.search.response.items",
+      "value": "",
+      "info": "JSONPath to the array of results (e.g., '$.items[*]', '$[*]') or object with version keys (e.g., '$.versions')",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.search.response.item.name",
+      "value": "",
+      "info": "JSONPath to item name/title",
+      "example": "",
+      "range": "string",
+      "checked": true
+    },
+    {
+      "name": "api.search.response.item.version",
+      "value": "",
+      "info": "JSONPath to item version",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.search.response.item.description",
+      "value": "",
+      "info": "JSONPath to item description",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.search.response.item.author",
+      "value": "",
+      "info": "JSONPath to item author/owner",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.search.response.item.downloadUrl",
+      "value": "",
+      "info": "JSONPath to download URL",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.search.response.item.homepage",
+      "value": "",
+      "info": "JSONPath to homepage URL",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.search.response.item.repository",
+      "value": "",
+      "info": "JSONPath to repository URL",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.search.response.total",
+      "value": "",
+      "info": "JSONPath to total count (for pagination)",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.search.response.nextCursor",
+      "value": "",
+      "info": "JSONPath to next cursor value (for cursor pagination)",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.search.response.template",
+      "value": "",
+      "info": "JSONPath to template content in fetch response",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.list.path",
+      "value": "",
+      "info": "URL path with placeholders: {query}, {name}, {version}, {owner}, {repo}",
+      "example": "",
+      "range": "string",
+      "checked": true
+    },
+    {
+      "name": "api.list.method",
+      "value": "GET",
+      "info": "",
+      "example": "GET",
+      "range": "GET||POST",
+      "checked": true
+    },
+    {
+      "name": "api.list.filter.suffix",
+      "value": "",
+      "info": "Text to append to the search query (e.g., 'topic:guido-template')",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.list.filter.prefix",
+      "value": "",
+      "info": "Text to prepend to the search query",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.list.filter.enabled",
+      "value": "true",
+      "info": "Whether the filter is enabled. Set to false to disable filtering.",
+      "example": "true",
+      "range": "boolean"
+    },
+    {
+      "name": "api.list.queryParams",
+      "value": "",
+      "info": "Query parameters. Values can include placeholders like {query}, {limit}, {page}",
+      "example": "{}",
+      "range": "string"
+    },
+    {
+      "name": "api.list.body",
+      "value": "",
+      "info": "Request body template for POST requests",
+      "example": "{}",
+      "range": "string"
+    },
+    {
+      "name": "api.list.headers",
+      "value": "",
+      "info": "Additional headers for this endpoint",
+      "example": "{}",
+      "range": "string"
+    },
+    {
+      "name": "api.list.pagination.type",
+      "value": "",
+      "info": "Pagination strategy",
+      "example": "offset",
+      "range": "offset||cursor||page",
+      "checked": true
+    },
+    {
+      "name": "api.list.pagination.params.page",
+      "value": "",
+      "info": "Page number parameter name",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.list.pagination.params.limit",
+      "value": "",
+      "info": "Items per page parameter name",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.list.pagination.params.offset",
+      "value": "",
+      "info": "Offset parameter name",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.list.pagination.params.cursor",
+      "value": "",
+      "info": "Cursor parameter name",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.list.pagination.defaultLimit",
+      "value": "20",
+      "info": "Default number of items per page",
+      "example": "20",
+      "range": "integer(1..100)"
+    },
+    {
+      "name": "api.list.response.items",
+      "value": "",
+      "info": "JSONPath to the array of results (e.g., '$.items[*]', '$[*]') or object with version keys (e.g., '$.versions')",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.list.response.item.name",
+      "value": "",
+      "info": "JSONPath to item name/title",
+      "example": "",
+      "range": "string",
+      "checked": true
+    },
+    {
+      "name": "api.list.response.item.version",
+      "value": "",
+      "info": "JSONPath to item version",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.list.response.item.description",
+      "value": "",
+      "info": "JSONPath to item description",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.list.response.item.author",
+      "value": "",
+      "info": "JSONPath to item author/owner",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.list.response.item.downloadUrl",
+      "value": "",
+      "info": "JSONPath to download URL",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.list.response.item.homepage",
+      "value": "",
+      "info": "JSONPath to homepage URL",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.list.response.item.repository",
+      "value": "",
+      "info": "JSONPath to repository URL",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.list.response.total",
+      "value": "",
+      "info": "JSONPath to total count (for pagination)",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.list.response.nextCursor",
+      "value": "",
+      "info": "JSONPath to next cursor value (for cursor pagination)",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.list.response.template",
+      "value": "",
+      "info": "JSONPath to template content in fetch response",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.fetch.path",
+      "value": "",
+      "info": "URL path with placeholders: {query}, {name}, {version}, {owner}, {repo}",
+      "example": "",
+      "range": "string",
+      "checked": true
+    },
+    {
+      "name": "api.fetch.method",
+      "value": "GET",
+      "info": "",
+      "example": "GET",
+      "range": "GET||POST",
+      "checked": true
+    },
+    {
+      "name": "api.fetch.filter.suffix",
+      "value": "",
+      "info": "Text to append to the search query (e.g., 'topic:guido-template')",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.fetch.filter.prefix",
+      "value": "",
+      "info": "Text to prepend to the search query",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.fetch.filter.enabled",
+      "value": "true",
+      "info": "Whether the filter is enabled. Set to false to disable filtering.",
+      "example": "true",
+      "range": "boolean"
+    },
+    {
+      "name": "api.fetch.queryParams",
+      "value": "",
+      "info": "Query parameters. Values can include placeholders like {query}, {limit}, {page}",
+      "example": "{}",
+      "range": "string"
+    },
+    {
+      "name": "api.fetch.body",
+      "value": "",
+      "info": "Request body template for POST requests",
+      "example": "{}",
+      "range": "string"
+    },
+    {
+      "name": "api.fetch.headers",
+      "value": "",
+      "info": "Additional headers for this endpoint",
+      "example": "{}",
+      "range": "string"
+    },
+    {
+      "name": "api.fetch.pagination.type",
+      "value": "",
+      "info": "Pagination strategy",
+      "example": "offset",
+      "range": "offset||cursor||page",
+      "checked": true
+    },
+    {
+      "name": "api.fetch.pagination.params.page",
+      "value": "",
+      "info": "Page number parameter name",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.fetch.pagination.params.limit",
+      "value": "",
+      "info": "Items per page parameter name",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.fetch.pagination.params.offset",
+      "value": "",
+      "info": "Offset parameter name",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.fetch.pagination.params.cursor",
+      "value": "",
+      "info": "Cursor parameter name",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.fetch.pagination.defaultLimit",
+      "value": "20",
+      "info": "Default number of items per page",
+      "example": "20",
+      "range": "integer(1..100)"
+    },
+    {
+      "name": "api.fetch.response.items",
+      "value": "",
+      "info": "JSONPath to the array of results (e.g., '$.items[*]', '$[*]') or object with version keys (e.g., '$.versions')",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.fetch.response.item.name",
+      "value": "",
+      "info": "JSONPath to item name/title",
+      "example": "",
+      "range": "string",
+      "checked": true
+    },
+    {
+      "name": "api.fetch.response.item.version",
+      "value": "",
+      "info": "JSONPath to item version",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.fetch.response.item.description",
+      "value": "",
+      "info": "JSONPath to item description",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.fetch.response.item.author",
+      "value": "",
+      "info": "JSONPath to item author/owner",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.fetch.response.item.downloadUrl",
+      "value": "",
+      "info": "JSONPath to download URL",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.fetch.response.item.homepage",
+      "value": "",
+      "info": "JSONPath to homepage URL",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.fetch.response.item.repository",
+      "value": "",
+      "info": "JSONPath to repository URL",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.fetch.response.total",
+      "value": "",
+      "info": "JSONPath to total count (for pagination)",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.fetch.response.nextCursor",
+      "value": "",
+      "info": "JSONPath to next cursor value (for cursor pagination)",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.fetch.response.template",
+      "value": "",
+      "info": "JSONPath to template content in fetch response",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.versions.path",
+      "value": "",
+      "info": "URL path with placeholders: {name}, {owner}, {repo}",
+      "example": "",
+      "range": "string",
+      "checked": true
+    },
+    {
+      "name": "api.versions.method",
+      "value": "GET",
+      "info": "",
+      "example": "GET",
+      "range": "GET||POST",
+      "checked": true
+    },
+    {
+      "name": "api.versions.queryParams",
+      "value": "",
+      "info": "Query parameters",
+      "example": "{}",
+      "range": "string"
+    },
+    {
+      "name": "api.versions.headers",
+      "value": "",
+      "info": "Additional headers for this endpoint",
+      "example": "{}",
+      "range": "string"
+    },
+    {
+      "name": "api.versions.response.items",
+      "value": "",
+      "info": "JSONPath to the array of version strings or object with version keys (e.g., '$.versions')",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "api.versions.response.item.version",
+      "value": "",
+      "info": "JSONPath to version string within each item",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "auth.type",
+      "value": "none",
+      "info": "Authentication type",
+      "example": "none",
+      "range": "none||bearer||apiKey||basic"
+    },
+    {
+      "name": "auth.location",
+      "value": "header",
+      "info": "Where to send the auth token",
+      "example": "header",
+      "range": "header||query"
+    },
+    {
+      "name": "auth.name",
+      "value": "",
+      "info": "Header or query param name for the auth token (e.g., 'Authorization', 'api_key')",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "auth.prefix",
+      "value": "",
+      "info": "Prefix for the token value (e.g., 'Bearer ', 'token ')",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "templateDetection.filePattern",
+      "value": "",
+      "info": "Glob pattern for template files (e.g., '*.guido.json')",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "templateDetection.keyword",
+      "value": "",
+      "info": "Package keyword that indicates a Guido template",
+      "example": "",
+      "range": "string"
+    },
+    {
+      "name": "templateDetection.packageType",
+      "value": "",
+      "info": "Package type field value for templates",
+      "example": "",
+      "range": "string"
+    }
+  ],
+  "ruleSets": [
+    {
+      "name": "Default",
+      "description": "Auto-generated from JSON Schema",
+      "tags": [
+        "generated"
+      ],
+      "rules": [
+        {
+          "targets": [
+            {
+              "name": "name",
+              "state": "set"
+            },
+            {
+              "name": "baseUrl",
+              "state": "set"
+            },
+            {
+              "name": "api.search.path",
+              "state": "set"
+            },
+            {
+              "name": "api.search.method",
+              "state": "set"
+            },
+            {
+              "name": "api.search.pagination.type",
+              "state": "set"
+            },
+            {
+              "name": "api.search.response.item.name",
+              "state": "set"
+            },
+            {
+              "name": "api.list.path",
+              "state": "set"
+            },
+            {
+              "name": "api.list.method",
+              "state": "set"
+            },
+            {
+              "name": "api.list.pagination.type",
+              "state": "set"
+            },
+            {
+              "name": "api.list.response.item.name",
+              "state": "set"
+            },
+            {
+              "name": "api.fetch.path",
+              "state": "set"
+            },
+            {
+              "name": "api.fetch.method",
+              "state": "set"
+            },
+            {
+              "name": "api.fetch.pagination.type",
+              "state": "set"
+            },
+            {
+              "name": "api.fetch.response.item.name",
+              "state": "set"
+            },
+            {
+              "name": "api.versions.path",
+              "state": "set"
+            },
+            {
+              "name": "api.versions.method",
+              "state": "set"
+            }
+          ]
+        },
+        {
+          "targets": [
+            {
+              "name": "$schema",
+              "state": "set_to_value",
+              "value": "./registry.schema.json"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

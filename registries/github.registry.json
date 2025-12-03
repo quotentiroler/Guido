@@ -1,0 +1,83 @@
+{
+  "$schema": "./registry.schema.json",
+  "name": "GitHub Packages",
+  "description": "GitHub Packages registry and repository search for Guido templates",
+  "baseUrl": "https://api.github.com",
+  "headers": {
+    "Accept": "application/vnd.github.v3+json",
+    "X-GitHub-Api-Version": "2022-11-28"
+  },
+  "api": {
+    "search": {
+      "path": "/search/repositories",
+      "method": "GET",
+      "filter": {
+        "suffix": "topic:guido-template",
+        "enabled": false
+      },
+      "queryParams": {
+        "q": "{query}",
+        "per_page": "{limit}",
+        "page": "{page}"
+      },
+      "pagination": {
+        "type": "page",
+        "params": {
+          "page": "page",
+          "limit": "per_page"
+        },
+        "defaultLimit": 30
+      },
+      "response": {
+        "items": "$.items[*]",
+        "item": {
+          "name": "full_name",
+          "version": "default_branch",
+          "description": "description",
+          "author": "owner.login",
+          "homepage": "html_url",
+          "repository": "clone_url"
+        },
+        "total": "$.total_count"
+      }
+    },
+    "fetch": {
+      "path": "/repos/{owner}/{repo}/contents",
+      "method": "GET",
+      "queryParams": {
+        "ref": "{version}"
+      },
+      "headers": {
+        "Accept": "application/vnd.github.v3+json"
+      },
+      "response": {
+        "items": "$[*]",
+        "item": {
+          "name": "name",
+          "downloadUrl": "download_url"
+        }
+      }
+    },
+    "versions": {
+      "path": "/repos/{owner}/{repo}/releases",
+      "method": "GET",
+      "response": {
+        "items": "$[*]",
+        "item": {
+          "version": "tag_name",
+          "downloadUrl": "zipball_url"
+        }
+      }
+    }
+  },
+  "auth": {
+    "type": "bearer",
+    "location": "header",
+    "name": "Authorization",
+    "prefix": "Bearer "
+  },
+  "templateDetection": {
+    "filePattern": "*.guido.json",
+    "keyword": "guido-template"
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "$schema": "./registry.schema.json",
+  "name": "NPM Registry",
+  "description": "Node Package Manager registry for JavaScript/TypeScript packages",
+  "baseUrl": "https://registry.npmjs.org",
+  "headers": {
+    "Accept": "application/json"
+  },
+  "api": {
+    "search": {
+      "path": "/-/v1/search",
+      "method": "GET",
+      "filter": {
+        "suffix": "keywords:guido-template",
+        "enabled": false
+      },
+      "queryParams": {
+        "text": "{query}",
+        "size": "{limit}"
+      },
+      "pagination": {
+        "type": "offset",
+        "params": {
+          "offset": "from",
+          "limit": "size"
+        },
+        "defaultLimit": 20
+      },
+      "response": {
+        "items": "$.objects[*].package",
+        "item": {
+          "name": "name",
+          "version": "version",
+          "description": "description",
+          "author": "author.name",
+          "homepage": "links.homepage",
+          "repository": "links.repository"
+        },
+        "total": "$.total"
+      }
+    },
+    "fetch": {
+      "path": "/{name}",
+      "method": "GET",
+      "response": {
+        "item": {
+          "name": "name",
+          "version": "dist-tags.latest",
+          "description": "description",
+          "author": "author.name"
+        }
+      }
+    },
+    "versions": {
+      "path": "/{name}",
+      "method": "GET",
+      "response": {
+        "items": "$.versions",
+        "item": {
+          "version": "version",
+          "downloadUrl": "dist.tarball"
+        }
+      }
+    }
+  },
+  "auth": {
+    "type": "bearer",
+    "location": "header",
+    "name": "Authorization",
+    "prefix": "Bearer "
+  },
+  "templateDetection": {
+    "keyword": "guido-template",
+    "filePattern": "*.guido.json"
+  }
+}
