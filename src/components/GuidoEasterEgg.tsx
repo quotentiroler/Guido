@@ -222,8 +222,11 @@ const GuidoEasterEgg: React.FC<GuidoEasterEggProps> = ({ isActive, onComplete })
         const isActionDescription = /^\*.*\*$/.test(cleanText);
         
         if (cleanText && !isActionDescription) {
-          // Wait for speech to complete before moving to next line
-          await speakResponseAsyncRef.current(cleanText);
+          // Wait for BOTH speech to complete AND minimum duration to pass
+          // This ensures proper pacing even if speech is disabled/unavailable
+          const speechPromise = speakResponseAsyncRef.current(cleanText);
+          const durationPromise = new Promise(resolve => setTimeout(resolve, line.duration));
+          await Promise.all([speechPromise, durationPromise]);
         } else {
           // For action descriptions, just wait the line's duration
           await new Promise(resolve => setTimeout(resolve, line.duration));
