@@ -1,0 +1,96 @@
+name: PR Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linting
+        run: npm run lint
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build project
+        run: npm run build
+
+      - name: Check bundle size
+        run: |
+          # Parse Vite build output for bundle sizes
+          JS_SIZE=$(find dist/assets -name "*.js" -exec du -cb {} + | grep total | awk '{print $1}')
+          CSS_SIZE=$(find dist/assets -name "*.css" -exec du -cb {} + | grep total | awk '{print $1}')
+          
+          JS_KB=$(awk "BEGIN {printf \"%.2f\", $JS_SIZE/1024}")
+          CSS_KB=$(awk "BEGIN {printf \"%.2f\", $CSS_SIZE/1024}")
+          TOTAL_KB=$(awk "BEGIN {printf \"%.2f\", ($JS_SIZE+$CSS_SIZE)/1024}")
+          
+          echo "## Build Size Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Asset | Size |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|------|" >> $GITHUB_STEP_SUMMARY
+          echo "| JavaScript | ${JS_KB} kB |" >> $GITHUB_STEP_SUMMARY
+          echo "| CSS | ${CSS_KB} kB |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Total** | **${TOTAL_KB} kB** |" >> $GITHUB_STEP_SUMMARY
+
+  commitlint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check commit messages
+        run: |
+          # Get commits in this PR
+          COMMITS=$(git log origin/main..HEAD --pretty=format:"%s" 2>/dev/null || git log -1 --pretty=format:"%s")
+          
+          echo "Checking commit messages..."
+          VALID=true
+          
+          while IFS= read -r msg; do
+            if [ -n "$msg" ]; then
+              # Check for conventional commit format
+              if ! echo "$msg" | grep -qE "^(feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert)(\(.+\))?: .+"; then
+                # Allow merge commits and version commits
+                if ! echo "$msg" | grep -qE "^(Merge|chore\(release\)|v[0-9])"; then
+                  echo "❌ Invalid commit message: $msg"
+                  echo "   Expected format: type(scope): description"
+                  VALID=false
+                fi
+              else
+                echo "✅ $msg"
+              fi
+            fi
+          done <<< "$COMMITS"
+          
+          if [ "$VALID" = false ]; then
+            echo ""
+            echo "Some commit messages don't follow conventional commits format."
+            echo "See: https://www.conventionalcommits.org/"
+            echo ""
+            echo "Valid types: feat, fix, docs, style, refactor, test, chore, perf, ci, build, revert"
+            echo "Example: feat(rules): add support for regex validation"
+            exit 1
+          fi
+          
+          echo ""
+          echo "All commit messages are valid! ✅"

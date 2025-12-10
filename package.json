@@ -3,7 +3,30 @@
   "private": true,
   "version": "1.0.0-alpha",
   "type": "module",
-  "homepage": "http://quotentiroler.github.io/Guido/",
+  "description": "A visual configuration management tool for creating, editing, and validating application settings with intelligent rule-based automation",
+  "license": "Apache-2.0",
+  "author": "Maximilian Nussbaumer",
+  "homepage": "https://quotentiroler.github.io/Guido/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/quotentiroler/Guido.git"
+  },
+  "bugs": {
+    "url": "https://github.com/quotentiroler/Guido/issues"
+  },
+  "keywords": [
+    "configuration",
+    "config",
+    "template",
+    "settings",
+    "rules",
+    "validation",
+    "json",
+    "yaml",
+    "editor",
+    "mcp",
+    "ai"
+  ],
   "workspaces": [
     "packages/*"
   ],

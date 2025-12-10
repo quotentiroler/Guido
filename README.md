@@ -255,3 +255,40 @@ npm run guido-to-schema "template.guido.json" -o "output.schema.json"
 - **Build**: Vite, npm workspaces (monorepo)
 - **Testing**: Vitest
 - **Deployment**: GitHub Pages
+
+## Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+Before contributing, please read our [Code of Conduct](CODE_OF_CONDUCT.md).
+
+### Quick Start for Contributors
+
+```bash
+# Fork and clone the repo
+git clone https://github.com/YOUR_USERNAME/Guido.git
+cd Guido
+
+# Install dependencies
+npm install
+
+# Run tests
+npm test
+
+# Start development server
+npm run dev
+```
+
+## License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+```
+Copyright 2024-2025 Maximilian Nussbaumer
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+```

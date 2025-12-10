@@ -1,0 +1,212 @@
+name: Release Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 'Version bump type'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+          - prerelease
+        default: 'patch'
+      prerelease_type:
+        description: 'Prerelease identifier (only for prerelease type)'
+        required: false
+        type: choice
+        options:
+          - alpha
+          - beta
+          - rc
+        default: 'alpha'
+      custom_version:
+        description: 'Custom version (overrides version_type if provided, e.g., 2.0.0-beta.1)'
+        required: false
+        type: string
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Calculate new version
+        id: version
+        run: |
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          echo "Current version: $CURRENT_VERSION"
+          
+          if [ -n "${{ inputs.custom_version }}" ]; then
+            NEW_VERSION="${{ inputs.custom_version }}"
+            echo "Using custom version: $NEW_VERSION"
+          else
+            # Parse current version
+            # Handle versions like 1.0.0, 1.0.0-alpha, 1.0.0-alpha.1
+            BASE_VERSION=$(echo "$CURRENT_VERSION" | sed -E 's/^([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+            MAJOR=$(echo "$BASE_VERSION" | cut -d. -f1)
+            MINOR=$(echo "$BASE_VERSION" | cut -d. -f2)
+            PATCH=$(echo "$BASE_VERSION" | cut -d. -f3)
+            
+            case "${{ inputs.version_type }}" in
+              major)
+                MAJOR=$((MAJOR + 1))
+                MINOR=0
+                PATCH=0
+                NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+                ;;
+              minor)
+                MINOR=$((MINOR + 1))
+                PATCH=0
+                NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+                ;;
+              patch)
+                PATCH=$((PATCH + 1))
+                NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+                ;;
+              prerelease)
+                PRERELEASE_ID="${{ inputs.prerelease_type }}"
+                # Check if current version has same prerelease type
+                if [[ "$CURRENT_VERSION" == *"-$PRERELEASE_ID"* ]]; then
+                  # Increment prerelease number
+                  PRERELEASE_NUM=$(echo "$CURRENT_VERSION" | grep -oP "(?<=-$PRERELEASE_ID\.)\d+" || echo "0")
+                  PRERELEASE_NUM=$((PRERELEASE_NUM + 1))
+                  NEW_VERSION="$MAJOR.$MINOR.$PATCH-$PRERELEASE_ID.$PRERELEASE_NUM"
+                else
+                  # Start new prerelease
+                  NEW_VERSION="$MAJOR.$MINOR.$PATCH-$PRERELEASE_ID"
+                fi
+                ;;
+            esac
+          fi
+          
+          echo "New version: $NEW_VERSION"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          
+          # Determine if prerelease
+          if [[ "$NEW_VERSION" == *"-"* ]]; then
+            echo "is_prerelease=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_prerelease=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update package.json versions
+        run: |
+          NEW_VERSION="${{ steps.version.outputs.new_version }}"
+          
+          # Update root package.json
+          npm version "$NEW_VERSION" --no-git-tag-version
+          
+          # Update workspace packages
+          for pkg in packages/*/package.json; do
+            if [ -f "$pkg" ]; then
+              node -e "
+                const fs = require('fs');
+                const pkg = JSON.parse(fs.readFileSync('$pkg', 'utf8'));
+                pkg.version = '$NEW_VERSION';
+                fs.writeFileSync('$pkg', JSON.stringify(pkg, null, 2) + '\n');
+              "
+              echo "Updated $pkg to $NEW_VERSION"
+            fi
+          done
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build project
+        run: npm run build
+
+      - name: Commit version bump
+        run: |
+          git add package.json package-lock.json packages/*/package.json
+          git commit -m "chore(release): v${{ steps.version.outputs.new_version }}"
+          git push
+
+      - name: Create and push tag
+        run: |
+          git tag "v${{ steps.version.outputs.new_version }}"
+          git push origin "v${{ steps.version.outputs.new_version }}"
+
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          # Get commits since last tag
+          LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          
+          if [ -n "$LAST_TAG" ]; then
+            COMMITS=$(git log $LAST_TAG..HEAD --pretty=format:"- %s (%h)" --no-merges)
+          else
+            COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges -20)
+          fi
+          
+          # Categorize commits
+          FEATURES=$(echo "$COMMITS" | grep -E "^- feat" || true)
+          FIXES=$(echo "$COMMITS" | grep -E "^- fix" || true)
+          DOCS=$(echo "$COMMITS" | grep -E "^- docs" || true)
+          CHORES=$(echo "$COMMITS" | grep -E "^- chore" || true)
+          OTHER=$(echo "$COMMITS" | grep -vE "^- (feat|fix|docs|chore)" || true)
+          
+          # Build release notes
+          NOTES="## What's Changed\n\n"
+          
+          if [ -n "$FEATURES" ]; then
+            NOTES+="### ✨ Features\n$FEATURES\n\n"
+          fi
+          
+          if [ -n "$FIXES" ]; then
+            NOTES+="### 🐛 Bug Fixes\n$FIXES\n\n"
+          fi
+          
+          if [ -n "$DOCS" ]; then
+            NOTES+="### 📚 Documentation\n$DOCS\n\n"
+          fi
+          
+          if [ -n "$OTHER" ]; then
+            NOTES+="### 🔧 Other Changes\n$OTHER\n\n"
+          fi
+          
+          # Save to file for the release action
+          echo -e "$NOTES" > release_notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.new_version }}
+          name: Guido v${{ steps.version.outputs.new_version }}
+          body_path: release_notes.md
+          draft: false
+          prerelease: ${{ steps.version.outputs.is_prerelease }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Summary
+        run: |
+          echo "## Release Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Released version: **v${{ steps.version.outputs.new_version }}**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Prerelease: ${{ steps.version.outputs.is_prerelease }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Tag: \`v${{ steps.version.outputs.new_version }}\`" >> $GITHUB_STEP_SUMMARY
