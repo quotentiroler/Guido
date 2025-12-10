@@ -34,7 +34,7 @@ describe('validateRules', () => {
       expect(result.isValid).toBe(true);
     });
 
-    it('should detect contradiction in contains values', () => {
+    it('should allow multiple contains values (they are additive)', () => {
       const rules: Rule[] = [
         {
           conditions: [{ name: 'Field1', state: RuleState.Set }],
@@ -46,8 +46,7 @@ describe('validateRules', () => {
         },
       ];
       const result = validateRules(rules);
-      expect(result.isValid).toBe(false);
-      expect(result.errors.some(e => e.includes('conflicting values'))).toBe(true);
+      expect(result.isValid).toBe(true); // Contains values are additive, not contradictory
     });
 
     it('should allow same contains value under same conditions', () => {

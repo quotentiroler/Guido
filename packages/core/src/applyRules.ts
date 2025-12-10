@@ -271,6 +271,33 @@ export const applyTarget = (field: Field, target: RuleDomain): void => {
           field.value = target.value;
         }
         field.checked = true;
+      } else if (!shouldApply && target.value) {
+        // Handle "not contains" - remove the value from the field
+        if (Array.isArray(field.value)) {
+          const arrValue = field.value as (string | number)[];
+          field.value = arrValue.filter(v => v !== target.value) as string[];
+        } else if (typeof field.value === 'string') {
+          // Try to parse as JSON array first
+          try {
+            const parsedValue: unknown = JSON.parse(field.value);
+            if (Array.isArray(parsedValue)) {
+              // Remove value from array if present
+              const typedArray = parsedValue as (string | number)[];
+              const filtered = typedArray.filter(v => v !== target.value);
+              field.value = JSON.stringify(filtered);
+            } else {
+              // Not an array, treat as string - remove the substring
+              field.value = field.value.replace(new RegExp(`\\s*${target.value}\\s*`, 'g'), ' ').trim();
+            }
+          } catch {
+            // Not valid JSON, treat as string - remove the substring
+            field.value = field.value.replace(new RegExp(`\\s*${target.value}\\s*`, 'g'), ' ').trim();
+          }
+        }
+        // If the field is now empty, uncheck it
+        if (field.value === '' || field.value === '[]') {
+          field.checked = false;
+        }
       }
       break;
     default:

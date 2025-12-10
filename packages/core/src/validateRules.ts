@@ -235,8 +235,8 @@ function detectContradictions(rules: Rule[]): string[] {
           else if (t1.state !== t2.state) {
             errors.push(`Contradiction detected for field "${fieldName}": has conflicting states (${t1.state} vs ${t2.state}) under the same conditions`);
           }
-          // Check for value contradiction (for set_to_value and contains)
-          else if ((t1.state === RuleState.SetToValue || t1.state === RuleState.Contains) && t1.value !== t2.value) {
+          // Check for value contradiction (only for set_to_value, not contains - contains values are additive)
+          else if (t1.state === RuleState.SetToValue && t1.value !== t2.value) {
             errors.push(`Contradiction detected for field "${fieldName}": has conflicting values ("${t1.value}" vs "${t2.value}") under the same conditions`);
           }
         }

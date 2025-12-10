@@ -165,6 +165,58 @@ describe('applyRules', () => {
       expect(stringField?.value).toBe('hello');
       expect(stringField?.checked).toBe(true);
     });
+
+    it('should remove value from JSON array field with not flag', () => {
+      const fields: Field[] = [
+        { name: 'Condition', value: 'true', checked: true, info: '', example: '', range: '' },
+        { name: 'ArrayField', value: '["value1","value2","value3"]', checked: true, info: '', example: '', range: '' },
+      ];
+      const rules: Rule[] = [
+        {
+          conditions: [{ name: 'Condition', state: RuleState.Set }],
+          targets: [{ name: 'ArrayField', state: RuleState.Contains, value: 'value2', not: true }],
+        },
+      ];
+
+      const result = applyRules(fields, rules);
+      const arrayField = result.updatedFields.find(f => f.name === 'ArrayField');
+      expect(arrayField?.value).toBe('["value1","value3"]');
+    });
+
+    it('should remove substring from string field with not flag', () => {
+      const fields: Field[] = [
+        { name: 'Condition', value: 'true', checked: true, info: '', example: '', range: '' },
+        { name: 'StringField', value: 'hello world today', checked: true, info: '', example: '', range: '' },
+      ];
+      const rules: Rule[] = [
+        {
+          conditions: [{ name: 'Condition', state: RuleState.Set }],
+          targets: [{ name: 'StringField', state: RuleState.Contains, value: 'world', not: true }],
+        },
+      ];
+
+      const result = applyRules(fields, rules);
+      const stringField = result.updatedFields.find(f => f.name === 'StringField');
+      expect(stringField?.value).toBe('hello today');
+    });
+
+    it('should uncheck field when contains-not removes all values', () => {
+      const fields: Field[] = [
+        { name: 'Condition', value: 'true', checked: true, info: '', example: '', range: '' },
+        { name: 'ArrayField', value: '["value1"]', checked: true, info: '', example: '', range: '' },
+      ];
+      const rules: Rule[] = [
+        {
+          conditions: [{ name: 'Condition', state: RuleState.Set }],
+          targets: [{ name: 'ArrayField', state: RuleState.Contains, value: 'value1', not: true }],
+        },
+      ];
+
+      const result = applyRules(fields, rules);
+      const arrayField = result.updatedFields.find(f => f.name === 'ArrayField');
+      expect(arrayField?.value).toBe('[]');
+      expect(arrayField?.checked).toBe(false);
+    });
   });
 
   describe('Condition checking', () => {
