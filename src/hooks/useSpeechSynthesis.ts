@@ -96,6 +96,9 @@ export function useSpeechSynthesis(): UseSpeechSynthesisReturn {
       
       setVoices(mappedVoices);
       
+      // Log all available voices for debugging
+      console.log('[Guido TTS] Available voices:', mappedVoices.map(v => `${v.name} (${v.lang})`));
+      
       // Auto-select a good English voice for Guido - prefer male/robotic sounding
       if (mappedVoices.length > 0 && !selectedVoice) {
         // Prefer male voices or those with robotic-sounding names
@@ -120,7 +123,15 @@ export function useSpeechSynthesis(): UseSpeechSynthesisReturn {
         const englishVoice = mappedVoices.find(v => v.lang.startsWith('en'));
         const defaultVoice = mappedVoices.find(v => v.default);
         
-        setSelectedVoice(maleVoice || googleMaleVoice || googleVoice || englishVoice || defaultVoice || mappedVoices[0]);
+        const selected = maleVoice || googleMaleVoice || googleVoice || englishVoice || defaultVoice || mappedVoices[0];
+        console.log('[Guido TTS] Selected voice:', selected?.name, '| from options:', {
+          maleVoice: maleVoice?.name,
+          googleMaleVoice: googleMaleVoice?.name,
+          googleVoice: googleVoice?.name,
+          englishVoice: englishVoice?.name,
+          defaultVoice: defaultVoice?.name,
+        });
+        setSelectedVoice(selected);
       }
     };
 
@@ -176,10 +187,16 @@ export function useSpeechSynthesis(): UseSpeechSynthesisReturn {
     utterance.volume = overrideOptions?.volume ?? 1;
     utterance.lang = overrideOptions?.lang ?? 'en-US';
     
-    // Find and set a male/robotic voice directly
+    // Use the pre-selected voice for consistency with speakAsync
     const availableVoices = speechSynthesis.getVoices();
-    if (availableVoices.length > 0) {
-      // Priority: Microsoft David > Microsoft Mark > Google US > any male-sounding > any English
+    if (selectedVoice) {
+      const matchingVoice = availableVoices.find(v => v.name === selectedVoice.name);
+      if (matchingVoice) {
+        utterance.voice = matchingVoice;
+        console.log('[Guido TTS] speak() using pre-selected voice:', matchingVoice.name);
+      }
+    } else if (availableVoices.length > 0) {
+      // Fallback: Priority: Microsoft David > Microsoft Mark > Google US > any male-sounding > any English
       const preferredVoice = 
         availableVoices.find(v => v.name.includes('David')) ||
         availableVoices.find(v => v.name.includes('Mark')) ||
@@ -189,6 +206,7 @@ export function useSpeechSynthesis(): UseSpeechSynthesisReturn {
       
       if (preferredVoice) {
         utterance.voice = preferredVoice;
+        console.log('[Guido TTS] speak() using fallback voice:', preferredVoice.name);
       }
     }
     
@@ -207,7 +225,7 @@ export function useSpeechSynthesis(): UseSpeechSynthesisReturn {
     
     utteranceRef.current = utterance;
     speechSynthesis.speak(utterance);
-  }, [isSupported, isEnabled]);
+  }, [isSupported, isEnabled, selectedVoice]);
 
   // Async version that returns a Promise resolving when speech finishes
   const speakAsync = useCallback((text: string, overrideOptions?: SpeechSynthesisOptions): Promise<void> => {
@@ -228,9 +246,18 @@ export function useSpeechSynthesis(): UseSpeechSynthesisReturn {
       utterance.volume = overrideOptions?.volume ?? 1;
       utterance.lang = overrideOptions?.lang ?? 'en-US';
       
-      // Find and set a preferred voice
+      // Find and set a preferred voice - use selectedVoice if available (already computed)
+      // This ensures consistency with the voice selection done during initialization
       const availableVoices = speechSynthesis.getVoices();
-      if (availableVoices.length > 0) {
+      if (selectedVoice) {
+        // Use the pre-selected voice for consistency
+        const matchingVoice = availableVoices.find(v => v.name === selectedVoice.name);
+        if (matchingVoice) {
+          utterance.voice = matchingVoice;
+          console.log('[Guido TTS] Using pre-selected voice:', matchingVoice.name);
+        }
+      } else if (availableVoices.length > 0) {
+        // Fallback: find a preferred voice directly
         const preferredVoice = 
           availableVoices.find(v => v.name.includes('David')) ||
           availableVoices.find(v => v.name.includes('Mark')) ||
@@ -240,6 +267,7 @@ export function useSpeechSynthesis(): UseSpeechSynthesisReturn {
         
         if (preferredVoice) {
           utterance.voice = preferredVoice;
+          console.log('[Guido TTS] Using fallback voice:', preferredVoice.name);
         }
       }
       
@@ -265,7 +293,7 @@ export function useSpeechSynthesis(): UseSpeechSynthesisReturn {
       utteranceRef.current = utterance;
       speechSynthesis.speak(utterance);
     });
-  }, [isSupported, isEnabled]);
+  }, [isSupported, isEnabled, selectedVoice]);
 
   const cancel = useCallback(() => {
     if (!isSupported) return;
