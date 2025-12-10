@@ -23,8 +23,11 @@ export const FieldProvider: React.FC<FieldProviderProps> = ({ children }) => {
   const rules = useMemo(
     () => {
       try {
+        // Construct template with current ruleSets to ensure we use the latest rules
+        // (ruleSets state may be updated before template state syncs)
+        const currentTemplate = { ...template, ruleSets };
         // Use resolveRuleSetRules to include inherited rules from parent rulesets
-        return resolveRuleSetRules(template, selectedRuleSetIndex);
+        return resolveRuleSetRules(currentTemplate, selectedRuleSetIndex);
       } catch (e) {
         // Fall back to just the ruleset's own rules if inheritance resolution fails
         console.warn('Failed to resolve ruleset inheritance:', e);

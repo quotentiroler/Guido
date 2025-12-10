@@ -68,7 +68,10 @@ const SettingsFieldsList: React.FC<SettingsFieldsListProps> = ({
   const rules = useMemo(
     () => {
       try {
-        return resolveRuleSetRules(template, selectedRuleSetIndex);
+        // Construct template with current ruleSets to ensure we use the latest rules
+        // (ruleSets state may be updated before template state syncs)
+        const currentTemplate = { ...template, ruleSets };
+        return resolveRuleSetRules(currentTemplate, selectedRuleSetIndex);
       } catch (e) {
         console.warn('Failed to resolve ruleset inheritance:', e);
         return ruleSets[selectedRuleSetIndex]?.rules ?? [];
