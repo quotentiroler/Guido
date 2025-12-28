@@ -41,8 +41,8 @@
   html, body {
     background-color: transparent;
     color: var(--primary-text-color);
-    /* Force emoji characters like ▶▼ to render as text, not colored emoji */
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    /* Use Comfortaa as primary font with fallbacks */
+    font-family: 'Comfortaa', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     /* Prevent over-scrolling / elastic bounce */
     overscroll-behavior: none;
   }

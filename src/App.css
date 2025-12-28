@@ -1,3 +1,12 @@
+/* Comfortaa Font */
+@font-face {
+  font-family: 'Comfortaa';
+  src: url('./fonts/Comfortaa.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   color-scheme: light;
   
