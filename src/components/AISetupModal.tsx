@@ -10,8 +10,13 @@ interface AISetupModalProps {
 }
 
 const AISetupModal: React.FC<AISetupModalProps> = ({ onClose }) => {
-  const { config, setConfig, speechRate, setSpeechRate, speechVolume, setSpeechVolume, speechEnabled, setSpeechEnabled } = useAI();
-  
+  const { config, setConfig, speechRate, setSpeechRate, speechVolume, setSpeechVolume, speechEnabled, setSpeechEnabled, speechOutputDeviceId, setSpeechOutputDeviceId } = useAI();
+
+  // Collapsible speech-settings section (collapsed by default).
+  const [speechOpen, setSpeechOpen] = useState(false);
+  // Available audio output devices (populated from the browser; labels need prior mic/audio permission).
+  const [audioOutputs, setAudioOutputs] = useState<MediaDeviceInfo[]>([]);
+
   const [provider, setProvider] = useState<LLMProvider>(config?.provider || 'ollama');
   const [apiKey, setApiKey] = useState(config?.apiKey || '');
   const [baseUrl, setBaseUrl] = useState(config?.baseUrl || 'http://localhost:11434');
@@ -64,6 +69,31 @@ const AISetupModal: React.FC<AISetupModalProps> = ({ onClose }) => {
       void checkOllama();
     }
   }, [provider, baseUrl, loadModels]);
+
+  // Enumerate audio output devices when the speech section is opened. Device labels are
+  // only populated once the user has granted audio permission; otherwise we show a
+  // generic name. (setSinkId is not supported for Web Speech synthesis - see the note in
+  // the UI - so this is stored as a preference for audio playback that does support it.)
+  useEffect(() => {
+    if (!speechOpen) return;
+    const md = typeof navigator !== 'undefined' ? navigator.mediaDevices : undefined;
+    if (!md?.enumerateDevices) return;
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const devices = await md.enumerateDevices();
+        if (!cancelled) setAudioOutputs(devices.filter((d) => d.kind === 'audiooutput'));
+      } catch {
+        // enumeration can fail (permissions/unsupported); leave the list empty
+      }
+    };
+    void load();
+    md.addEventListener?.('devicechange', load);
+    return () => {
+      cancelled = true;
+      md.removeEventListener?.('devicechange', load);
+    };
+  }, [speechOpen]);
 
   const handleSave = () => {
     if (!model) {
@@ -207,12 +237,20 @@ const AISetupModal: React.FC<AISetupModalProps> = ({ onClose }) => {
             </label>
           )}
 
-          {/* Speech Settings Section */}
+          {/* Speech Settings Section (collapsible) */}
           <div className="mt-6 pt-6 border-t border-border">
-            <h3 className="text-lg font-semibold mb-4 text-text-primary flex items-center gap-2">
-              <span>🔊</span> Speech Settings
-            </h3>
-            
+            <button
+              type="button"
+              onClick={() => setSpeechOpen((o) => !o)}
+              aria-expanded={speechOpen}
+              className="w-full flex items-center justify-between text-lg font-semibold text-text-primary"
+            >
+              <span className="flex items-center gap-2"><span>🔊</span> Speech Settings</span>
+              <span className={`transition-transform ${speechOpen ? 'rotate-90' : ''}`} aria-hidden="true">▸</span>
+            </button>
+
+            {speechOpen && (
+            <div className="mt-4">
             {/* Speech Enabled Toggle */}
             <div className="flex items-center justify-between mb-4">
               <span className="text-text-primary">Enable Speech</span>
@@ -230,6 +268,28 @@ const AISetupModal: React.FC<AISetupModalProps> = ({ onClose }) => {
                 />
               </button>
             </div>
+
+            {/* Output Device */}
+            <label className="block mb-4 text-text-primary">
+              <div className="flex items-center justify-between mb-1">
+                <span>Output device</span>
+              </div>
+              <select
+                value={speechOutputDeviceId}
+                onChange={(e) => setSpeechOutputDeviceId(e.target.value)}
+                className="block w-full border rounded-default shadow-sm bg-surface-0 text-text-primary px-2 py-1.5"
+              >
+                <option value="">System default</option>
+                {audioOutputs.map((d, i) => (
+                  <option key={d.deviceId || i} value={d.deviceId}>
+                    {d.label || `Speaker ${i + 1}`}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-text-secondary mt-1">
+                Browser speech (Web Speech API) plays through the system default output; this preference applies to audio playback where the browser supports device selection.
+              </p>
+            </label>
 
             {/* Volume Slider */}
             <label className="block mb-4 text-text-primary">
@@ -272,6 +332,8 @@ const AISetupModal: React.FC<AISetupModalProps> = ({ onClose }) => {
                 <span className="text-lg">🐇</span>
               </div>
             </label>
+            </div>
+            )}
           </div>
 
           {/* Actions */}
