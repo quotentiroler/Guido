@@ -28,7 +28,10 @@ export default defineConfig({
     alias: {
       '@': '/src',
     },
-    // Use 'development' condition for workspace packages during dev
-    conditions: ['development'],
+    // 'development' resolves workspace packages to their source during dev. We must also
+    // list Vite's default browser conditions here, because `conditions` REPLACES the
+    // defaults: dropping 'browser'/'module' made deps like @vercel/oidc (pulled in by the
+    // AI SDK gateway) resolve to their Node build (os/process) and crash the browser.
+    conditions: ['development', 'module', 'browser'],
   },
 });
