@@ -92,8 +92,7 @@ Then "MongoDbOptions.ConnectionString" must be set
 | ---------------- | ----------------------------------------- |
 | `set`          | Field must be enabled and have a value    |
 | `set_to_value` | Field must equal a specific value         |
-| `contains`     | String substring match, or array includes it (substring-prone; prefer `contains_item`) |
-| `contains_item`| Array includes `value` as a discrete item, or a string equals it exactly (membership, never a substring) |
+| `contains`     | Field contains `value` as a discrete item: an array element, or (for a string) an exact match. Not a substring match |
 | `gt` / `lt` / `gte` / `lte` | Numeric comparison of the field value against `value` (condition-only) |
 
 ### 🤖 MCP Server (AI Integration)
@@ -188,8 +187,8 @@ Rules define conditional relationships between fields:
 | Property  | Type                                        | Description                                |
 | --------- | ------------------------------------------- | ------------------------------------------ |
 | `name`  | string                                      | Field name to evaluate/affect              |
-| `state` | `set` \| `set_to_value` \| `contains` \| `contains_item` \| `gt` \| `lt` \| `gte` \| `lte` | Condition/target type          |
-| `value` | string?                                     | Value for `set_to_value`, `contains`, `contains_item`, or the numeric comparisons |
+| `state` | `set` \| `set_to_value` \| `contains` \| `gt` \| `lt` \| `gte` \| `lte` | Condition/target type          |
+| `value` | string?                                     | Value for `set_to_value`, `contains`, or the numeric comparisons |
 | `not`   | boolean?                                    | Negate the condition/target                |
 
 ## Known Limitations

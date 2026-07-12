@@ -113,7 +113,7 @@ describe('applyRules', () => {
       expect(arrayField?.value).toBe('["value1","value2"]');
     });
 
-    it('should append to string field', () => {
+    it('should set a plain string field to the value (membership)', () => {
       const fields: Field[] = [
         { name: 'Condition', value: 'true', checked: true, info: '', example: '', range: '' },
         { name: 'StringField', value: 'hello', checked: false, info: '', example: '', range: '' },
@@ -127,25 +127,8 @@ describe('applyRules', () => {
 
       const result = applyRules(fields, rules);
       const stringField = result.updatedFields.find(f => f.name === 'StringField');
-      expect(stringField?.value).toBe('hello world');
+      expect(stringField?.value).toBe('world');
       expect(stringField?.checked).toBe(true);
-    });
-
-    it('should not append if substring already exists', () => {
-      const fields: Field[] = [
-        { name: 'Condition', value: 'true', checked: true, info: '', example: '', range: '' },
-        { name: 'StringField', value: 'hello world', checked: true, info: '', example: '', range: '' },
-      ];
-      const rules: Rule[] = [
-        {
-          conditions: [{ name: 'Condition', state: RuleState.Set }],
-          targets: [{ name: 'StringField', state: RuleState.Contains, value: 'world' }],
-        },
-      ];
-
-      const result = applyRules(fields, rules);
-      const stringField = result.updatedFields.find(f => f.name === 'StringField');
-      expect(stringField?.value).toBe('hello world');
     });
 
     it('should handle empty string field', () => {
@@ -183,10 +166,10 @@ describe('applyRules', () => {
       expect(arrayField?.value).toBe('["value1","value3"]');
     });
 
-    it('should remove substring from string field with not flag', () => {
+    it('should clear a string field equal to the value with not flag', () => {
       const fields: Field[] = [
         { name: 'Condition', value: 'true', checked: true, info: '', example: '', range: '' },
-        { name: 'StringField', value: 'hello world today', checked: true, info: '', example: '', range: '' },
+        { name: 'StringField', value: 'world', checked: true, info: '', example: '', range: '' },
       ];
       const rules: Rule[] = [
         {
@@ -197,7 +180,7 @@ describe('applyRules', () => {
 
       const result = applyRules(fields, rules);
       const stringField = result.updatedFields.find(f => f.name === 'StringField');
-      expect(stringField?.value).toBe('hello today');
+      expect(stringField?.value).toBe('');
     });
 
     it('should uncheck field when contains-not removes all values', () => {
@@ -237,9 +220,9 @@ describe('applyRules', () => {
       expect(target?.checked).toBe(true);
     });
 
-    it('should check contains condition for string', () => {
+    it('should check contains condition by membership (list value)', () => {
       const fields: Field[] = [
-        { name: 'StringField', value: 'hello world', checked: true, info: '', example: '', range: '' },
+        { name: 'StringField', value: '["hello","world"]', checked: true, info: '', example: '', range: '' },
         { name: 'Target', value: '', checked: false, info: '', example: '', range: '' },
       ];
       const rules: Rule[] = [

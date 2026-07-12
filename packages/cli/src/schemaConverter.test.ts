@@ -2123,7 +2123,7 @@ describe('Conversion Options', () => {
       expect(branch?.then?.required).toContain('LoadBalancer');
     });
 
-    it('maps a contains-item condition to an array contains in the if clause', () => {
+    it('maps a contains condition to an array contains in the if clause', () => {
       const template: Template = {
         name: 'T', version: '1.0.0', description: '', owner: '', fileName: '',
         fields: [
@@ -2131,7 +2131,7 @@ describe('Conversion Options', () => {
           { name: 'Audit', value: '', info: '', example: '', range: 'boolean' },
         ],
         ruleSets: [{ name: 'Default', description: '', tags: [], rules: [
-          { conditions: [{ name: 'Tags', state: RuleState.ContainsItem, value: 'pci' }], targets: [{ name: 'Audit', state: RuleState.Set }] },
+          { conditions: [{ name: 'Tags', state: RuleState.Contains, value: 'pci' }], targets: [{ name: 'Audit', state: RuleState.Set }] },
         ] }],
       };
       const { schema } = guidoToJsonSchema(template);

@@ -69,8 +69,7 @@ const RuleDomainItem: React.FC<AddRuleDomainItemProps> = ({
         >
           <option value={RuleState.Set}>Set</option>
           <option value={RuleState.SetToValue}>Set to Value</option>
-          <option value={RuleState.Contains}>Contains (substring)</option>
-          <option value={RuleState.ContainsItem}>Contains Item (membership)</option>
+          <option value={RuleState.Contains}>Contains</option>
           {role !== 'target' && (
             <>
               <option value={RuleState.GreaterThan}>Greater Than (&gt;)</option>

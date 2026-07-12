@@ -18,7 +18,6 @@ export function describeCondition(condition: RuleDomain): string {
     case RuleState.Set: return `'${field}' is ${notText}set`;
     case RuleState.SetToValue: return `'${field}' is ${notText}set to the value '${value}'`;
     case RuleState.Contains: return `'${field}' ${notText}contains '${value}'`;
-    case RuleState.ContainsItem: return `'${field}' ${notText}contains the item '${value}'`;
     case RuleState.GreaterThan: return `'${field}' is ${notText}greater than ${value}`;
     case RuleState.LessThan: return `'${field}' is ${notText}less than ${value}`;
     case RuleState.GreaterOrEqual: return `'${field}' is ${notText}at least ${value}`;
@@ -53,8 +52,6 @@ export const translateRule = (rule: Rule, specificTarget?: string): string => {
       stateText = `'${targetField}' is required to be ${notText}set to the value '${targetValue}'`;
     } else if (targetState === RuleState.Contains) {
       stateText = `'${targetField}' must ${notText}contain '${targetValue}'`;
-    } else if (targetState === RuleState.ContainsItem) {
-      stateText = `'${targetField}' must ${notText}contain the item '${targetValue}'`;
     } else {
       stateText = "Unknown target state";
     }

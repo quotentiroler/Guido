@@ -468,7 +468,7 @@ const CONVERTIBLE_CONDITION_STATES = new Set<RuleState>([
   RuleState.LessThan,
   RuleState.GreaterOrEqual,
   RuleState.LessOrEqual,
-  RuleState.ContainsItem,
+  RuleState.Contains,
 ]);
 
 /**
@@ -483,7 +483,7 @@ function conditionPredicateToSchema(state: RuleState, value: string): JSONSchema
     case RuleState.LessThan: return { exclusiveMaximum: Number(value) };
     case RuleState.GreaterOrEqual: return { minimum: Number(value) };
     case RuleState.LessOrEqual: return { maximum: Number(value) };
-    case RuleState.ContainsItem: return { contains: { const: value } };
+    case RuleState.Contains: return { contains: { const: value } };
     default: return { const: value };
   }
 }

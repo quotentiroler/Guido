@@ -193,29 +193,9 @@ export const checkCondition = (field: Field, condition: RuleDomain): boolean => 
       return field.value !== '' && isChecked;
     case RuleState.SetToValue:
       return field.value === condition.value && isChecked;
-    case RuleState.Contains:
-      if (!condition.value) return false;
-      // Check if field value (string or array) contains the condition value
-      if (Array.isArray(field.value)) {
-        // Use type assertion since we're comparing string values at runtime
-        return (field.value as (string | number)[]).includes(condition.value) && isChecked;
-      }
-      if (typeof field.value === 'string') {
-        // Try to parse as JSON array first
-        try {
-          const parsedValue: unknown = JSON.parse(field.value);
-          if (Array.isArray(parsedValue)) {
-            return (parsedValue as (string | number)[]).includes(condition.value) && isChecked;
-          }
-        } catch {
-          // Not valid JSON, treat as string
-        }
-        return field.value.includes(condition.value) && isChecked;
-      }
-      return false;
-    case RuleState.ContainsItem: {
-      // Membership only: an array element, or an exact string match. Never a substring
-      // (unlike Contains, which does substring), so 'production' does NOT "contain-item" 'prod'.
+    case RuleState.Contains: {
+      // Membership: the value is an array element, or (for a string field) an exact match.
+      // Not a substring match - 'production' does NOT contain the item 'prod'.
       if (condition.value === undefined || !isChecked) return false;
       if (Array.isArray(field.value)) {
         return (field.value as (string | number)[]).map(String).includes(condition.value);
@@ -284,72 +264,8 @@ export const applyTarget = (field: Field, target: RuleDomain): void => {
       }
       break;
     case RuleState.Contains:
-      // For contains targets, we ensure the field is checked and contains the value
-      if (shouldApply && target.value) {
-        // Handle array field values directly
-        if (Array.isArray(field.value)) {
-          const arrValue = field.value as (string | number)[];
-          if (!arrValue.includes(target.value)) {
-            field.value = [...arrValue, target.value] as string[];
-          }
-        } else if (typeof field.value === 'string') {
-          // Try to parse as JSON array first
-          try {
-            const parsedValue: unknown = JSON.parse(field.value);
-            if (Array.isArray(parsedValue)) {
-              // Add value to array if not already present
-              const typedArray = parsedValue as (string | number)[];
-              if (!typedArray.includes(target.value)) {
-                field.value = JSON.stringify([...typedArray, target.value]);
-              }
-            } else {
-              // Not an array, treat as string
-              if (!field.value.includes(target.value)) {
-                field.value = field.value ? `${field.value} ${target.value}` : target.value;
-              }
-            }
-          } catch {
-            // Not valid JSON, treat as string
-            if (!field.value.includes(target.value)) {
-              field.value = field.value ? `${field.value} ${target.value}` : target.value;
-            }
-          }
-        } else {
-          // For number/boolean, convert to string with target value
-          field.value = target.value;
-        }
-        field.checked = true;
-      } else if (!shouldApply && target.value) {
-        // Handle "not contains" - remove the value from the field
-        if (Array.isArray(field.value)) {
-          const arrValue = field.value as (string | number)[];
-          field.value = arrValue.filter(v => v !== target.value) as string[];
-        } else if (typeof field.value === 'string') {
-          // Try to parse as JSON array first
-          try {
-            const parsedValue: unknown = JSON.parse(field.value);
-            if (Array.isArray(parsedValue)) {
-              // Remove value from array if present
-              const typedArray = parsedValue as (string | number)[];
-              const filtered = typedArray.filter(v => v !== target.value);
-              field.value = JSON.stringify(filtered);
-            } else {
-              // Not an array, treat as string - remove the substring
-              field.value = field.value.replace(new RegExp(`\\s*${target.value}\\s*`, 'g'), ' ').trim();
-            }
-          } catch {
-            // Not valid JSON, treat as string - remove the substring
-            field.value = field.value.replace(new RegExp(`\\s*${target.value}\\s*`, 'g'), ' ').trim();
-          }
-        }
-        // If the field is now empty, uncheck it
-        if (field.value === '' || field.value === '[]') {
-          field.checked = false;
-        }
-      }
-      break;
-    case RuleState.ContainsItem:
-      // Membership add: ensure the value is present as a discrete item (no substring join).
+      // Membership: ensure the value is present as a discrete item (array element, or an
+      // exact string value). No substring join.
       if (shouldApply && target.value !== undefined) {
         if (Array.isArray(field.value)) {
           const arr = field.value as (string | number)[];
@@ -370,6 +286,25 @@ export const applyTarget = (field: Field, target: RuleDomain): void => {
           field.value = target.value;
         }
         field.checked = true;
+      } else if (!shouldApply && target.value !== undefined) {
+        // "not contains" - remove the item from the field
+        if (Array.isArray(field.value)) {
+          field.value = (field.value as (string | number)[]).filter(v => String(v) !== target.value) as string[];
+        } else if (typeof field.value === 'string') {
+          try {
+            const parsed: unknown = JSON.parse(field.value);
+            if (Array.isArray(parsed)) {
+              field.value = JSON.stringify((parsed as (string | number)[]).filter(v => String(v) !== target.value));
+            } else if (field.value === target.value) {
+              field.value = '';
+            }
+          } catch {
+            if (field.value === target.value) field.value = '';
+          }
+        }
+        if (field.value === '' || field.value === '[]') {
+          field.checked = false;
+        }
       }
       break;
     default:

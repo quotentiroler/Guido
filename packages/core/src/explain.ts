@@ -52,8 +52,7 @@ function outcomeOf(target: RuleDomain): ExplanationOutcome {
   switch (target.state) {
     case RuleState.Set: return target.not ? 'forbidden' : 'required';
     case RuleState.SetToValue: return 'set_to_value';
-    case RuleState.Contains:
-    case RuleState.ContainsItem: return 'must_contain';
+    case RuleState.Contains: return 'must_contain';
     default: return 'unconstrained';
   }
 }

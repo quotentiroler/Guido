@@ -194,8 +194,7 @@ Result: JSON configuration with nested structure
 
 - `set` - Field must be set (non-empty and checked)
 - `set_to_value` - Field must be set to a specific value
-- `contains` - String value contains `value` as a substring, or an array includes it (substring-prone; prefer `contains_item`)
-- `contains_item` - Array includes `value` as a discrete item, or a string equals it exactly (membership, never a substring; prefer over `contains` for lists/enums)
+- `contains` - Field contains `value` as a discrete item: an array element, or (for a string field) an exact match. Not a substring match
 - `gt` / `lt` / `gte` / `lte` - Numeric comparison of the field value against `value` (conditions only; no effect as a target)
 
 ## Development

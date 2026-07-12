@@ -164,18 +164,18 @@ describe('rules stay consistent with the field schema', () => {
 });
 
 // ============================================================================
-// Predicate semantics: membership vs substring
+// Predicate semantics: Contains is membership, not substring
 // ============================================================================
-describe('ContainsItem is membership, Contains is substring', () => {
-  it('ContainsItem does NOT match an accidental substring ("production" has no item "prod")', () => {
+describe('Contains is membership, not substring', () => {
+  it('does NOT match an accidental substring ("production" does not contain the item "prod")', () => {
     const fields = [f('Env', 'production', true), f('Flag')];
-    const rules: Rule[] = [{ conditions: [{ name: 'Env', state: RuleState.ContainsItem, value: 'prod' }], targets: [{ name: 'Flag', state: RuleState.Set }] }];
+    const rules: Rule[] = [{ conditions: [{ name: 'Env', state: RuleState.Contains, value: 'prod' }], targets: [{ name: 'Flag', state: RuleState.Set }] }];
     expect(checkedOf(applyRules(fields, rules).updatedFields, 'Flag')).toBe(false);
   });
 
-  it('legacy Contains keeps its substring behavior', () => {
-    const fields = [f('Env', 'production', true), f('Flag')];
-    const rules: Rule[] = [{ conditions: [{ name: 'Env', state: RuleState.Contains, value: 'prod' }], targets: [{ name: 'Flag', state: RuleState.Set }] }];
+  it('matches an exact array element', () => {
+    const fields = [f('Tags', '["prod","pci"]', true), f('Flag')];
+    const rules: Rule[] = [{ conditions: [{ name: 'Tags', state: RuleState.Contains, value: 'prod' }], targets: [{ name: 'Flag', state: RuleState.Set }] }];
     expect(checkedOf(applyRules(fields, rules).updatedFields, 'Flag')).toBe(true);
   });
 });
