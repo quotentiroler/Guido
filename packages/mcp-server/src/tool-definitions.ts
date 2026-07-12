@@ -379,6 +379,17 @@ export const toolDefinitions: ToolDef[] = [
     },
   },
   {
+    name: 'explain_field',
+    title: 'Explain Field',
+    description: 'Explain why a field is in its current state: the chain of rules that force it, traced down to the root-cause inputs. Returns a structured explanation plus a prose tree.',
+    category: 'validation',
+    inputs: {
+      filePath: { type: 'string', required: false, description: 'Path to the guido.json template file' },
+      field: { type: 'string', required: true, description: 'The field name to explain (dot-notation for nested fields)' },
+      ruleSetIndex: { type: 'number', required: false, description: 'Index of ruleset to evaluate (default: 0)' },
+    },
+  },
+  {
     name: 'validate_fields',
     title: 'Validate Fields',
     description: 'Validate all field values against their range specifications',

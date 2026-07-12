@@ -24,10 +24,12 @@ import {
   FieldValueSchema,
   FieldUpdateSchema,
 } from '@guido/types/schemas';
+import type { Explanation } from '@guido/core';
 import {
   validateRules,
   validateRulesAgainstFields,
   translateRule,
+  explainField,
   validateValue,
   flattenObject,
   parseKeyValueFormat,
@@ -96,6 +98,28 @@ type ToolHandler = (
     save: () => void;
   }
 ) => unknown;
+
+/** Render an Explanation as an indented prose tree for the tool's text output. */
+function renderExplanation(ex: Explanation, depth = 0): string {
+  const pad = '  '.repeat(depth);
+  if (ex.outcome === 'unconstrained') {
+    return `${pad}${ex.field}: no rule constrains this field (its value comes from the config as given).`;
+  }
+  const valueText = ex.value !== undefined ? ` ('${ex.value}')` : '';
+  const lines = [`${pad}${ex.field} is ${ex.outcome}${valueText} because:`];
+  for (const step of ex.because) {
+    lines.push(`${pad}  - rule ${step.ruleIndex}: ${step.rule}`);
+    for (const c of step.conditions) {
+      if (c.satisfiedBy === 'rule' && c.chain) {
+        lines.push(`${pad}    - ${c.text}, which is forced by a rule:`);
+        lines.push(renderExplanation(c.chain, depth + 3));
+      } else {
+        lines.push(`${pad}    - ${c.text} (from the config)`);
+      }
+    }
+  }
+  return lines.join('\n');
+}
 
 const toolHandlers: Record<string, ToolHandler> = {
   // Template Tools
@@ -891,6 +915,17 @@ const toolHandlers: Record<string, ToolHandler> = {
       isValid: (results?.every(r => r.isValid) ?? true) && inheritanceValidation.isValid,
       inheritanceErrors: inheritanceValidation.errors,
       results,
+    };
+  },
+
+  explain_field: (args, template) => {
+    const fieldName = args.field as string;
+    const ruleSetIndex = (args.ruleSetIndex as number | undefined) ?? 0;
+    const rules = resolveRuleSetRules(template, ruleSetIndex);
+    const explanation = explainField(fieldName, template.fields, rules);
+    return {
+      ...explanation,
+      text: renderExplanation(explanation),
     };
   },
 
