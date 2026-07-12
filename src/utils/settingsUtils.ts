@@ -117,7 +117,7 @@ const saveBlob = async (
 };
 
 import Papa from 'papaparse';
-import yaml from 'js-yaml';
+import * as yaml from 'js-yaml';
 
 // Import from @guido/core for local use
 import { 
@@ -269,7 +269,7 @@ export const parseSettingsFromFile = async (
 ): Promise<Template | null> => {
   let fileContent: string;
   let fileName = "clipboard-settings";
-  let fileExtension = ".json";
+  let fileExtension: string;
 
   if (textContent) {
     // Parse from clipboard text

@@ -23,8 +23,6 @@ const RequiredFieldsModal: React.FC<RequiredFieldsModalProps> = ({
     [ruleSets, selectedRuleSetIndex]
   );
   
-  const [fieldStates, setFieldStates] = useState<{ [key: string]: { state: RuleState | "None"; not: boolean; value?: string } }>({});
-
   const initialFieldStates = React.useMemo(() => {
     const noConditionRules = rules.filter(rule => !rule.conditions || rule.conditions.length === 0);
     const states: { [key: string]: { state: RuleState | "None"; not: boolean; value?: string } } = {};
@@ -41,10 +39,15 @@ const RequiredFieldsModal: React.FC<RequiredFieldsModalProps> = ({
     return states;
   }, [rules, fieldNames]);
 
-  // Initialize state from memoized value
-  React.useEffect(() => {
+  const [fieldStates, setFieldStates] = useState(initialFieldStates);
+
+  // Reset editable state when the derived initial value changes, adjusting during
+  // render instead of in an effect (React's recommended pattern for prop-derived state).
+  const [prevInitialFieldStates, setPrevInitialFieldStates] = useState(initialFieldStates);
+  if (prevInitialFieldStates !== initialFieldStates) {
+    setPrevInitialFieldStates(initialFieldStates);
     setFieldStates(initialFieldStates);
-  }, [initialFieldStates]);
+  }
 
   const handleCheckboxChange = (fieldName: string) => {
     setFieldStates(prevState => ({

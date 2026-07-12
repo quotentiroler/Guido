@@ -115,6 +115,23 @@ export const TemplateProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   }, [ruleSets, fields, template]);
 
+  const removeTemplate = useCallback(() => {
+    setTemplate(emptyTemplate);
+    setRuleSets([createDefaultRuleSet()]);
+    setSelectedRuleSetIndex(0);
+    setFields([]);
+    void localforage.removeItem('template');
+  }, [emptyTemplate]);
+
+  const updateTemplate = useCallback((newTemplate: Template) => {
+    const normalized = ensureRuleSets(newTemplate);
+    setTemplate(normalized);
+    setRuleSets(normalized.ruleSets);
+    setSelectedRuleSetIndex(0);
+    setFields(normalized.fields || []);
+    void localforage.setItem('template', normalized);
+  }, []);
+
   useEffect(() => {
     let hasRetried = false;
 
@@ -165,23 +182,6 @@ export const TemplateProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     void loadTemplateFromUrl();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const removeTemplate = useCallback(() => {
-    setTemplate(emptyTemplate);
-    setRuleSets([createDefaultRuleSet()]);
-    setSelectedRuleSetIndex(0);
-    setFields([]);
-    void localforage.removeItem('template');
-  }, [emptyTemplate]);
-
-  const updateTemplate = useCallback((newTemplate: Template) => {
-    const normalized = ensureRuleSets(newTemplate);
-    setTemplate(normalized);
-    setRuleSets(normalized.ruleSets);
-    setSelectedRuleSetIndex(0);
-    setFields(normalized.fields || []);
-    void localforage.setItem('template', normalized);
   }, []);
 
   const loadTemplateFromFile = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {

@@ -8,7 +8,7 @@
 import { generateText, streamText, tool, type ModelMessage, type ToolSet, type LanguageModel } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 import { createAnthropic } from '@ai-sdk/anthropic';
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { createGoogle } from '@ai-sdk/google';
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { z } from 'zod';
 import { LLMProvider } from '@/context/AIContext';
@@ -134,7 +134,7 @@ function getModel(
       return anthropic(modelId);
     }
     case 'google': {
-      const google = createGoogleGenerativeAI({ apiKey });
+      const google = createGoogle({ apiKey });
       return google(modelId);
     }
     case 'ollama': {
@@ -451,6 +451,9 @@ export async function sendChatMessage(
   const result = await generateText({
     model: model as LanguageModel,
     messages: aiMessages,
+    // Guido's system prompt is app-controlled, so keep it in the messages array
+    // (v7 rejects system messages there by default as a prompt-injection guard).
+    allowSystemInMessages: true,
     maxOutputTokens: 4096,
     tools: aiTools,
   });
@@ -522,6 +525,8 @@ export async function streamChatMessage(
     const result = streamText({
       model: model as LanguageModel,
       messages: aiMessages,
+      // See note in sendChatMessage: Guido's system prompt is app-controlled.
+      allowSystemInMessages: true,
       maxOutputTokens: 4096,
       tools: aiTools,
     });
@@ -529,7 +534,7 @@ export async function streamChatMessage(
     let fullText = '';
     const toolCalls: ToolCall[] = [];
     
-    for await (const part of result.fullStream) {
+    for await (const part of result.stream) {
       if (part.type === 'text-delta') {
         // AI SDK v5 uses 'text' property
         const text = (part as { text: string }).text;

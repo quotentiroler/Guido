@@ -26,17 +26,16 @@
   "author": "Maximilian Nussbaumer",
   "license": "MIT",
   "dependencies": {
-    "@guido/core": "*",
-    "@guido/types": "*",
-    "@modelcontextprotocol/sdk": "^1.12.0",
-    "js-yaml": "^4.1.0",
-    "zod": "^4.1.13"
+    "@guido/core": "^1.0.0",
+    "@guido/types": "^1.0.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "js-yaml": "^5.2.1",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.10.0",
-    "tsx": "^4.19.0",
-    "typescript": "^5.7.0"
+    "tsx": "^4.23.0",
+    "typescript": "^6.0.3"
   },
   "engines": {
     "node": ">=18"

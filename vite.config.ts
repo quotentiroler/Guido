@@ -13,7 +13,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     chunkSizeWarningLimit: 1000,
-    rollupOptions: {
+    rolldownOptions: {
       // Suppress warnings for Node.js modules externalized for browser
       onwarn(warning, warn) {
         if (warning.code === 'MODULE_LEVEL_DIRECTIVE' || 

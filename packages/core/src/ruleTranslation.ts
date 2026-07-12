@@ -25,7 +25,7 @@ export const translateRule = (rule: Rule, specificTarget?: string): string => {
     const targetValue = target.value ?? "";
     const notText = target.not ? "not " : "";
 
-    let stateText = "";
+    let stateText: string;
     if (targetState === RuleState.Set) {
       stateText = `'${targetField}' is required to be ${notText}set`;
     } else if (targetState === RuleState.SetToValue) {
@@ -45,7 +45,7 @@ export const translateRule = (rule: Rule, specificTarget?: string): string => {
     const conditionValue = condition.value ?? "";
     const notText = condition.not ? "not " : "";
 
-    let stateText = "";
+    let stateText: string;
     if (conditionState === RuleState.Set) {
       stateText = `'${conditionField}' is ${notText}set`;
     } else if (conditionState === RuleState.SetToValue) {

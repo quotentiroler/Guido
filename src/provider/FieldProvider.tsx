@@ -56,6 +56,9 @@ export const FieldProvider: React.FC<FieldProviderProps> = ({ children }) => {
         setFields(updatedFields);
       }
       if (hasDisabledChanges && JSON.stringify(newDisabledReasons) !== JSON.stringify(disabledReasons)) {
+        // Intentional: reconcile rule-derived disabled state after a template/ruleset
+        // load. Guarded by the equality check above so it cannot cascade re-renders.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setDisabledReasons(newDisabledReasons);
       }
     }

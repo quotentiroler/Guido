@@ -27,10 +27,10 @@
   ],
   "author": "Maximilian Nussbaumer",
   "dependencies": {
-    "@guido/logger": "*",
-    "@guido/types": "*"
+    "@guido/logger": "^1.0.0",
+    "@guido/types": "^1.0.0"
   },
   "devDependencies": {
-    "typescript": "^5.7.0"
+    "typescript": "^6.0.3"
   }
 }
