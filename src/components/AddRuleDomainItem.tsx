@@ -30,6 +30,20 @@ const RuleDomainItem: React.FC<AddRuleDomainItemProps> = ({
   const fieldNames = fields.map((field) => field.name);
   const parentPaths = generateParentPaths(fieldNames);
 
+  const isComparison =
+    item.state === RuleState.GreaterThan ||
+    item.state === RuleState.LessThan ||
+    item.state === RuleState.GreaterOrEqual ||
+    item.state === RuleState.LessOrEqual;
+  const valuePlaceholder =
+    item.state === RuleState.Contains ? 'a single item, e.g. "pci"'
+    : isComparison ? 'a number, e.g. 1024'
+    : 'the exact value';
+  const valueHint =
+    item.state === RuleState.Contains ? 'One item to match: an array element, or the exact string value. Not a substring or a list.'
+    : isComparison ? 'Compared numerically against the field value.'
+    : undefined;
+
   return (
     <div className="mb-4 p-4 bg-surface-0 rounded-default shadow-md">
       <label className="block mb-3" htmlFor={`rule-domain-name-${index}`}>
@@ -81,16 +95,22 @@ const RuleDomainItem: React.FC<AddRuleDomainItemProps> = ({
         </select>
       </div>
       {item.state !== RuleState.Set && (
-        <label className="flex mb-2" htmlFor={`rule-domain-value-${index}`}>
-          <span className="text-text-secondary mr-2">Value:</span>
-          <input
-            id={`rule-domain-value-${index}`}
-            name={`rule-domain-value-${index}`}
-            type="text"
-            value={item.value || ""}
-            onChange={(e) => handleChange("value", e.target.value)}
-            className="block w-full border rounded-default shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 bg-surface-0 text-text-primary"
-          />
+        <label className="block mb-2" htmlFor={`rule-domain-value-${index}`}>
+          <div className="flex items-center">
+            <span className="text-text-secondary mr-2">Value:</span>
+            <input
+              id={`rule-domain-value-${index}`}
+              name={`rule-domain-value-${index}`}
+              type={isComparison ? "number" : "text"}
+              value={item.value || ""}
+              placeholder={valuePlaceholder}
+              onChange={(e) => handleChange("value", e.target.value)}
+              className="block w-full border rounded-default shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 bg-surface-0 text-text-primary"
+            />
+          </div>
+          {valueHint && (
+            <span className="block text-xs text-text-secondary mt-1">{valueHint}</span>
+          )}
         </label>
       )}
       <div className="flex justify-end mt-4">
