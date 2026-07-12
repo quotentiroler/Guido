@@ -8,6 +8,9 @@ export default defineConfig({
     exclude: [
       '**/node_modules/**',
       '**/dist/**',
+      // Dream-engine target spec: an intentionally-red roadmap of ideal engine
+      // behavior. Run explicitly via `npm run test:dream`, kept out of CI green.
+      '**/dream-engine.discovery.test.ts',
     ],
     coverage: {
       provider: 'v8',

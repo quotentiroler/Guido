@@ -294,6 +294,10 @@ function validateScalar(
       }
 
     case 'integer': {
+      // Reject blank/whitespace: Number('') and Number('   ') coerce to 0, which
+      // would otherwise pass as a valid integer and let a missing required number
+      // slip through the validation gate.
+      if (typeof value !== "number" && stringValue.trim() === "") return false;
       const num = typeof value === "number" ? value : Number(stringValue);
       if (!Number.isInteger(num)) return false;
       if (range.min !== undefined && num < range.min) return false;

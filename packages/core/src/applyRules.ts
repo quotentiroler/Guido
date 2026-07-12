@@ -85,7 +85,19 @@ export const applyRules = (
     }
   }
 
-  rules.forEach((rule) => {
+  // Iterate to a fixpoint so a rule whose condition is satisfied by another rule's
+  // target propagates regardless of the order rules are listed in. Rule application
+  // is idempotent (re-applying a satisfied rule is a no-op), so a pass that changes
+  // nothing means convergence. Bounded by MAX_PASSES so oscillating/contradictory
+  // rules terminate instead of looping forever.
+  const MAX_PASSES = 50;
+  const snapshot = (): string =>
+    updatedFields.map((fld) => `${String(fld.checked)}:${JSON.stringify(fld.value)}`).join('|');
+  let pass = 0;
+  let before: string;
+  do {
+    before = snapshot();
+    rules.forEach((rule) => {
     const conditionsMet =
       !rule.conditions ||
       rule.conditions.every((condition) => {
@@ -161,7 +173,9 @@ export const applyRules = (
         }
       });
     }
-  });
+    });
+    pass++;
+  } while (before !== snapshot() && pass < MAX_PASSES);
 
   // Log all field changes
   log.logFieldChanges(fieldChanges, trigger);
