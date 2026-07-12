@@ -350,12 +350,12 @@ function extractDependentRequired(rules: Rule[]): Map<string, Set<string>> {
  * Multiple conditions are AND-chained
  */
 function extractIfThen(rules: Rule[]): Array<{
-  conditions: Array<{ field: string; value: string }>;
+  conditions: Array<{ field: string; value: string; state: RuleState }>;
   requiredFields: string[];
   parentPath: string;
 }> {
   const conditionals: Array<{
-    conditions: Array<{ field: string; value: string }>;
+    conditions: Array<{ field: string; value: string; state: RuleState }>;
     requiredFields: string[];
     parentPath: string;
   }> = [];
@@ -363,9 +363,10 @@ function extractIfThen(rules: Rule[]): Array<{
   for (const rule of rules) {
     // Must have at least one condition with state "set_to_value"
     if (rule.conditions && rule.conditions.length > 0) {
-      // Check all conditions are set_to_value with values and no negation
+      // Conditions convertible to a JSON Schema `if` clause: an exact value, a numeric
+      // comparison, or array membership. All must carry a value and not be negated.
       const validConditions = rule.conditions.filter(
-        c => c.state === RuleState.SetToValue && c.value && !c.not
+        c => CONVERTIBLE_CONDITION_STATES.has(c.state) && c.value && !c.not
       );
       
       if (validConditions.length === rule.conditions.length && validConditions.length > 0) {
@@ -393,6 +394,7 @@ function extractIfThen(rules: Rule[]): Array<{
               conditions: validConditions.map(c => ({
                 field: getFieldName(c.name),
                 value: c.value!,
+                state: c.state,
               })),
               requiredFields,
               parentPath: firstParent,
@@ -480,6 +482,33 @@ function applyDependentRequired(
   }
 }
 
+/** Rule condition states that translate to a JSON Schema `if` clause keyword. */
+const CONVERTIBLE_CONDITION_STATES = new Set<RuleState>([
+  RuleState.SetToValue,
+  RuleState.GreaterThan,
+  RuleState.LessThan,
+  RuleState.GreaterOrEqual,
+  RuleState.LessOrEqual,
+  RuleState.ContainsItem,
+]);
+
+/**
+ * Map a rule condition predicate to the JSON Schema keyword that expresses it inside an
+ * `if` clause: exact value -> const, numeric comparisons -> minimum/maximum/exclusive*,
+ * array membership -> contains. Keeps the Guido->JSON Schema round-trip lossless for the
+ * new predicates.
+ */
+function conditionPredicateToSchema(state: RuleState, value: string): JSONSchema {
+  switch (state) {
+    case RuleState.GreaterThan: return { exclusiveMinimum: Number(value) };
+    case RuleState.LessThan: return { exclusiveMaximum: Number(value) };
+    case RuleState.GreaterOrEqual: return { minimum: Number(value) };
+    case RuleState.LessOrEqual: return { maximum: Number(value) };
+    case RuleState.ContainsItem: return { contains: { const: value } };
+    default: return { const: value };
+  }
+}
+
 /**
  * Apply if/then conditionals to the schema (no else - Guido doesn't support it)
  * Multiple conditions in the same rule are AND-chained using allOf in the if clause
@@ -487,14 +516,14 @@ function applyDependentRequired(
 function applyIfThen(
   schema: JSONSchema,
   conditionals: Array<{
-    conditions: Array<{ field: string; value: string }>;
+    conditions: Array<{ field: string; value: string; state: RuleState }>;
     requiredFields: string[];
     parentPath: string;
   }>
 ): void {
   // Group by parent path
   const condsByParent = new Map<string, Array<{
-    conditions: Array<{ field: string; value: string }>;
+    conditions: Array<{ field: string; value: string; state: RuleState }>;
     requiredFields: string[];
   }>>();
   
@@ -524,7 +553,7 @@ function applyIfThen(
           // Single condition - simple if
           ifClause = {
             properties: {
-              [cond.conditions[0].field]: { const: cond.conditions[0].value }
+              [cond.conditions[0].field]: conditionPredicateToSchema(cond.conditions[0].state, cond.conditions[0].value)
             }
           };
         } else {
@@ -532,7 +561,7 @@ function applyIfThen(
           ifClause = {
             allOf: cond.conditions.map(c => ({
               properties: {
-                [c.field]: { const: c.value }
+                [c.field]: conditionPredicateToSchema(c.state, c.value)
               }
             }))
           };

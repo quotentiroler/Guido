@@ -2087,4 +2087,57 @@ describe('Conversion Options', () => {
     const { schema } = guidoToJsonSchema(template, { draft: '2020-12' });
     expect(schema.$schema).toContain('2020-12');
   });
+
+  describe('new rule predicates map into JSON Schema', () => {
+    it('maps a less-than condition to exclusiveMaximum in the if clause', () => {
+      const template: Template = {
+        name: 'T', version: '1.0.0', description: '', owner: '', fileName: '',
+        fields: [
+          { name: 'Port', value: '', info: '', example: '', range: 'integer' },
+          { name: 'Tls', value: '', info: '', example: '', range: 'boolean' },
+        ],
+        ruleSets: [{ name: 'Default', description: '', tags: [], rules: [
+          { conditions: [{ name: 'Port', state: RuleState.LessThan, value: '1024' }], targets: [{ name: 'Tls', state: RuleState.Set }] },
+        ] }],
+      };
+      const { schema } = guidoToJsonSchema(template);
+      const branch = schema.allOf?.find(a => a.if?.properties?.Port);
+      expect(branch?.if?.properties?.Port).toMatchObject({ exclusiveMaximum: 1024 });
+      expect(branch?.then?.required).toContain('Tls');
+    });
+
+    it('maps a greater-or-equal condition to minimum in the if clause', () => {
+      const template: Template = {
+        name: 'T', version: '1.0.0', description: '', owner: '', fileName: '',
+        fields: [
+          { name: 'Replicas', value: '', info: '', example: '', range: 'integer' },
+          { name: 'LoadBalancer', value: '', info: '', example: '', range: 'boolean' },
+        ],
+        ruleSets: [{ name: 'Default', description: '', tags: [], rules: [
+          { conditions: [{ name: 'Replicas', state: RuleState.GreaterOrEqual, value: '3' }], targets: [{ name: 'LoadBalancer', state: RuleState.Set }] },
+        ] }],
+      };
+      const { schema } = guidoToJsonSchema(template);
+      const branch = schema.allOf?.find(a => a.if?.properties?.Replicas);
+      expect(branch?.if?.properties?.Replicas).toMatchObject({ minimum: 3 });
+      expect(branch?.then?.required).toContain('LoadBalancer');
+    });
+
+    it('maps a contains-item condition to an array contains in the if clause', () => {
+      const template: Template = {
+        name: 'T', version: '1.0.0', description: '', owner: '', fileName: '',
+        fields: [
+          { name: 'Tags', value: '', info: '', example: '', range: 'string[]' },
+          { name: 'Audit', value: '', info: '', example: '', range: 'boolean' },
+        ],
+        ruleSets: [{ name: 'Default', description: '', tags: [], rules: [
+          { conditions: [{ name: 'Tags', state: RuleState.ContainsItem, value: 'pci' }], targets: [{ name: 'Audit', state: RuleState.Set }] },
+        ] }],
+      };
+      const { schema } = guidoToJsonSchema(template);
+      const branch = schema.allOf?.find(a => a.if?.properties?.Tags);
+      expect(branch?.if?.properties?.Tags).toMatchObject({ contains: { const: 'pci' } });
+      expect(branch?.then?.required).toContain('Audit');
+    });
+  });
 });
