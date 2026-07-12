@@ -86,7 +86,7 @@ const RequiredFieldsModal: React.FC<RequiredFieldsModalProps> = ({
         name,
         state: state as RuleState,
         not,
-        value: (state === RuleState.SetToValue || state === RuleState.Contains) ? value : undefined,
+        value: (state === RuleState.SetToValue || state === RuleState.Contains || state === RuleState.ContainsItem) ? value : undefined,
       }));
 
     const noConditionRuleIndex = rules.findIndex(rule => !rule.conditions || rule.conditions.length === 0);
@@ -140,11 +140,12 @@ const RequiredFieldsModal: React.FC<RequiredFieldsModalProps> = ({
                       <option value="None">None</option>
                       <option value={RuleState.Set}>Set</option>
                       <option value={RuleState.SetToValue}>Set to Value</option>
-                      <option value={RuleState.Contains}>Contains</option>
+                      <option value={RuleState.Contains}>Contains (substring)</option>
+                      <option value={RuleState.ContainsItem}>Contains Item (membership)</option>
                     </select>
                   </td>
                   <td>
-                    {(fieldStates[fieldName]?.state === RuleState.SetToValue || fieldStates[fieldName]?.state === RuleState.Contains) && (
+                    {(fieldStates[fieldName]?.state === RuleState.SetToValue || fieldStates[fieldName]?.state === RuleState.Contains || fieldStates[fieldName]?.state === RuleState.ContainsItem) && (
                       <input
                         id={`required-value-${index}`}
                         name={`required-value-${index}`}

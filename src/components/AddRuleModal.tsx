@@ -155,6 +155,7 @@ const AddOrEditRuleModal: React.FC<AddRuleModalProps> = ({
               key={index}
               item={condition}
               index={index}
+              role="condition"
               onChange={handleConditionChange}
               onRemove={handleRemoveCondition}
             />
@@ -179,6 +180,7 @@ const AddOrEditRuleModal: React.FC<AddRuleModalProps> = ({
               key={index}
               item={target}
               index={index}
+              role="target"
               onChange={handleTargetChange}
               onRemove={handleRemoveTarget}
             />

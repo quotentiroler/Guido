@@ -9,6 +9,9 @@ interface AddRuleDomainItemProps {
   index: number;
   onChange: (index: number, updatedItem: RuleDomain) => void;
   onRemove: (index: number) => void;
+  /** Whether this domain is a rule condition or a target. Numeric comparison
+   * predicates are condition-only, so they are hidden for targets. */
+  role?: 'condition' | 'target';
 }
 
 const RuleDomainItem: React.FC<AddRuleDomainItemProps> = ({
@@ -16,6 +19,7 @@ const RuleDomainItem: React.FC<AddRuleDomainItemProps> = ({
   index,
   onChange,
   onRemove,
+  role = 'condition',
 }) => {
   const handleChange = (field: keyof RuleDomain, value: string | boolean) => {
     const updatedItem = { ...item, [field]: value };
@@ -65,10 +69,19 @@ const RuleDomainItem: React.FC<AddRuleDomainItemProps> = ({
         >
           <option value={RuleState.Set}>Set</option>
           <option value={RuleState.SetToValue}>Set to Value</option>
-          <option value={RuleState.Contains}>Contains</option>
+          <option value={RuleState.Contains}>Contains (substring)</option>
+          <option value={RuleState.ContainsItem}>Contains Item (membership)</option>
+          {role !== 'target' && (
+            <>
+              <option value={RuleState.GreaterThan}>Greater Than (&gt;)</option>
+              <option value={RuleState.LessThan}>Less Than (&lt;)</option>
+              <option value={RuleState.GreaterOrEqual}>Greater or Equal (&ge;)</option>
+              <option value={RuleState.LessOrEqual}>Less or Equal (&le;)</option>
+            </>
+          )}
         </select>
       </div>
-      {(item.state === RuleState.SetToValue || item.state === RuleState.Contains) && (
+      {item.state !== RuleState.Set && (
         <label className="flex mb-2" htmlFor={`rule-domain-value-${index}`}>
           <span className="text-text-secondary mr-2">Value:</span>
           <input
