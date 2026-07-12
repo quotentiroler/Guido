@@ -30,11 +30,16 @@ export {
 export type { ApplyRulesResult, ApplyRulesOptions } from './applyRules.js';
 
 // Rule translation (human-readable <-> DSL)
-export { 
-  translateRule, 
-  parseNaturalLanguageRule, 
-  canParseNaturalLanguageRule 
+export {
+  translateRule,
+  describeCondition,
+  parseNaturalLanguageRule,
+  canParseNaturalLanguageRule
 } from './ruleTranslation.js';
+
+// Explain (why is field X in its current state?)
+export { explainField } from './explain.js';
+export type { Explanation, ExplanationStep, ConditionTrace, ConditionSource, ExplanationOutcome } from './explain.js';
 
 // Field utilities
 export {

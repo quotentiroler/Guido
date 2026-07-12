@@ -7,6 +7,27 @@
 import { Rule, RuleState, RuleDomain } from '@guido/types';
 
 /**
+ * Human-readable text for a single rule condition, e.g. "'Repository' is set to the
+ * value 'MongoDb'" or "'Port' is less than 1024". Shared by translateRule and explain.
+ */
+export function describeCondition(condition: RuleDomain): string {
+  const field = condition.name;
+  const value = condition.value ?? "";
+  const notText = condition.not ? "not " : "";
+  switch (condition.state) {
+    case RuleState.Set: return `'${field}' is ${notText}set`;
+    case RuleState.SetToValue: return `'${field}' is ${notText}set to the value '${value}'`;
+    case RuleState.Contains: return `'${field}' ${notText}contains '${value}'`;
+    case RuleState.ContainsItem: return `'${field}' ${notText}contains the item '${value}'`;
+    case RuleState.GreaterThan: return `'${field}' is ${notText}greater than ${value}`;
+    case RuleState.LessThan: return `'${field}' is ${notText}less than ${value}`;
+    case RuleState.GreaterOrEqual: return `'${field}' is ${notText}at least ${value}`;
+    case RuleState.LessOrEqual: return `'${field}' is ${notText}at most ${value}`;
+    default: return "Unknown condition state";
+  }
+}
+
+/**
  * Translate a Guido Rule to human-readable text.
  * 
  * @param rule - The rule to translate
@@ -41,35 +62,7 @@ export const translateRule = (rule: Rule, specificTarget?: string): string => {
     return stateText;
   });
 
-  const conditionTexts = conditions.map((condition) => {
-    const conditionField = condition.name;
-    const conditionState = condition.state;
-    const conditionValue = condition.value ?? "";
-    const notText = condition.not ? "not " : "";
-
-    let stateText: string;
-    if (conditionState === RuleState.Set) {
-      stateText = `'${conditionField}' is ${notText}set`;
-    } else if (conditionState === RuleState.SetToValue) {
-      stateText = `'${conditionField}' is ${notText}set to the value '${conditionValue}'`;
-    } else if (conditionState === RuleState.Contains) {
-      stateText = `'${conditionField}' ${notText}contains '${conditionValue}'`;
-    } else if (conditionState === RuleState.ContainsItem) {
-      stateText = `'${conditionField}' ${notText}contains the item '${conditionValue}'`;
-    } else if (conditionState === RuleState.GreaterThan) {
-      stateText = `'${conditionField}' is ${notText}greater than ${conditionValue}`;
-    } else if (conditionState === RuleState.LessThan) {
-      stateText = `'${conditionField}' is ${notText}less than ${conditionValue}`;
-    } else if (conditionState === RuleState.GreaterOrEqual) {
-      stateText = `'${conditionField}' is ${notText}at least ${conditionValue}`;
-    } else if (conditionState === RuleState.LessOrEqual) {
-      stateText = `'${conditionField}' is ${notText}at most ${conditionValue}`;
-    } else {
-      stateText = "Unknown condition state";
-    }
-
-    return stateText;
-  });
+  const conditionTexts = conditions.map((condition) => describeCondition(condition));
 
   if (conditionTexts.length === 0) {
     return targetTexts.join(" and ") + ".";
