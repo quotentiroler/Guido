@@ -213,6 +213,40 @@ export const checkCondition = (field: Field, condition: RuleDomain): boolean => 
         return field.value.includes(condition.value) && isChecked;
       }
       return false;
+    case RuleState.ContainsItem: {
+      // Membership only: an array element, or an exact string match. Never a substring
+      // (unlike the legacy Contains), so 'production' does NOT "contain-item" 'prod'.
+      if (condition.value === undefined || !isChecked) return false;
+      if (Array.isArray(field.value)) {
+        return (field.value as (string | number)[]).map(String).includes(condition.value);
+      }
+      if (typeof field.value === 'string') {
+        try {
+          const parsed: unknown = JSON.parse(field.value);
+          if (Array.isArray(parsed)) return (parsed as (string | number)[]).map(String).includes(condition.value);
+        } catch { /* not JSON: fall through to exact match */ }
+        return field.value === condition.value;
+      }
+      return false;
+    }
+    case RuleState.GreaterThan:
+    case RuleState.LessThan:
+    case RuleState.GreaterOrEqual:
+    case RuleState.LessOrEqual: {
+      // Numeric comparison of the field value against the threshold in condition.value.
+      if (condition.value === undefined || !isChecked) return false;
+      const raw = typeof field.value === 'number'
+        ? String(field.value)
+        : Array.isArray(field.value) ? '' : String(field.value ?? '');
+      if (raw.trim() === '') return false;
+      const lhs = Number(raw);
+      const rhs = Number(condition.value);
+      if (!Number.isFinite(lhs) || !Number.isFinite(rhs)) return false;
+      if (condition.state === RuleState.GreaterThan) return lhs > rhs;
+      if (condition.state === RuleState.LessThan) return lhs < rhs;
+      if (condition.state === RuleState.GreaterOrEqual) return lhs >= rhs;
+      return lhs <= rhs;
+    }
     default:
       return false;
   }
@@ -312,6 +346,30 @@ export const applyTarget = (field: Field, target: RuleDomain): void => {
         if (field.value === '' || field.value === '[]') {
           field.checked = false;
         }
+      }
+      break;
+    case RuleState.ContainsItem:
+      // Membership add: ensure the value is present as a discrete item (no substring join).
+      if (shouldApply && target.value !== undefined) {
+        if (Array.isArray(field.value)) {
+          const arr = field.value as (string | number)[];
+          if (!arr.includes(target.value)) field.value = [...arr, target.value] as string[];
+        } else if (typeof field.value === 'string') {
+          try {
+            const parsed: unknown = JSON.parse(field.value);
+            if (Array.isArray(parsed)) {
+              const arr = parsed as (string | number)[];
+              if (!arr.includes(target.value)) field.value = JSON.stringify([...arr, target.value]);
+            } else {
+              field.value = target.value;
+            }
+          } catch {
+            field.value = target.value;
+          }
+        } else {
+          field.value = target.value;
+        }
+        field.checked = true;
       }
       break;
     default:

@@ -32,6 +32,8 @@ export const translateRule = (rule: Rule, specificTarget?: string): string => {
       stateText = `'${targetField}' is required to be ${notText}set to the value '${targetValue}'`;
     } else if (targetState === RuleState.Contains) {
       stateText = `'${targetField}' must ${notText}contain '${targetValue}'`;
+    } else if (targetState === RuleState.ContainsItem) {
+      stateText = `'${targetField}' must ${notText}contain the item '${targetValue}'`;
     } else {
       stateText = "Unknown target state";
     }
@@ -52,6 +54,16 @@ export const translateRule = (rule: Rule, specificTarget?: string): string => {
       stateText = `'${conditionField}' is ${notText}set to the value '${conditionValue}'`;
     } else if (conditionState === RuleState.Contains) {
       stateText = `'${conditionField}' ${notText}contains '${conditionValue}'`;
+    } else if (conditionState === RuleState.ContainsItem) {
+      stateText = `'${conditionField}' ${notText}contains the item '${conditionValue}'`;
+    } else if (conditionState === RuleState.GreaterThan) {
+      stateText = `'${conditionField}' is ${notText}greater than ${conditionValue}`;
+    } else if (conditionState === RuleState.LessThan) {
+      stateText = `'${conditionField}' is ${notText}less than ${conditionValue}`;
+    } else if (conditionState === RuleState.GreaterOrEqual) {
+      stateText = `'${conditionField}' is ${notText}at least ${conditionValue}`;
+    } else if (conditionState === RuleState.LessOrEqual) {
+      stateText = `'${conditionField}' is ${notText}at most ${conditionValue}`;
     } else {
       stateText = "Unknown condition state";
     }

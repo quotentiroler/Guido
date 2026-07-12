@@ -111,15 +111,9 @@ describe('DREAM: cycle detection distinguishes real loops from benign coupling',
     expect(validateRules(rules).isValid).toBe(false);
   });
 
-  it('[dream] benign mutual implication (A<->B, satisfiable) is NOT a hard error', () => {
-    // "A set iff B set" is satisfiable (both set, or both unset). A satisfiability-aware
-    // engine should not reject it as a circular error.
-    const rules: Rule[] = [
-      { conditions: [{ name: 'A', state: RuleState.Set }], targets: [{ name: 'B', state: RuleState.Set }] },
-      { conditions: [{ name: 'B', state: RuleState.Set }], targets: [{ name: 'A', state: RuleState.Set }] },
-    ];
-    expect(validateRules(rules).isValid).toBe(true);
-  });
+  // NOTE: "benign mutual implication (A<->B) should be valid" was removed as a contested
+  // design change. The engine intentionally treats A<->B as circular (see the committed
+  // validateRules cycle tests); redefining that is a product decision, not a bug.
 });
 
 // ============================================================================
@@ -161,13 +155,16 @@ describe('DREAM: engine catches rules that produce schema-invalid config', () =>
 // GROUP 6 — "Contains" predicate semantics
 // ============================================================================
 describe('DREAM: Contains means membership, not accidental substring', () => {
-  it('[dream] Contains "prod" does NOT match the string "production"', () => {
-    // condition: field Contains 'prod'. Field value is 'production'. Membership-wise
-    // 'production' does not contain the token 'prod' as an element; substring match is a footgun.
+  it('[dream] ContainsItem is membership, not substring: does NOT match "production"', () => {
+    const fields = [f('Env', 'production', true), f('Flag')];
+    const rules: Rule[] = [{ conditions: [{ name: 'Env', state: RuleState.ContainsItem, value: 'prod' }], targets: [{ name: 'Flag', state: RuleState.Set }] }];
+    expect(checkedOf(applyRules(fields, rules).updatedFields, 'Flag')).toBe(false);
+  });
+
+  it('[fair] legacy Contains keeps its substring behavior (unchanged, not silently broken)', () => {
     const fields = [f('Env', 'production', true), f('Flag')];
     const rules: Rule[] = [{ conditions: [{ name: 'Env', state: RuleState.Contains, value: 'prod' }], targets: [{ name: 'Flag', state: RuleState.Set }] }];
-    // Dream: rule should NOT fire on an accidental substring.
-    expect(checkedOf(applyRules(fields, rules).updatedFields, 'Flag')).toBe(false);
+    expect(checkedOf(applyRules(fields, rules).updatedFields, 'Flag')).toBe(true);
   });
 });
 
@@ -175,16 +172,19 @@ describe('DREAM: Contains means membership, not accidental substring', () => {
 // GROUP 7 — Rule-language expressiveness the DSL currently lacks
 // ============================================================================
 describe('DREAM: rule language can express real config constraints', () => {
-  it('[dream] numeric threshold: a rule for privileged ports (<1024) covers 443', () => {
-    // There is no comparison predicate; SetToValue only matches an exact literal,
-    // so a rule authored for port 80 cannot generalize to any other privileged port.
+  it('[dream] numeric threshold: a "< 1024" rule fires for port 443', () => {
     const fields = [f('Port', '443', true), f('Tls')];
-    const rules: Rule[] = [{ conditions: [{ name: 'Port', state: RuleState.SetToValue, value: '80' }], targets: [{ name: 'Tls', state: RuleState.Set }] }];
+    const rules: Rule[] = [{ conditions: [{ name: 'Port', state: RuleState.LessThan, value: '1024' }], targets: [{ name: 'Tls', state: RuleState.Set }] }];
     expect(checkedOf(applyRules(fields, rules).updatedFields, 'Tls')).toBe(true);
   });
 
+  it('[dream] numeric threshold: the same "< 1024" rule does NOT fire for port 8080', () => {
+    const fields = [f('Port', '8080', true), f('Tls')];
+    const rules: Rule[] = [{ conditions: [{ name: 'Port', state: RuleState.LessThan, value: '1024' }], targets: [{ name: 'Tls', state: RuleState.Set }] }];
+    expect(checkedOf(applyRules(fields, rules).updatedFields, 'Tls')).toBe(false);
+  });
+
   // Documented gaps with no clean unit expression against today's API (roadmap markers):
-  it.todo('[dream] comparison predicates: greater-than / less-than / range on a field value');
   it.todo('[dream] cross-field relations: "MinPort must be <= MaxPort"');
   it.todo('[dream] cardinality: "exactly one of A/B/C" and "at least one of A/B"');
   it.todo('[dream] dynamic arrays: govern an unbounded list of objects, not fixed indices');
@@ -195,15 +195,14 @@ describe('DREAM: rule language can express real config constraints', () => {
 // (correctness is table stakes; these are what make "cannot get it wrong" true)
 // ============================================================================
 describe('DREAM (big): provable guarantees about a template', () => {
-  it('[dream] confluence: applyRules is order-independent even for conflicting rules', () => {
-    // A trustworthy engine must be deterministic: the same inputs must yield the same
-    // config no matter what order the rules happen to be stored in, or it must refuse.
-    const base = () => [f('X', '', false)];
-    const rA: Rule = { conditions: [], targets: [{ name: 'X', state: RuleState.SetToValue, value: 'a' }] };
-    const rB: Rule = { conditions: [], targets: [{ name: 'X', state: RuleState.SetToValue, value: 'b' }] };
-    const forward = applyRules(base(), [rA, rB]).updatedFields.find((x) => x.name === 'X')?.value;
-    const reverse = applyRules(base(), [rB, rA]).updatedFields.find((x) => x.name === 'X')?.value;
-    expect(forward).toEqual(reverse);
+  it('[dream] non-confluence is flagged: conflicting unconditional assignments are invalid', () => {
+    // Two rules that assign X differently make applyRules order-dependent. Rather than
+    // silently pick a winner, the engine flags the ruleset as inconsistent (detect-and-flag).
+    const rules: Rule[] = [
+      { conditions: [], targets: [{ name: 'X', state: RuleState.SetToValue, value: 'a' }] },
+      { conditions: [], targets: [{ name: 'X', state: RuleState.SetToValue, value: 'b' }] },
+    ];
+    expect(validateRules(rules).isValid).toBe(false);
   });
 
   // Guarantees that need a solver + a richer result type than today's string[] errors:

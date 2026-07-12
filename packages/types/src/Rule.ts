@@ -22,15 +22,25 @@ export type {
 
 /**
  * Represents the state of a rule condition or target.
- * 
+ *
  * - `Set`: Field must have a value (be set)
- * - `SetToValue`: Field must be set to a specific value  
- * - `Contains`: Field value must contain the specified substring
- * 
+ * - `SetToValue`: Field must be set to a specific value
+ * - `Contains`: Field value must contain the specified substring (legacy string
+ *   substring / array membership; kept for backward compatibility)
+ * - `ContainsItem`: Field must contain the value as a discrete ITEM (array membership
+ *   or exact string match); never an accidental substring
+ * - `GreaterThan` / `LessThan` / `GreaterOrEqual` / `LessOrEqual`: numeric comparison
+ *   of the field's value against `value` (condition-only)
+ *
  * @enum {string}
  */
 export enum RuleState {
   Set = "set",
   SetToValue = "set_to_value",
   Contains = "contains",
+  ContainsItem = "contains_item",
+  GreaterThan = "gt",
+  LessThan = "lt",
+  GreaterOrEqual = "gte",
+  LessOrEqual = "lte",
 }
