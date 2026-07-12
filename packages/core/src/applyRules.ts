@@ -215,7 +215,7 @@ export const checkCondition = (field: Field, condition: RuleDomain): boolean => 
       return false;
     case RuleState.ContainsItem: {
       // Membership only: an array element, or an exact string match. Never a substring
-      // (unlike the legacy Contains), so 'production' does NOT "contain-item" 'prod'.
+      // (unlike Contains, which does substring), so 'production' does NOT "contain-item" 'prod'.
       if (condition.value === undefined || !isChecked) return false;
       if (Array.isArray(field.value)) {
         return (field.value as (string | number)[]).map(String).includes(condition.value);

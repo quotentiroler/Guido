@@ -64,7 +64,7 @@ export const RuleDomainSchema = z.object({
     "How the field is evaluated (condition) or changed (target): " +
     "'set' = field is enabled and has a value; " +
     "'set_to_value' = field equals `value`; " +
-    "'contains' = string value contains `value` as a SUBSTRING, or an array includes it (legacy, substring-prone); " +
+    "'contains' = string value contains `value` as a SUBSTRING, or an array includes it (substring-prone; prefer contains_item for lists/enums); " +
     "'contains_item' = array/list includes `value` as a discrete item, or a string equals it exactly (membership, never a substring - prefer this over 'contains' for lists/enums); " +
     "'gt' / 'lt' / 'gte' / 'lte' = numeric comparison of the field value against `value` (greater/less than, or or-equal). Comparisons are CONDITION-ONLY; they have no effect as a target."
   ),

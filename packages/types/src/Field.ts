@@ -107,9 +107,7 @@ export function parseRange(range: FieldRange): ParsedRange {
   const enumArrayMatch = range.match(/^\(([^)]+)\)\[(\d*)\.\.?(\d*)\]$/);
   if (enumArrayMatch) {
     const optionsStr = enumArrayMatch[1];
-    const options = optionsStr.includes('||') 
-      ? optionsStr.split('||') 
-      : optionsStr.split(' / ').map(o => o.trim());
+    const options = optionsStr.split('||');
     return {
       rangeType: 'enum-array',
       options,
@@ -121,11 +119,6 @@ export function parseRange(range: FieldRange): ParsedRange {
   // Handle enum options: "opt1||opt2||opt3"
   if (range.includes('||')) {
     return { rangeType: 'enum', options: range.split('||') };
-  }
-
-  // Handle legacy enum syntax: "opt1 / opt2 / opt3"
-  if (range.includes(' / ')) {
-    return { rangeType: 'enum', options: range.split(' / ').map(o => o.trim()) };
   }
 
   // Everything else is treated as a regex pattern

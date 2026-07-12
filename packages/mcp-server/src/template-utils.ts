@@ -3,7 +3,7 @@
  * 
  * This module provides MCP-specific utilities:
  * - File I/O operations (loadTemplate, saveTemplate)
- * - Template migration (legacy rules array → ruleSets)
+ * - Template normalization (ensure a default ruleSet exists)
  * - Change tracking for sessions
  * - Field/rule helpers that operate on Template objects
  * 
@@ -16,38 +16,17 @@ import type { Template, Field, Rule, RuleDomain } from '@guido/types';
 import { applyRules, isFieldRequired, getDefaultRules } from '@guido/core';
 
 // ============================================================================
-// BACKWARDS COMPATIBILITY HELPER
+// TEMPLATE NORMALIZATION
 // ============================================================================
 
 /**
- * Migrate legacy template with `rules` array to new `ruleSets` format.
- * If template already has ruleSets, returns as-is.
- * If template has legacy rules array, migrates to ruleSets.
+ * Ensure a template has at least one ruleSet. A template without any ruleSets gets a
+ * default empty one. The old top-level `rules` array format is no longer supported.
  */
-export function migrateTemplate(template: Template & { rules?: Rule[] }): Template {
-  // Already has ruleSets - no migration needed
+export function ensureRuleSets(template: Template): Template {
   if (template.ruleSets && template.ruleSets.length > 0) {
     return template;
   }
-  
-  // Has legacy rules array - migrate it
-  const legacyRules = (template as { rules?: Rule[] }).rules;
-  if (legacyRules && legacyRules.length > 0) {
-    const migrated: Template = {
-      ...template,
-      ruleSets: [{
-        name: 'Default',
-        description: 'Migrated from legacy rules array',
-        tags: [],
-        rules: legacyRules,
-      }],
-    };
-    // Remove legacy rules property
-    delete (migrated as { rules?: Rule[] }).rules;
-    return migrated;
-  }
-  
-  // No rules at all - create empty default ruleset
   return {
     ...template,
     ruleSets: [{
@@ -122,8 +101,8 @@ export function getSnapshot(filePath: string): TemplateSnapshot | undefined {
 }
 
 /**
- * Load a guido template from a file path
- * Automatically migrates legacy templates with `rules` array to `ruleSets` format
+ * Load a guido template from a file path.
+ * Normalizes the template to ensure it has at least one ruleSet.
  */
 export function loadTemplate(filePath: string): Template {
   const absolutePath = path.resolve(filePath);
@@ -131,10 +110,10 @@ export function loadTemplate(filePath: string): Template {
     throw new Error(`Template file not found: ${absolutePath}`);
   }
   const content = fs.readFileSync(absolutePath, 'utf-8');
-  const rawTemplate = JSON.parse(content) as Template & { rules?: Rule[] };
-  
-  // Migrate legacy format if needed
-  const template = migrateTemplate(rawTemplate);
+  const rawTemplate = JSON.parse(content) as Template;
+
+  // Ensure a default ruleSet exists
+  const template = ensureRuleSets(rawTemplate);
   
   // Store snapshot if first load
   if (!snapshots.has(absolutePath)) {

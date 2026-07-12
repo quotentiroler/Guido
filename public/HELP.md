@@ -135,7 +135,7 @@ Then "MongoDbOptions.ConnectionString" must be set
 |-------|--------------|-----------|
 | `set` | Field is checked and has a value | Field must be checked |
 | `set_to_value` | Field equals specific value | Set field to specific value |
-| `contains` | String contains substring, or array includes value (legacy) | Field must contain value |
+| `contains` | String substring match, or array includes value (prefer contains item) | Field must contain value |
 | `contains_item` | Array includes value as an item, or string equals it exactly (no substring) | Add value as an item |
 | `gt` / `lt` / `gte` / `lte` | Field value is greater/less than (or equal to) value (numeric) | (condition only) |
 

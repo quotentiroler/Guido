@@ -461,7 +461,7 @@ export const flattenNestedFields = (
         value: field.value ?? '',
         info: field.info ?? '',
         example: field.example ?? '',
-        range: field.range || (field.options ? field.options.join(' / ') : ''),
+        range: field.range || (field.options ? field.options.join('||') : ''),
         link: field.link,
         checked: field.checked,
       });

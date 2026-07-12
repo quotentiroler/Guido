@@ -570,7 +570,7 @@ describe('Guido to Schema Converter', () => {
             value: 'info',
             info: '',
             example: '',
-            range: 'debug / info / warn / error',
+            range: 'debug||info||warn||error',
           },
         ],
         ruleSets: [{ name: 'Default', description: '', tags: [], rules: [] }],

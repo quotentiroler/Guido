@@ -142,16 +142,6 @@ describe('validateValue', () => {
       expect(validateValue('', 'red||green||blue')).toBe(false);
     });
 
-    // Legacy support for slash-separated
-    it('should accept valid options with legacy / separator', () => {
-      expect(validateValue('red', 'red / green / blue')).toBe(true);
-      expect(validateValue('green', 'red / green / blue')).toBe(true);
-    });
-
-    it('should reject invalid options with legacy / separator', () => {
-      expect(validateValue('yellow', 'red / green / blue')).toBe(false);
-      expect(validateValue('', 'red / green / blue')).toBe(false);
-    });
   });
 
   describe('array type', () => {
@@ -484,7 +474,7 @@ describe('Nested field utilities', () => {
 
       const result = flattenNestedFields(nested);
 
-      expect(result[0].range).toBe('debug / info / warn / error');
+      expect(result[0].range).toBe('debug||info||warn||error');
     });
 
     it('should preserve existing range over options', () => {
@@ -825,10 +815,6 @@ describe('translateRangeToHumanReadable', () => {
       const result = translateRangeToHumanReadable('a||b||c||d||e||f||g');
       expect(result).toContain('One of:');
       expect(result).toContain('7 options');
-    });
-
-    it('should translate legacy enum syntax', () => {
-      expect(translateRangeToHumanReadable('debug / info / warn')).toBe('One of: debug, info, warn');
     });
   });
 

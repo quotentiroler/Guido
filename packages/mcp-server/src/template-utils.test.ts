@@ -7,7 +7,7 @@ import type { Template, Field, Rule } from '@guido/types';
 import { RuleState } from '@guido/types';
 import { getDefaultRules, getRuleSetRules } from '@guido/core';
 import {
-  migrateTemplate,
+  ensureRuleSets,
   loadTemplate,
   saveTemplate,
   findField,
@@ -56,7 +56,7 @@ describe('template-utils', () => {
   // ============================================================================
   // MIGRATION TESTS
   // ============================================================================
-  describe('migrateTemplate', () => {
+  describe('ensureRuleSets', () => {
     it('should return template unchanged if it already has ruleSets', () => {
       const template = createTemplate({
         ruleSets: [{
@@ -67,40 +67,18 @@ describe('template-utils', () => {
         }],
       });
 
-      const result = migrateTemplate(template);
-      
+      const result = ensureRuleSets(template);
+
       expect(result).toEqual(template);
       expect(result.ruleSets).toHaveLength(1);
       expect(result.ruleSets[0].rules).toHaveLength(1);
     });
 
-    it('should migrate legacy rules array to ruleSets', () => {
-      const legacyTemplate = {
-        ...createTemplate({ ruleSets: [] as unknown as Template['ruleSets'] }),
-        rules: [
-          { targets: [{ name: 'field1', state: RuleState.Set }] },
-          { targets: [{ name: 'field2', state: RuleState.Set }] },
-        ],
-      };
-      // Simulate legacy - no ruleSets
-      delete (legacyTemplate as { ruleSets?: unknown }).ruleSets;
-
-      const result = migrateTemplate(legacyTemplate as unknown as Template & { rules?: Rule[] });
-
-      expect(result.ruleSets).toBeDefined();
-      expect(result.ruleSets).toHaveLength(1);
-      expect(result.ruleSets[0].name).toBe('Default');
-      expect(result.ruleSets[0].description).toBe('Migrated from legacy rules array');
-      expect(result.ruleSets[0].rules).toHaveLength(2);
-      expect((result as { rules?: Rule[] }).rules).toBeUndefined();
-    });
-
-    it('should create empty default ruleset if no rules exist', () => {
+    it('should create an empty default ruleset when none exist', () => {
       const template = createTemplate();
-      // Create a template without ruleSets to test migration
       const noRuleSets = { ...template, ruleSets: undefined } as unknown as Template;
 
-      const result = migrateTemplate(noRuleSets);
+      const result = ensureRuleSets(noRuleSets);
 
       expect(result.ruleSets).toBeDefined();
       expect(result.ruleSets).toHaveLength(1);
@@ -186,20 +164,18 @@ describe('template-utils', () => {
         .toThrow('Template file not found');
     });
 
-    it('should migrate legacy template on load', () => {
-      const legacyTemplate = {
-        ...createTemplate(),
-        rules: [{ targets: [{ name: 'field1', state: RuleState.Set }] }],
-      };
-      delete (legacyTemplate as { ruleSets?: unknown }).ruleSets;
+    it('should normalize a template with no ruleSets to a default empty ruleset', () => {
+      const template = { ...createTemplate() };
+      delete (template as { ruleSets?: unknown }).ruleSets;
 
       vi.mocked(fs.existsSync).mockReturnValue(true);
-      vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(legacyTemplate));
+      vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(template));
 
-      const result = loadTemplate('/path/to/legacy.json');
+      const result = loadTemplate('/path/to/template.guido.json');
 
       expect(result.ruleSets).toBeDefined();
-      expect(result.ruleSets[0].rules).toHaveLength(1);
+      expect(result.ruleSets).toHaveLength(1);
+      expect(result.ruleSets[0].rules).toHaveLength(0);
     });
   });
 

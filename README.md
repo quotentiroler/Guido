@@ -92,7 +92,7 @@ Then "MongoDbOptions.ConnectionString" must be set
 | ---------------- | ----------------------------------------- |
 | `set`          | Field must be enabled and have a value    |
 | `set_to_value` | Field must equal a specific value         |
-| `contains`     | String contains `value` as a substring, or array includes it (legacy) |
+| `contains`     | String substring match, or array includes it (substring-prone; prefer `contains_item`) |
 | `contains_item`| Array includes `value` as a discrete item, or a string equals it exactly (membership, never a substring) |
 | `gt` / `lt` / `gte` / `lte` | Numeric comparison of the field value against `value` (condition-only) |
 

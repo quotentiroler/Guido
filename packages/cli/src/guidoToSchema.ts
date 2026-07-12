@@ -112,21 +112,6 @@ function rangeToJsonSchema(range: string): Partial<JSONSchema> {
     return result;
   }
 
-  // Legacy: Array with item type (e.g., 'array string', 'array integer')
-  const legacyArrayMatch = range.match(/^array\s+(\w+)$/);
-  if (legacyArrayMatch) {
-    const itemType = legacyArrayMatch[1];
-    return { 
-      type: 'array', 
-      items: { type: itemType === 'string' ? 'string' : itemType === 'integer' ? 'integer' : 'string' }
-    };
-  }
-
-  // Legacy: Array (generic)
-  if (range === 'array') {
-    return { type: 'array' };
-  }
-
   // Object
   if (range === 'object') {
     return { type: 'object' };
@@ -135,12 +120,6 @@ function rangeToJsonSchema(range: string): Partial<JSONSchema> {
   // Options (|| separated) → enum
   if (range.includes('||')) {
     const options = range.split('||').map(o => o.trim());
-    return { type: 'string', enum: options };
-  }
-
-  // Legacy: Options (slash-separated) → enum
-  if (range.includes(' / ')) {
-    const options = range.split(' / ').map(o => o.trim());
     return { type: 'string', enum: options };
   }
 
