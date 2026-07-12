@@ -1,3 +1,4 @@
+import '@/polyfills'; // must be first: shims Node globals for deps that reference them at load
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import '@/index.css';
