@@ -57,16 +57,25 @@ export const FieldValueSchema = z.union([
  */
 export const RuleDomainSchema = z.object({
   /** The name of the field this domain references */
-  name: z.string(),
-  
-  /** The state to check or set */
-  state: RuleStateSchema,
-  
-  /** The value to match or set (required when state is 'set_to_value' or 'contains') */
-  value: z.string().optional(),
-  
-  /** Negates the condition (e.g., "field is NOT set") */
-  not: z.boolean().optional(),
+  name: z.string().describe('The field this condition checks or this target changes (dot-notation for nested fields, e.g. "Database.Host").'),
+
+  /** The state to check (condition) or enforce (target). */
+  state: RuleStateSchema.describe(
+    "How the field is evaluated (condition) or changed (target): " +
+    "'set' = field is enabled and has a value; " +
+    "'set_to_value' = field equals `value`; " +
+    "'contains' = string value contains `value` as a SUBSTRING, or an array includes it (legacy, substring-prone); " +
+    "'contains_item' = array/list includes `value` as a discrete item, or a string equals it exactly (membership, never a substring - prefer this over 'contains' for lists/enums); " +
+    "'gt' / 'lt' / 'gte' / 'lte' = numeric comparison of the field value against `value` (greater/less than, or or-equal). Comparisons are CONDITION-ONLY; they have no effect as a target."
+  ),
+
+  /** The value to match or set. */
+  value: z.string().optional().describe(
+    "The value to match or set. Required for 'set_to_value', 'contains', 'contains_item', and the numeric comparisons ('gt'/'lt'/'gte'/'lte'); ignored for 'set'."
+  ),
+
+  /** Negates the condition/target (e.g., "field is NOT set"). */
+  not: z.boolean().optional().describe('Negate this domain, e.g. "field is NOT set" or "value is NOT equal to `value`".'),
 });
 
 // ============================================================================

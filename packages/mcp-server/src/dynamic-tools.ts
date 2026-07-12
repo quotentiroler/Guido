@@ -24,9 +24,10 @@ import {
   FieldValueSchema,
   FieldUpdateSchema,
 } from '@guido/types/schemas';
-import { 
-  validateRules, 
-  translateRule, 
+import {
+  validateRules,
+  validateRulesAgainstFields,
+  translateRule,
   validateValue,
   flattenObject,
   parseKeyValueFormat,
@@ -851,11 +852,16 @@ const toolHandlers: Record<string, ToolHandler> = {
       if (!ruleSet) {
         throw new Error(`RuleSet at index ${ruleSetIndex} not found`);
       }
-      // Validate with inherited rules included
+      // Validate with inherited rules included: logical consistency (contradictions,
+      // cycles) AND schema consistency (a rule must not set/require a value the target
+      // field's range forbids).
       const allRules = resolveRuleSetRules(template, ruleSetIndex);
       const validation = validateRules(allRules);
+      const schema = validateRulesAgainstFields(allRules, template.fields);
       return {
-        ...validation,
+        isValid: validation.isValid && schema.isValid,
+        errors: [...validation.errors, ...schema.errors],
+        warnings: validation.warnings,
         ruleSet: ruleSet.name,
         extends: ruleSet.extends,
         ownRuleCount: ruleSet.rules?.length ?? 0,
@@ -867,13 +873,17 @@ const toolHandlers: Record<string, ToolHandler> = {
     // Validate all rulesets with resolved (inherited) rules
     const results = template.ruleSets?.map((ruleSet, i) => {
       const allRules = resolveRuleSetRules(template, i);
+      const validation = validateRules(allRules);
+      const schema = validateRulesAgainstFields(allRules, template.fields);
       return {
         ruleSet: ruleSet.name,
         index: i,
         extends: ruleSet.extends,
         ownRuleCount: ruleSet.rules?.length ?? 0,
         totalRuleCount: allRules.length,
-        ...validateRules(allRules),
+        isValid: validation.isValid && schema.isValid,
+        errors: [...validation.errors, ...schema.errors],
+        warnings: validation.warnings,
       };
     });
 
