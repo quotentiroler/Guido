@@ -10,7 +10,6 @@ const HISTORY_STORAGE_KEY = 'guido-chat-history';
 const SPEECH_ENABLED_KEY = 'guido-speech-enabled';
 const SPEECH_RATE_KEY = 'guido-speech-rate';
 const SPEECH_VOLUME_KEY = 'guido-speech-volume';
-const SPEECH_OUTPUT_KEY = 'guido-speech-output-device';
 
 interface AIProviderProps {
   children: ReactNode;
@@ -30,7 +29,6 @@ export const AIProvider: React.FC<AIProviderProps> = ({ children }) => {
   const [speechEnabled, setSpeechEnabledState] = useState(false);
   const [speechRate, setSpeechRateState] = useState(1.0);
   const [speechVolume, setSpeechVolumeState] = useState(1.0);
-  const [speechOutputDeviceId, setSpeechOutputDeviceIdState] = useState('');
   
   // Speech synthesis hook
   const speech = useSpeechSynthesis();
@@ -40,13 +38,12 @@ export const AIProvider: React.FC<AIProviderProps> = ({ children }) => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [storedConfig, storedHistory, storedSpeechEnabled, storedSpeechRate, storedSpeechVolume, storedSpeechOutput] = await Promise.all([
+        const [storedConfig, storedHistory, storedSpeechEnabled, storedSpeechRate, storedSpeechVolume] = await Promise.all([
           localforage.getItem<LLMConfig>(STORAGE_KEY),
           localforage.getItem<ChatHistoryItem[]>(HISTORY_STORAGE_KEY),
           localforage.getItem<boolean>(SPEECH_ENABLED_KEY),
           localforage.getItem<number>(SPEECH_RATE_KEY),
           localforage.getItem<number>(SPEECH_VOLUME_KEY),
-          localforage.getItem<string>(SPEECH_OUTPUT_KEY),
         ]);
         if (storedConfig) {
           setConfigState(storedConfig);
@@ -64,9 +61,6 @@ export const AIProvider: React.FC<AIProviderProps> = ({ children }) => {
         }
         if (storedSpeechVolume !== null) {
           setSpeechVolumeState(storedSpeechVolume);
-        }
-        if (storedSpeechOutput !== null) {
-          setSpeechOutputDeviceIdState(storedSpeechOutput);
         }
       } catch (e) {
         console.warn('Failed to load AI data from localforage:', e);
@@ -161,11 +155,6 @@ export const AIProvider: React.FC<AIProviderProps> = ({ children }) => {
     void localforage.setItem(SPEECH_VOLUME_KEY, volume);
   }, []);
 
-  const setSpeechOutputDeviceId = useCallback((deviceId: string) => {
-    setSpeechOutputDeviceIdState(deviceId);
-    void localforage.setItem(SPEECH_OUTPUT_KEY, deviceId);
-  }, []);
-
   // Memoize context value to prevent unnecessary re-renders
   const contextValue = useMemo(() => ({
     config,
@@ -199,8 +188,6 @@ export const AIProvider: React.FC<AIProviderProps> = ({ children }) => {
     setSpeechRate,
     speechVolume,
     setSpeechVolume,
-    speechOutputDeviceId,
-    setSpeechOutputDeviceId,
   }), [
     config,
     setConfig,
@@ -227,8 +214,6 @@ export const AIProvider: React.FC<AIProviderProps> = ({ children }) => {
     setSpeechRate,
     speechVolume,
     setSpeechVolume,
-    speechOutputDeviceId,
-    setSpeechOutputDeviceId,
   ]);
 
   return (

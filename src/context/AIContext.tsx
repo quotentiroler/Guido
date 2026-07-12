@@ -63,9 +63,6 @@ export interface AIContextType {
   setSpeechRate: (rate: number) => void;
   speechVolume: number;
   setSpeechVolume: (volume: number) => void;
-  /** Preferred audio output device id ('' = system default). Persisted; applied where the platform supports setSinkId. */
-  speechOutputDeviceId: string;
-  setSpeechOutputDeviceId: (deviceId: string) => void;
 }
 
 export const AIContext = createContext<AIContextType | undefined>(undefined);

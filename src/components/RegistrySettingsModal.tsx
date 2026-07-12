@@ -43,10 +43,8 @@ const RegistrySettingsModal: React.FC<RegistrySettingsModalProps> = ({ onClose }
     isNpmEnabled,
     isFhirEnabled,
     isBuiltInEnabled,
-    customRegistryUrl,
     customRegistries,
     registryDefinitions,
-    customRegistryDefinition,
     isLoadingDefinitions,
     setIsGitHubEnabled,
     setIsNpmEnabled,
@@ -230,24 +228,6 @@ const RegistrySettingsModal: React.FC<RegistrySettingsModalProps> = ({ onClose }
             Custom Registries
           </h3>
 
-          {/* Legacy single custom URL (for backward compatibility) */}
-          {customRegistryUrl && !customRegistries?.length && (
-            <div className="mb-3 p-3 bg-surface-2 rounded-default border border-strong">
-              <div className="flex items-center justify-between">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-text-primary truncate">
-                    {customRegistryDefinition?.name || 'Custom Registry'}
-                  </p>
-                  <p className="text-xs text-text-disabled truncate">
-                    {customRegistryUrl}
-                  </p>
-                </div>
-                <RegistryStatusBadge
-                  status={customRegistryDefinition ? 'loaded' : 'error'}
-                />
-              </div>
-            </div>
-          )}
 
           {/* List of custom registries */}
           {customRegistries?.map((registry, index) => (

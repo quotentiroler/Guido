@@ -100,7 +100,6 @@ async function saveRegistryTogglesToStorage(toggles: RegistryToggles): Promise<v
 const useRegistry = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchResults, setSearchResults] = useState<SearchResultItem[]>([]);
-  const [customRegistryUrl, setCustomRegistryUrl] = useState<string | null>(null);
   const [isGitHubEnabled, setIsGitHubEnabledState] = useState<boolean>(true);
   const [isNpmEnabled, setIsNpmEnabledState] = useState<boolean>(true);
   const [isFhirEnabled, setIsFhirEnabledState] = useState<boolean>(true);
@@ -108,7 +107,6 @@ const useRegistry = () => {
   
   // Registry definitions cache
   const [registryDefinitions, setRegistryDefinitions] = useState<Map<string, RegistryDefinition>>(new Map());
-  const [customRegistryDefinition, setCustomRegistryDefinition] = useState<RegistryDefinition | null>(null);
   const [isLoadingDefinitions, setIsLoadingDefinitions] = useState<boolean>(true);
   
   // Multiple custom registries support
@@ -210,40 +208,9 @@ const useRegistry = () => {
     void loadStoredRegistries();
   }, []);
 
-  // Load custom registry definition when URL changes (legacy single URL support)
-  useEffect(() => {
-    const loadCustomDef = async () => {
-      if (customRegistryUrl) {
-        try {
-          const definition = await loadCustomRegistry(customRegistryUrl);
-          setCustomRegistryDefinition(definition);
-          logger.info(`Loaded custom registry: ${definition.name}`);
-        } catch (error) {
-          logger.error('Failed to load custom registry', error);
-          setCustomRegistryDefinition(null);
-        }
-      } else {
-        setCustomRegistryDefinition(null);
-      }
-    };
-
-    void loadCustomDef();
-  }, [customRegistryUrl]);
-
-  const checkConnection = useCallback(async () => {
-    try {
-      if (customRegistryUrl) {
-        const response = await fetch(customRegistryUrl, { method: 'HEAD' });
-        if (!response.ok) {
-          throw new Error('Custom registry URL is unreachable');
-        }
-      }
-      setIsConnected(true);
-    } catch (error) {
-      console.error('Error connecting to registry:', error);
-      setIsConnected(false);
-    }
-  }, [customRegistryUrl]);
+  const checkConnection = useCallback(() => {
+    setIsConnected(true);
+  }, []);
 
   useEffect(() => {
     if (!hasCheckedConnection.current) {
@@ -685,11 +652,6 @@ const useRegistry = () => {
     isNpmEnabled, 
     isFhirEnabled,
     isBuiltInEnabled,
-    
-    // Custom registry (legacy single URL)
-    customRegistryUrl,
-    setCustomRegistryUrl,
-    customRegistryDefinition,
     
     // Multiple custom registries
     customRegistries,
