@@ -59,11 +59,13 @@ function outcomeOf(target: RuleDomain): ExplanationOutcome {
 
 /** Whether all of a rule's conditions hold in the given (resolved) field state. */
 function conditionsHold(rule: Rule, fieldMap: Map<string, Field>): boolean {
-  return !rule.conditions || rule.conditions.every((c) => {
+  if (!rule.conditions || rule.conditions.length === 0) return true;
+  const evalC = (c: RuleDomain): boolean => {
     const field = fieldMap.get(c.name);
     const met = field ? checkCondition(field, c, fieldMap) : false;
     return c.not ? !met : met;
-  });
+  };
+  return rule.match === 'any' ? rule.conditions.some(evalC) : rule.conditions.every(evalC);
 }
 
 /** Whether some rule forces `fieldName` given the resolved state (drives the source classification). */

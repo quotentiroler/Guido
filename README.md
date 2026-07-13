@@ -180,7 +180,7 @@ Rules define conditional relationships between fields:
 }
 ```
 
-**Logic**: `If ALL conditions are true, then ALL targets are enforced`
+**Logic**: `If the conditions match, then ALL targets are enforced`. Conditions combine per the rule's `match`: `all` (default, AND - every condition must hold) or `any` (OR - at least one).
 
 **RuleDomain Properties:**
 

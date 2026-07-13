@@ -149,6 +149,20 @@ const AddOrEditRuleModal: React.FC<AddRuleModalProps> = ({
             +
           </Button>
         </div>
+        {(newRule.conditions?.length ?? 0) >= 2 && (
+          <div className="flex items-center gap-2 mb-2 text-sm">
+            <span className="text-text-secondary">Match:</span>
+            <select
+              aria-label="Condition match mode"
+              value={newRule.match ?? 'all'}
+              onChange={(e) => setNewRule({ ...newRule, match: e.target.value === 'any' ? 'any' : 'all' })}
+              className="border rounded-default shadow-sm bg-surface-0 text-text-primary"
+            >
+              <option value="all">All (AND)</option>
+              <option value="any">Any (OR)</option>
+            </select>
+          </div>
+        )}
         <div className="flex-grow overflow-y-auto">
           {(newRule.conditions || []).map((condition, index) => (
             <RuleDomainItem

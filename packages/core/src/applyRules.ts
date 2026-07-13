@@ -98,13 +98,16 @@ export const applyRules = (
   do {
     before = snapshot();
     rules.forEach((rule) => {
+    const evalCondition = (condition: RuleDomain): boolean => {
+      const field = fieldMap.get(condition.name);
+      const conditionMet = field ? checkCondition(field, condition, fieldMap) : checkChildConditionsFast(fieldMap, updatedFields, condition);
+      return condition.not ? !conditionMet : conditionMet;
+    };
     const conditionsMet =
-      !rule.conditions ||
-      rule.conditions.every((condition) => {
-        const field = fieldMap.get(condition.name);
-        const conditionMet = field ? checkCondition(field, condition, fieldMap) : checkChildConditionsFast(fieldMap, updatedFields, condition);
-        return condition.not ? !conditionMet : conditionMet;
-      });
+      !rule.conditions || rule.conditions.length === 0 ||
+      (rule.match === 'any'
+        ? rule.conditions.some(evalCondition)   // OR
+        : rule.conditions.every(evalCondition)); // AND (default)
 
     log.logRuleEvaluation(
       rule.targets.map(t => t.name).join(', '),

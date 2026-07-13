@@ -70,7 +70,9 @@ export const translateRule = (rule: Rule, specificTarget?: string): string => {
     return targetTexts.join(" and ") + ".";
   }
 
-  return `If ${conditionTexts.join(" and ")}, then ${targetTexts.join(
+  // 'any' matches when at least one condition holds (OR); default 'all' is AND.
+  const conditionJoin = rule.match === 'any' ? " or " : " and ";
+  return `If ${conditionTexts.join(conditionJoin)}, then ${targetTexts.join(
     " and "
   )}.`;
 };

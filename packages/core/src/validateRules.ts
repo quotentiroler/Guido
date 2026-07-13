@@ -276,6 +276,8 @@ export function findContradictions(rules: Rule[]): Contradiction[] {
   const found: Contradiction[] = [];
   for (let i = 0; i < rules.length; i++) {
     for (let j = i + 1; j < rules.length; j++) {
+      // The co-occurrence check assumes conditions are ANDed; skip OR-matched rules.
+      if (rules[i].match === 'any' || rules[j].match === 'any') continue;
       if (!conditionsCanCoOccur(rules[i].conditions, rules[j].conditions)) continue;
       for (const t1 of rules[i].targets) {
         for (const t2 of rules[j].targets) {

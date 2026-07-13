@@ -98,10 +98,18 @@ export const RuleDomainSchema = z.object({
 export const RuleSchema = z.object({
   /** Optional conditions that must be met for the rule to apply */
   conditions: z.array(RuleDomainSchema).optional(),
-  
+
+  /**
+   * How the conditions combine: 'all' (default, every condition must hold - AND) or
+   * 'any' (at least one condition must hold - OR).
+   */
+  match: z.enum(['all', 'any']).optional().describe(
+    "How conditions combine: 'all' (default, AND - every condition must hold) or 'any' (OR - at least one)."
+  ),
+
   /** The targets to apply when conditions are met */
   targets: z.array(RuleDomainSchema),
-  
+
   /** Human-readable description of what the rule does */
   description: z.string().optional(),
 });

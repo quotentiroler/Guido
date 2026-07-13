@@ -221,6 +221,36 @@ describe('cross-field comparison (compare to another field)', () => {
 });
 
 // ============================================================================
+// OR conditions (rule.match = 'any')
+// ============================================================================
+describe('conditions can combine with OR (match: any)', () => {
+  const rule = (): Rule => ({
+    match: 'any',
+    conditions: [
+      { name: 'A', state: RuleState.Set },
+      { name: 'B', state: RuleState.Set },
+    ],
+    targets: [{ name: 'X', state: RuleState.Set }],
+  });
+
+  it('fires when only one of the conditions holds', () => {
+    const fields = [f('A', 'yes', true), f('B'), f('X')];
+    expect(checkedOf(applyRules(fields, [rule()]).updatedFields, 'X')).toBe(true);
+  });
+
+  it('does NOT fire when none hold', () => {
+    const fields = [f('A'), f('B'), f('X')];
+    expect(checkedOf(applyRules(fields, [rule()]).updatedFields, 'X')).toBe(false);
+  });
+
+  it('with default match (all), the same conditions require BOTH', () => {
+    const fields = [f('A', 'yes', true), f('B'), f('X')];
+    const andRule: Rule = { ...rule(), match: undefined };
+    expect(checkedOf(applyRules(fields, [andRule]).updatedFields, 'X')).toBe(false);
+  });
+});
+
+// ============================================================================
 // Roadmap: guarantees not yet implemented (Tier 1-3)
 // ============================================================================
 describe('roadmap: expressiveness not yet supported', () => {
