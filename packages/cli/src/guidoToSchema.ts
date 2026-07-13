@@ -345,7 +345,8 @@ function extractIfThen(rules: Rule[]): Array<{
       // Conditions convertible to a JSON Schema `if` clause: an exact value, a numeric
       // comparison, or array membership. All must carry a value and not be negated.
       const validConditions = rule.conditions.filter(
-        c => CONVERTIBLE_CONDITION_STATES.has(c.state) && c.value && !c.not
+        // Cross-field conditions (valueField) cannot be expressed in JSON Schema, so skip them.
+        c => CONVERTIBLE_CONDITION_STATES.has(c.state) && c.value && !c.not && !c.valueField
       );
       
       if (validConditions.length === rule.conditions.length && validConditions.length > 0) {

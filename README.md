@@ -189,6 +189,7 @@ Rules define conditional relationships between fields:
 | `name`  | string                                      | Field name to evaluate/affect              |
 | `state` | `set` \| `set_to_value` \| `contains` \| `gt` \| `lt` \| `gte` \| `lte` | Condition/target type          |
 | `value` | string?                                     | Value for `set_to_value`, `contains`, or the numeric comparisons |
+| `valueField` | string?                                | Compare against another field's value instead of `value` (e.g. `MinPort` `lte` field `MaxPort`). Condition-side; for `set_to_value` and the numeric comparisons |
 | `not`   | boolean?                                    | Negate the condition/target                |
 
 ## Known Limitations

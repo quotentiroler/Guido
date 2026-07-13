@@ -73,6 +73,16 @@ export const RuleDomainSchema = z.object({
     "The value to match or set. Required for 'set_to_value', 'contains', and the numeric comparisons ('gt'/'lt'/'gte'/'lte'); ignored for 'set'."
   ),
 
+  /**
+   * Compare against ANOTHER field's value instead of a literal. When set, the numeric
+   * comparisons and 'set_to_value' resolve their right-hand side from this field's current
+   * value (e.g. condition { name: 'MinPort', state: 'lte', valueField: 'MaxPort' }). Takes
+   * precedence over `value`. Condition-side only.
+   */
+  valueField: z.string().optional().describe(
+    "Compare against another field's value instead of a literal `value` (e.g. 'MinPort' <= field 'MaxPort'). Used by the numeric comparisons and set_to_value; condition-side only."
+  ),
+
   /** Negates the condition/target (e.g., "field is NOT set"). */
   not: z.boolean().optional().describe('Negate this domain, e.g. "field is NOT set" or "value is NOT equal to `value`".'),
 });

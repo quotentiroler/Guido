@@ -4,7 +4,7 @@
  * Core rule application logic for evaluating and applying rules to fields.
  */
 
-import type { Field, Rule, RuleDomain } from '@guido/types';
+import type { Field, FieldValue, Rule, RuleDomain } from '@guido/types';
 import { RuleState } from '@guido/types';
 import type { ILogger, FieldChange, TriggerAction } from '@guido/logger';
 import { logger } from '@guido/logger';
@@ -102,7 +102,7 @@ export const applyRules = (
       !rule.conditions ||
       rule.conditions.every((condition) => {
         const field = fieldMap.get(condition.name);
-        const conditionMet = field ? checkCondition(field, condition) : checkChildConditionsFast(fieldMap, updatedFields, condition);
+        const conditionMet = field ? checkCondition(field, condition, fieldMap) : checkChildConditionsFast(fieldMap, updatedFields, condition);
         return condition.not ? !conditionMet : conditionMet;
       });
 
@@ -186,26 +186,33 @@ export const applyRules = (
 /**
  * Check if a condition is met for a field
  */
-export const checkCondition = (field: Field, condition: RuleDomain): boolean => {
+export const checkCondition = (field: Field, condition: RuleDomain, fieldMap?: Map<string, Field>): boolean => {
   const isChecked = field.checked ?? false;
+  // Right-hand side of the comparison: another field's value (valueField) or the literal.
+  const comparand: FieldValue | undefined =
+    condition.valueField !== undefined ? fieldMap?.get(condition.valueField)?.value : condition.value;
+  // Coerce a FieldValue to a plain scalar string for numeric parsing (arrays are not numeric).
+  const toScalar = (v: FieldValue | undefined): string =>
+    typeof v === 'number' ? String(v) : Array.isArray(v) ? '' : String(v ?? '');
   switch (condition.state) {
     case RuleState.Set:
       return field.value !== '' && isChecked;
     case RuleState.SetToValue:
-      return field.value === condition.value && isChecked;
+      return isChecked && comparand !== undefined && field.value === comparand;
     case RuleState.Contains: {
       // Membership: the value is an array element, or (for a string field) an exact match.
       // Not a substring match - 'production' does NOT contain the item 'prod'.
-      if (condition.value === undefined || !isChecked) return false;
+      if (comparand === undefined || !isChecked) return false;
+      const item = String(comparand);
       if (Array.isArray(field.value)) {
-        return (field.value as (string | number)[]).map(String).includes(condition.value);
+        return (field.value as (string | number)[]).map(String).includes(item);
       }
       if (typeof field.value === 'string') {
         try {
           const parsed: unknown = JSON.parse(field.value);
-          if (Array.isArray(parsed)) return (parsed as (string | number)[]).map(String).includes(condition.value);
+          if (Array.isArray(parsed)) return (parsed as (string | number)[]).map(String).includes(item);
         } catch { /* not JSON: fall through to exact match */ }
-        return field.value === condition.value;
+        return field.value === item;
       }
       return false;
     }
@@ -213,14 +220,13 @@ export const checkCondition = (field: Field, condition: RuleDomain): boolean => 
     case RuleState.LessThan:
     case RuleState.GreaterOrEqual:
     case RuleState.LessOrEqual: {
-      // Numeric comparison of the field value against the threshold in condition.value.
-      if (condition.value === undefined || !isChecked) return false;
-      const raw = typeof field.value === 'number'
-        ? String(field.value)
-        : Array.isArray(field.value) ? '' : String(field.value ?? '');
-      if (raw.trim() === '') return false;
-      const lhs = Number(raw);
-      const rhs = Number(condition.value);
+      // Numeric comparison of the field value against the literal or the compared field.
+      if (comparand === undefined || !isChecked) return false;
+      const lhsRaw = toScalar(field.value);
+      const rhsRaw = toScalar(comparand);
+      if (lhsRaw.trim() === '' || rhsRaw.trim() === '') return false;
+      const lhs = Number(lhsRaw);
+      const rhs = Number(rhsRaw);
       if (!Number.isFinite(lhs) || !Number.isFinite(rhs)) return false;
       if (condition.state === RuleState.GreaterThan) return lhs > rhs;
       if (condition.state === RuleState.LessThan) return lhs < rhs;
@@ -242,7 +248,7 @@ const checkChildConditionsFast = (
 ): boolean => {
   const prefix = condition.name + '.';
   const childFields = fields.filter((f) => f.name.startsWith(prefix));
-  return childFields.every((childField) => checkCondition(childField, condition));
+  return childFields.every((childField) => checkCondition(childField, condition, fieldMap));
 };
 
 /**

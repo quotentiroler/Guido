@@ -61,7 +61,7 @@ function outcomeOf(target: RuleDomain): ExplanationOutcome {
 function conditionsHold(rule: Rule, fieldMap: Map<string, Field>): boolean {
   return !rule.conditions || rule.conditions.every((c) => {
     const field = fieldMap.get(c.name);
-    const met = field ? checkCondition(field, c) : false;
+    const met = field ? checkCondition(field, c, fieldMap) : false;
     return c.not ? !met : met;
   });
 }

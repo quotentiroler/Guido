@@ -198,10 +198,32 @@ describe('numeric comparison predicates', () => {
 });
 
 // ============================================================================
+// Cross-field comparisons (valueField)
+// ============================================================================
+describe('cross-field comparison (compare to another field)', () => {
+  it('MinPort <= MaxPort holds when MinPort is smaller', () => {
+    const fields = [f('MinPort', '80', true), f('MaxPort', '443', true), f('Ok')];
+    const rules: Rule[] = [{ conditions: [{ name: 'MinPort', state: RuleState.LessOrEqual, valueField: 'MaxPort' }], targets: [{ name: 'Ok', state: RuleState.Set }] }];
+    expect(checkedOf(applyRules(fields, rules).updatedFields, 'Ok')).toBe(true);
+  });
+
+  it('MinPort <= MaxPort fails when MinPort is larger', () => {
+    const fields = [f('MinPort', '8080', true), f('MaxPort', '443', true), f('Ok')];
+    const rules: Rule[] = [{ conditions: [{ name: 'MinPort', state: RuleState.LessOrEqual, valueField: 'MaxPort' }], targets: [{ name: 'Ok', state: RuleState.Set }] }];
+    expect(checkedOf(applyRules(fields, rules).updatedFields, 'Ok')).toBe(false);
+  });
+
+  it('set_to_value can match another field (Password === Confirm)', () => {
+    const fields = [f('Password', 'hunter2', true), f('Confirm', 'hunter2', true), f('Ok')];
+    const rules: Rule[] = [{ conditions: [{ name: 'Password', state: RuleState.SetToValue, valueField: 'Confirm' }], targets: [{ name: 'Ok', state: RuleState.Set }] }];
+    expect(checkedOf(applyRules(fields, rules).updatedFields, 'Ok')).toBe(true);
+  });
+});
+
+// ============================================================================
 // Roadmap: guarantees not yet implemented (Tier 1-3)
 // ============================================================================
 describe('roadmap: expressiveness not yet supported', () => {
-  it.todo('cross-field relations: "MinPort must be <= MaxPort"');
   it.todo('cardinality: "exactly one of A/B/C" and "at least one of A/B"');
   it.todo('dynamic arrays: govern an unbounded list of objects, not fixed indices');
 });

@@ -14,14 +14,19 @@ export function describeCondition(condition: RuleDomain): string {
   const field = condition.name;
   const value = condition.value ?? "";
   const notText = condition.not ? "not " : "";
+  const vf = condition.valueField;
+  // Right-hand-side renderings: a literal value, or a reference to another field.
+  const quoted = vf !== undefined ? `field '${vf}'` : `'${value}'`;
+  const setToRhs = vf !== undefined ? `the value of field '${vf}'` : `the value '${value}'`;
+  const numRhs = vf !== undefined ? `field '${vf}'` : `${value}`;
   switch (condition.state) {
     case RuleState.Set: return `'${field}' is ${notText}set`;
-    case RuleState.SetToValue: return `'${field}' is ${notText}set to the value '${value}'`;
-    case RuleState.Contains: return `'${field}' ${notText}contains '${value}'`;
-    case RuleState.GreaterThan: return `'${field}' is ${notText}greater than ${value}`;
-    case RuleState.LessThan: return `'${field}' is ${notText}less than ${value}`;
-    case RuleState.GreaterOrEqual: return `'${field}' is ${notText}at least ${value}`;
-    case RuleState.LessOrEqual: return `'${field}' is ${notText}at most ${value}`;
+    case RuleState.SetToValue: return `'${field}' is ${notText}set to ${setToRhs}`;
+    case RuleState.Contains: return `'${field}' ${notText}contains ${quoted}`;
+    case RuleState.GreaterThan: return `'${field}' is ${notText}greater than ${numRhs}`;
+    case RuleState.LessThan: return `'${field}' is ${notText}less than ${numRhs}`;
+    case RuleState.GreaterOrEqual: return `'${field}' is ${notText}at least ${numRhs}`;
+    case RuleState.LessOrEqual: return `'${field}' is ${notText}at most ${numRhs}`;
     default: return "Unknown condition state";
   }
 }

@@ -44,6 +44,10 @@ const RuleDomainItem: React.FC<AddRuleDomainItemProps> = ({
     : isComparison ? 'Compared numerically against the field value.'
     : undefined;
 
+  // States that compare against a right-hand side may compare to a literal or another field.
+  const usesComparand = isComparison || item.state === RuleState.SetToValue;
+  const compareMode: 'value' | 'field' = item.valueField !== undefined ? 'field' : 'value';
+
   return (
     <div className="mb-4 p-4 bg-surface-0 rounded-default shadow-md">
       <label className="block mb-3" htmlFor={`rule-domain-name-${index}`}>
@@ -95,23 +99,60 @@ const RuleDomainItem: React.FC<AddRuleDomainItemProps> = ({
         </select>
       </div>
       {item.state !== RuleState.Set && (
-        <label className="block mb-2" htmlFor={`rule-domain-value-${index}`}>
-          <div className="flex items-center">
-            <span className="text-text-secondary mr-2">Value:</span>
-            <input
-              id={`rule-domain-value-${index}`}
-              name={`rule-domain-value-${index}`}
-              type={isComparison ? "number" : "text"}
-              value={item.value || ""}
-              placeholder={valuePlaceholder}
-              onChange={(e) => handleChange("value", e.target.value)}
-              className="block w-full border rounded-default shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 bg-surface-0 text-text-primary"
-            />
-          </div>
-          {valueHint && (
-            <span className="block text-xs text-text-secondary mt-1">{valueHint}</span>
+        <div className="mb-2">
+          {usesComparand && (
+            <div className="flex items-center mb-1">
+              <span className="text-text-secondary mr-2">Compare to:</span>
+              <select
+                aria-label="Compare to"
+                value={compareMode}
+                onChange={(e) =>
+                  e.target.value === 'field'
+                    ? onChange(index, { ...item, valueField: item.valueField ?? '', value: undefined })
+                    : onChange(index, { ...item, valueField: undefined })
+                }
+                className="block border rounded-default shadow-sm bg-surface-0 text-text-primary"
+              >
+                <option value="value">a value</option>
+                <option value="field">another field</option>
+              </select>
+            </div>
           )}
-        </label>
+          {compareMode === 'field' ? (
+            <label className="flex items-center" htmlFor={`rule-domain-valuefield-${index}`}>
+              <span className="text-text-secondary mr-2">Field:</span>
+              <select
+                id={`rule-domain-valuefield-${index}`}
+                value={item.valueField ?? ''}
+                onChange={(e) => handleChange("valueField", e.target.value)}
+                className="block w-full border rounded-default shadow-sm bg-surface-0 text-text-primary"
+              >
+                <option value="">Select a field</option>
+                {parentPaths.map((path) => (
+                  <option key={path} value={path}>{path}</option>
+                ))}
+              </select>
+            </label>
+          ) : (
+            <label className="block" htmlFor={`rule-domain-value-${index}`}>
+              <div className="flex items-center">
+                <span className="text-text-secondary mr-2">Value:</span>
+                <input
+                  id={`rule-domain-value-${index}`}
+                  name={`rule-domain-value-${index}`}
+                  type={isComparison ? "number" : "text"}
+                  value={item.value || ""}
+                  placeholder={valuePlaceholder}
+                  onChange={(e) => handleChange("value", e.target.value)}
+                  className="block w-full border rounded-default shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 bg-surface-0 text-text-primary"
+                />
+              </div>
+              {valueHint && (
+                <span className="block text-xs text-text-secondary mt-1">{valueHint}</span>
+              )}
+            </label>
+          )}
+        </div>
       )}
       <div className="flex justify-end mt-4">
         <Button

@@ -441,7 +441,9 @@ export function validateRulesAgainstFields(rules: Rule[], fields: Field[]): Vali
   }
 
   const check = (domain: RuleDomain, role: 'target' | 'condition'): void => {
-    if (domain.state !== RuleState.SetToValue || domain.not || domain.value === undefined) return;
+    // Only literal set_to_value values are range-checkable; cross-field (valueField) compares
+    // against another field, not a literal, so it has nothing to validate here.
+    if (domain.state !== RuleState.SetToValue || domain.not || domain.value === undefined || domain.valueField !== undefined) return;
     const range = rangeByName.get(domain.name);
     if (!range || validateValue(domain.value, range)) return;
     const human = translateRangeToHumanReadable(range);
