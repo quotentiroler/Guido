@@ -125,6 +125,23 @@ export const RuleUpdateSchema = z.object({
 });
 
 // ============================================================================
+// Cardinality Constraint Schema
+// ============================================================================
+
+/**
+ * A cardinality constraint over a SET of fields: how many of them may/must be set.
+ * A field counts as "set" when it is enabled and has a non-empty value.
+ */
+export const CardinalityConstraintSchema = z.object({
+  /** 'exactly-one' (== 1 set), 'at-least-one' (>= 1), or 'at-most-one' (<= 1). */
+  kind: z.enum(['exactly-one', 'at-least-one', 'at-most-one']),
+  /** The field names the constraint ranges over. */
+  fields: z.array(z.string()).min(1),
+  /** Optional human-readable description. */
+  description: z.string().optional(),
+});
+
+// ============================================================================
 // RuleSet Schema
 // ============================================================================
 
@@ -134,16 +151,19 @@ export const RuleUpdateSchema = z.object({
 export const RuleSetSchema = z.object({
   /** Unique name for the ruleset */
   name: z.string(),
-  
+
   /** Human-readable description */
   description: z.string(),
-  
+
   /** Tags for categorization (e.g., ["security", "required"]) */
   tags: z.array(z.string()),
-  
+
   /** The rules in this ruleset */
   rules: z.array(RuleSchema),
-  
+
+  /** Cardinality constraints over sets of fields (e.g. "exactly one of A/B/C"). */
+  constraints: z.array(CardinalityConstraintSchema).optional(),
+
   /** Name of another ruleset to inherit rules from */
   extends: z.string().optional(),
 });
@@ -247,6 +267,9 @@ export type RuleUpdate = z.infer<typeof RuleUpdateSchema>;
 
 /** RuleSet type - inferred from schema */
 export type RuleSet = z.infer<typeof RuleSetSchema>;
+
+/** CardinalityConstraint type - inferred from schema */
+export type CardinalityConstraint = z.infer<typeof CardinalityConstraintSchema>;
 
 /** Field type - inferred from schema */
 export type Field = z.infer<typeof FieldSchema>;

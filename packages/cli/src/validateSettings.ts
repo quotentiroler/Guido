@@ -17,6 +17,7 @@ import {
   toFieldValues,
   mergeSettingsIntoFields,
   validateValue,
+  validateCardinality,
   isFieldRequired,
   translateRangeToHumanReadable,
 } from '@guido/core';
@@ -282,6 +283,13 @@ function validateSettings(
     }
   }
   
+  // Cardinality constraints (exactly-one / at-least-one / at-most-one over field sets)
+  const cardinality = validateCardinality(ruleSet?.constraints ?? [], updatedFields);
+  for (const message of cardinality.errors) {
+    issues.push({ field: '(constraint)', type: 'invalid', message });
+    invalidValues++;
+  }
+
   return {
     isValid: missingRequired === 0 && invalidValues === 0,
     issues,

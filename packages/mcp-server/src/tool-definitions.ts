@@ -371,7 +371,7 @@ export const toolDefinitions: ToolDef[] = [
   {
     name: 'validate_rules',
     title: 'Validate Rules',
-    description: 'Check all rules for contradictions (including conflicts under overlapping conditions), circular dependencies, and rule/schema consistency (a rule must not set or require a value that the target field\'s range forbids).',
+    description: 'Check all rules for contradictions (including conflicts under overlapping conditions), circular dependencies, rule/schema consistency (a rule must not set or require a value that the target field\'s range forbids), and cardinality constraints (exactly-one / at-least-one / at-most-one over a set of fields).',
     category: 'validation',
     inputs: {
       filePath: { type: 'string', required: false, description: 'Path to the guido.json template file' },

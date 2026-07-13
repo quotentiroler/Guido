@@ -28,6 +28,7 @@ export type {
   RuleDomain,
   RuleSet,
   RuleUpdate,
+  CardinalityConstraint,
   Template,
   NestedField,
   // Range types

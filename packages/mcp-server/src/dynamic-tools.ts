@@ -28,6 +28,7 @@ import type { Explanation } from '@guido/core';
 import {
   validateRules,
   validateRulesAgainstFields,
+  validateCardinality,
   translateRule,
   explainField,
   validateValue,
@@ -882,9 +883,10 @@ const toolHandlers: Record<string, ToolHandler> = {
       const allRules = resolveRuleSetRules(template, ruleSetIndex);
       const validation = validateRules(allRules);
       const schema = validateRulesAgainstFields(allRules, template.fields);
+      const cardinality = validateCardinality(ruleSet.constraints ?? [], template.fields);
       return {
-        isValid: validation.isValid && schema.isValid,
-        errors: [...validation.errors, ...schema.errors],
+        isValid: validation.isValid && schema.isValid && cardinality.isValid,
+        errors: [...validation.errors, ...schema.errors, ...cardinality.errors],
         warnings: validation.warnings,
         ruleSet: ruleSet.name,
         extends: ruleSet.extends,
@@ -899,14 +901,15 @@ const toolHandlers: Record<string, ToolHandler> = {
       const allRules = resolveRuleSetRules(template, i);
       const validation = validateRules(allRules);
       const schema = validateRulesAgainstFields(allRules, template.fields);
+      const cardinality = validateCardinality(ruleSet.constraints ?? [], template.fields);
       return {
         ruleSet: ruleSet.name,
         index: i,
         extends: ruleSet.extends,
         ownRuleCount: ruleSet.rules?.length ?? 0,
         totalRuleCount: allRules.length,
-        isValid: validation.isValid && schema.isValid,
-        errors: [...validation.errors, ...schema.errors],
+        isValid: validation.isValid && schema.isValid && cardinality.isValid,
+        errors: [...validation.errors, ...schema.errors, ...cardinality.errors],
         warnings: validation.warnings,
       };
     });

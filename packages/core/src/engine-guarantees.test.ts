@@ -7,7 +7,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { RuleState, type Field, type Rule } from '@guido/types';
-import { applyRules, validateRules, validateRulesAgainstFields, findContradictions, validateValue } from './index.js';
+import { applyRules, validateRules, validateRulesAgainstFields, findContradictions, validateValue, validateCardinality } from './index.js';
 
 const f = (name: string, value: Field['value'] = '', checked = false, range = ''): Field => ({
   name, value, checked, info: '', example: '', range,
@@ -253,8 +253,30 @@ describe('conditions can combine with OR (match: any)', () => {
 // ============================================================================
 // Roadmap: guarantees not yet implemented (Tier 1-3)
 // ============================================================================
+describe('cardinality constraints', () => {
+  const set = (name: string, on: boolean) => f(name, on ? 'x' : '', on);
+
+  it('exactly-one passes when one is set, fails otherwise', () => {
+    const c = [{ kind: 'exactly-one' as const, fields: ['A', 'B', 'C'] }];
+    expect(validateCardinality(c, [set('A', true), set('B', false), set('C', false)]).isValid).toBe(true);
+    expect(validateCardinality(c, [set('A', true), set('B', true), set('C', false)]).isValid).toBe(false);
+    expect(validateCardinality(c, [set('A', false), set('B', false), set('C', false)]).isValid).toBe(false);
+  });
+
+  it('at-least-one requires >= 1', () => {
+    const c = [{ kind: 'at-least-one' as const, fields: ['A', 'B'] }];
+    expect(validateCardinality(c, [set('A', false), set('B', true)]).isValid).toBe(true);
+    expect(validateCardinality(c, [set('A', false), set('B', false)]).isValid).toBe(false);
+  });
+
+  it('at-most-one allows 0 or 1 but not 2', () => {
+    const c = [{ kind: 'at-most-one' as const, fields: ['A', 'B'] }];
+    expect(validateCardinality(c, [set('A', false), set('B', false)]).isValid).toBe(true);
+    expect(validateCardinality(c, [set('A', true), set('B', true)]).isValid).toBe(false);
+  });
+});
+
 describe('roadmap: expressiveness not yet supported', () => {
-  it.todo('cardinality: "exactly one of A/B/C" and "at least one of A/B"');
   it.todo('dynamic arrays: govern an unbounded list of objects, not fixed indices');
 });
 

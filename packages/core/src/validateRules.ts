@@ -1,5 +1,5 @@
 import { RuleState, Rule, RuleDomain } from '@guido/types';
-import type { Field } from '@guido/types';
+import type { Field, CardinalityConstraint } from '@guido/types';
 import { validateValue, translateRangeToHumanReadable } from './fieldUtils.js';
 
 export interface ValidationResult {
@@ -461,5 +461,36 @@ export function validateRulesAgainstFields(rules: Rule[], fields: Field[]): Vali
     (rule.conditions ?? []).forEach((c) => check(c, 'condition'));
   }
 
+  return { isValid: errors.length === 0, errors, warnings: [] };
+}
+/** A field counts as "set" for cardinality: enabled with a non-empty value. */
+function isSet(field: Field | undefined): boolean {
+  if (!field || field.checked !== true) return false;
+  const v = field.value;
+  if (v === undefined || v === null) return false;
+  if (typeof v === 'string') return v.trim() !== '';
+  if (Array.isArray(v)) return v.length > 0;
+  return true;
+}
+
+/**
+ * Validate cardinality constraints against the current field values: each constraint
+ * counts how many of its fields are set and checks the required cardinality
+ * ('exactly-one' == 1, 'at-least-one' >= 1, 'at-most-one' <= 1).
+ */
+export function validateCardinality(constraints: CardinalityConstraint[], fields: Field[]): ValidationResult {
+  const byName = new Map(fields.map((f) => [f.name, f]));
+  const errors: string[] = [];
+  for (const c of constraints) {
+    const setCount = c.fields.filter((name) => isSet(byName.get(name))).length;
+    const label = c.fields.map((f) => `"${f}"`).join(', ');
+    if (c.kind === 'exactly-one' && setCount !== 1) {
+      errors.push(`Exactly one of ${label} must be set, but ${setCount} are.`);
+    } else if (c.kind === 'at-least-one' && setCount < 1) {
+      errors.push(`At least one of ${label} must be set, but none are.`);
+    } else if (c.kind === 'at-most-one' && setCount > 1) {
+      errors.push(`At most one of ${label} may be set, but ${setCount} are.`);
+    }
+  }
   return { isValid: errors.length === 0, errors, warnings: [] };
 }

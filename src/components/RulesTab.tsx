@@ -3,7 +3,7 @@ import Button from "./shared/Button";
 import RulesList from "./RulesList";
 import { useRuleContext } from "@/hooks/useRuleContext";
 import { useAppContext } from "@/hooks/useAppContext";
-import { Rule, RuleState, RuleSet } from "@guido/types";
+import { Rule, RuleState, RuleSet, CardinalityConstraint } from "@guido/types";
 import { resolveRuleSetRules } from "@guido/core";
 import AddOrEditRuleModal from "./AddRuleModal";
 import { useTemplateContext } from "@/hooks/useTemplateContext";
@@ -46,6 +46,7 @@ const RulesTab: React.FC = () => {
         description: currentRuleSet.description,
         tags: [...(currentRuleSet.tags || [])],
         extends: currentRuleSet.extends,
+        constraints: currentRuleSet.constraints ? [...currentRuleSet.constraints] : undefined,
       });
       setShowRuleSetEditor(true);
     }
@@ -205,6 +206,62 @@ const RulesTab: React.FC = () => {
               className="w-full px-3 py-1.5 bg-surface-1 border rounded text-sm"
               rows={2}
             />
+          </div>
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm text-text-secondary">Cardinality constraints</label>
+              <Button
+                onClick={() => setEditingRuleSet({
+                  ...editingRuleSet,
+                  constraints: [...(editingRuleSet.constraints ?? []), { kind: 'exactly-one', fields: [] }],
+                })}
+                type="secondary-text"
+                size="small"
+              >
+                + Add constraint
+              </Button>
+            </div>
+            {(editingRuleSet.constraints ?? []).map((c, ci) => (
+              <div key={ci} className="flex flex-wrap items-center gap-2 mb-2">
+                <select
+                  aria-label="Constraint kind"
+                  value={c.kind}
+                  onChange={(e) => {
+                    const constraints = [...(editingRuleSet.constraints ?? [])];
+                    constraints[ci] = { ...c, kind: e.target.value as CardinalityConstraint['kind'] };
+                    setEditingRuleSet({ ...editingRuleSet, constraints });
+                  }}
+                  className="px-2 py-1.5 bg-surface-1 border rounded text-sm text-text-primary"
+                >
+                  <option value="exactly-one">Exactly one of</option>
+                  <option value="at-least-one">At least one of</option>
+                  <option value="at-most-one">At most one of</option>
+                </select>
+                <input
+                  type="text"
+                  aria-label="Constraint fields (comma-separated)"
+                  placeholder="FieldA, FieldB, FieldC"
+                  value={c.fields.join(', ')}
+                  onChange={(e) => {
+                    const constraints = [...(editingRuleSet.constraints ?? [])];
+                    constraints[ci] = { ...c, fields: e.target.value.split(',').map(s => s.trim()).filter(Boolean) };
+                    setEditingRuleSet({ ...editingRuleSet, constraints });
+                  }}
+                  className="flex-1 min-w-[10rem] px-3 py-1.5 bg-surface-1 border rounded text-sm"
+                />
+                <Button
+                  onClick={() => setEditingRuleSet({
+                    ...editingRuleSet,
+                    constraints: (editingRuleSet.constraints ?? []).filter((_, i) => i !== ci),
+                  })}
+                  type="error-text"
+                  size="small"
+                >
+                  Remove
+                </Button>
+              </div>
+            ))}
+            <p className="text-xs text-text-tertiary">A field counts as set when enabled with a non-empty value.</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button onClick={handleSaveRuleSet} type="primary" size="small">

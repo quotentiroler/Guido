@@ -182,6 +182,20 @@ Rules define conditional relationships between fields:
 
 **Logic**: `If the conditions match, then ALL targets are enforced`. Conditions combine per the rule's `match`: `all` (default, AND - every condition must hold) or `any` (OR - at least one).
 
+### Cardinality Constraints
+
+A ruleset can also declare cardinality constraints over a set of fields (validated against a config, not applied as rules):
+
+```json
+{
+  "constraints": [
+    { "kind": "exactly-one", "fields": ["MongoDb", "SQLite", "Postgres"] }
+  ]
+}
+```
+
+`kind` is `exactly-one` (exactly 1 of the fields set), `at-least-one` (>= 1), or `at-most-one` (<= 1). A field counts as set when it is enabled with a non-empty value.
+
 **RuleDomain Properties:**
 
 | Property  | Type                                        | Description                                |

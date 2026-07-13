@@ -3,7 +3,7 @@
  */
 
 // Rule validation
-export { validateRules, validateRulesAgainstFields, findContradictions } from './validateRules.js';
+export { validateRules, validateRulesAgainstFields, findContradictions, validateCardinality } from './validateRules.js';
 export type { ValidationResult, Contradiction } from './validateRules.js';
 
 // RuleSet utilities (inheritance, resolution, validation)
