@@ -8,6 +8,9 @@ on:
       - main
     paths:
       - 'packages/**/package.json'
+      # The root script decides the build ORDER, which decides whether a
+      # package can be built at all.
+      - 'package.json'
       - '.github/workflows/publish-packages.yml'
   workflow_dispatch:
 
