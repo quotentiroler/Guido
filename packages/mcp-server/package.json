@@ -1,12 +1,17 @@
 {
   "name": "@quotentiroler/guido-mcp-server",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "MCP Server for Guido template management - CRUD operations for fields and rules",
   "type": "module",
   "main": "dist/index.js",
   "exports": {
     ".": "./dist/index.js",
-    "./definitions": "./dist/exports.js"
+    "./definitions": "./dist/exports.js",
+    "./store": "./dist/store/index.js",
+    "./store/types": "./dist/store/types.js",
+    "./store/memory": "./dist/store/memory-store.js",
+    "./store/change-tracker": "./dist/store/change-tracker.js",
+    "./template-utils": "./dist/template-utils.js"
   },
   "bin": {
     "guido-mcp": "./dist/index.js"
