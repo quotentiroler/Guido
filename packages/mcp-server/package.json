@@ -1,6 +1,6 @@
 {
   "name": "@quotentiroler/guido-mcp-server",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "description": "MCP Server for Guido template management - CRUD operations for fields and rules",
   "type": "module",
   "main": "./dist/index.js",

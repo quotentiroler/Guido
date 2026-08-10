@@ -2,7 +2,7 @@
  * Change tracking tools
  */
 import { z } from 'zod';
-import { type ToolContext } from './types';
+import { type ToolContext } from './types.js';
 import { type Field } from '@quotentiroler/guido-types';
 
 

@@ -5,7 +5,7 @@
  */
 
 import { type Template, type RuleSet } from '@quotentiroler/guido-types';
-import { hasNestedFields, flattenNestedFields } from './fieldUtils';
+import { hasNestedFields, flattenNestedFields } from './fieldUtils.js';
 
 /**
  * Default empty ruleset - first ruleset is always the default

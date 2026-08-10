@@ -1,6 +1,6 @@
 {
   "name": "@quotentiroler/guido-types",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Shared TypeScript types for Guido configuration templates",
   "type": "module",
   "main": "./dist/index.js",

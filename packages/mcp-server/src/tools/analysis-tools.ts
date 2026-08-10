@@ -2,7 +2,7 @@
  * Analysis and discovery tools for templates
  */
 import { z } from 'zod';
-import { type ToolContext } from './types';
+import { type ToolContext } from './types.js';
 import type { Field } from '@quotentiroler/guido-types';
 import { translateRangeToHumanReadable, isFieldRequired } from '@quotentiroler/guido-core';
 

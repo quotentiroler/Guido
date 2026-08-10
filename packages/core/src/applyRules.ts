@@ -6,7 +6,7 @@
 
 import { type Field, type FieldValue, type Rule, type RuleDomain, RuleState } from '@quotentiroler/guido-types';
 import { type ILogger, type FieldChange, type TriggerAction, logger } from '@quotentiroler/guido-logger';
-import { translateRule } from './ruleTranslation';
+import { translateRule } from './ruleTranslation.js';
 
 export interface ApplyRulesResult {
   updatedFields: Field[];

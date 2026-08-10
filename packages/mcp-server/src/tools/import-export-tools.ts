@@ -5,9 +5,9 @@ import { z } from 'zod';
 import * as fs from 'fs';
 import * as path from 'path';
 import { CONFIG_FORMATS, detectFormat, parseSettings, serializeFields, type ConfigFormat } from '@quotentiroler/guido-core';
-import { type ToolContext } from './types';
+import { type ToolContext } from './types.js';
 import type { Field, FieldValue } from '@quotentiroler/guido-types';
-import { applyRulesToFields } from '../template-utils';
+import { applyRulesToFields } from '../template-utils.js';
 
 const FORMAT_ENUM = z.enum(CONFIG_FORMATS);
 
