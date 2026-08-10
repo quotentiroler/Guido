@@ -1,138 +1,14 @@
 /**
- * Template utilities for loading, saving, and manipulating guido templates
- * 
- * This module provides MCP-specific utilities:
- * - File I/O operations (loadTemplate, saveTemplate)
- * - Template normalization (ensure a default ruleSet exists)
- * - Change tracking for sessions
- * - Field/rule helpers that operate on Template objects
- * 
+ * Template helpers that operate on Template objects in memory.
+ *
+ * Storage lives behind the TemplateStore port in ./store, so these stay pure and
+ * work the same on the filesystem and in a hosted server.
+ *
  * For core logic, import directly from @guido/core.
  * For types, import directly from @guido/types.
  */
-import * as fs from 'fs';
-import * as path from 'path';
 import type { Template, Field, Rule, RuleDomain } from '@guido/types';
 import { applyRules, isFieldRequired, getDefaultRules } from '@guido/core';
-
-// ============================================================================
-// TEMPLATE NORMALIZATION
-// ============================================================================
-
-/**
- * Ensure a template has at least one ruleSet. A template without any ruleSets gets a
- * default empty one. The old top-level `rules` array format is no longer supported.
- */
-export function ensureRuleSets(template: Template): Template {
-  if (template.ruleSets && template.ruleSets.length > 0) {
-    return template;
-  }
-  return {
-    ...template,
-    ruleSets: [{
-      name: 'Default',
-      description: 'Default rule set',
-      tags: [],
-      rules: [],
-    }],
-  };
-}
-
-// ============================================================================
-// CHANGE TRACKING
-// ============================================================================
-
-interface ChangeEntry {
-  timestamp: string;
-  type: 'field_update' | 'field_add' | 'field_delete' | 'rule_add' | 'rule_update' | 'rule_delete' | 'import' | 'export';
-  details: Record<string, unknown>;
-}
-
-interface TemplateSnapshot {
-  loadedAt: string;
-  template: Template;
-}
-
-// In-memory change tracking per template path
-const changeLog = new Map<string, ChangeEntry[]>();
-const snapshots = new Map<string, TemplateSnapshot>();
-
-/**
- * Record a change for a template
- */
-export function recordChange(
-  filePath: string,
-  type: ChangeEntry['type'],
-  details: Record<string, unknown>
-): void {
-  const absolutePath = path.resolve(filePath);
-  if (!changeLog.has(absolutePath)) {
-    changeLog.set(absolutePath, []);
-  }
-  changeLog.get(absolutePath)!.push({
-    timestamp: new Date().toISOString(),
-    type,
-    details,
-  });
-}
-
-/**
- * Get all changes since last load for a template
- */
-export function getChanges(filePath: string): ChangeEntry[] {
-  const absolutePath = path.resolve(filePath);
-  return changeLog.get(absolutePath) || [];
-}
-
-/**
- * Clear change log for a template
- */
-export function clearChanges(filePath: string): void {
-  const absolutePath = path.resolve(filePath);
-  changeLog.delete(absolutePath);
-}
-
-/**
- * Get the initial snapshot of a template (when first loaded)
- */
-export function getSnapshot(filePath: string): TemplateSnapshot | undefined {
-  const absolutePath = path.resolve(filePath);
-  return snapshots.get(absolutePath);
-}
-
-/**
- * Load a guido template from a file path.
- * Normalizes the template to ensure it has at least one ruleSet.
- */
-export function loadTemplate(filePath: string): Template {
-  const absolutePath = path.resolve(filePath);
-  if (!fs.existsSync(absolutePath)) {
-    throw new Error(`Template file not found: ${absolutePath}`);
-  }
-  const content = fs.readFileSync(absolutePath, 'utf-8');
-  const rawTemplate = JSON.parse(content) as Template;
-
-  // Ensure a default ruleSet exists
-  const template = ensureRuleSets(rawTemplate);
-  
-  // Store snapshot if first load
-  if (!snapshots.has(absolutePath)) {
-    snapshots.set(absolutePath, {
-      loadedAt: new Date().toISOString(),
-      template: JSON.parse(JSON.stringify(template)) as Template, // Deep copy
-    });
-  }
-  
-  return template;
-}
-
-/**
- * Save a guido template to a file path
- */
-export function saveTemplate(filePath: string, template: Template): void {
-  const absolutePath = path.resolve(filePath);
-  fs.writeFileSync(absolutePath, JSON.stringify(template, null, 2), 'utf-8');
-}
 
 /**
  * Find a field by name in the template

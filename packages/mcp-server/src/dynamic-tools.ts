@@ -9,7 +9,6 @@
 import { z } from 'zod';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as yaml from 'js-yaml';
 import { toolDefinitions, type InputType, type InputDef } from './tool-definitions.js';
 import { type ToolContext } from './tools/types.js';
 // Types only (no Zod bundled)
@@ -31,10 +30,10 @@ import {
   translateRule,
   explainField,
   validateValue,
-  flattenObject,
-  parseKeyValueFormat,
-  toFieldValues,
   mergeSettingsIntoFields,
+  detectFormat,
+  parseSettings,
+  CONFIG_FORMATS,
   translateRangeToHumanReadable,
   getDefaultRules,
   resolveRuleSetRules,
@@ -42,15 +41,19 @@ import {
   validateRuleSetInheritance,
   mergeTemplates,
 } from '@guido/core';
-import { 
-  loadTemplate, 
-  saveTemplate, 
-  findField, 
+import {
+  findField,
   findFieldIndex,
   applyRulesToFields,
   getAffectedFields,
   isFieldRequiredInTemplate,
 } from './template-utils.js';
+
+/** Last path segment of a ref, for a default fileName. Works on paths and storage keys alike. */
+function refBasename(ref: string): string {
+  const parts = ref.split(/[\\/]/);
+  return parts[parts.length - 1] || ref;
+}
 
 // ============================================================================
 // Input Type to Zod Schema Mapping
@@ -1081,25 +1084,16 @@ const toolHandlers: Record<string, ToolHandler> = {
     if (!fs.existsSync(absolutePath)) {
       throw new Error(`Settings file not found: ${absolutePath}`);
     }
-    
+
     const content = fs.readFileSync(absolutePath, 'utf-8');
-    const ext = path.extname(settingsPath).toLowerCase();
-    
-    let settings: Record<string, FieldValue>;
-    if (ext === '.json') {
-      const parsed = JSON.parse(content) as Record<string, unknown>;
-      const flattened = flattenObject(parsed);
-      settings = toFieldValues(flattened);
-    } else if (ext === '.yaml' || ext === '.yml') {
-      const parsed = yaml.load(content) as Record<string, unknown>;
-      const flattened = flattenObject(parsed);
-      settings = toFieldValues(flattened);
-    } else if (ext === '.properties' || ext === '.env' || ext === '.txt') {
-      const parsed = parseKeyValueFormat(content);
-      settings = toFieldValues(parsed);
-    } else {
-      throw new Error(`Unsupported settings format: ${ext}. Supported: .json, .yaml, .yml, .properties, .env`);
+    const format = detectFormat(path.basename(settingsPath));
+    if (!format) {
+      throw new Error(
+        `Unsupported settings format: ${settingsPath}. Supported: ${CONFIG_FORMATS.join(', ')}`
+      );
     }
+
+    const settings: Record<string, FieldValue> = parseSettings(content, format);
 
     // Find ruleset
     const allRuleSets = template.ruleSets || [];
@@ -1224,7 +1218,7 @@ const toolHandlers: Record<string, ToolHandler> = {
 // ============================================================================
 
 export function registerAllTools(context: ToolContext): void {
-  const { server, getTemplatePath } = context;
+  const { server, store } = context;
 
   // Register create_template specially - it doesn't load an existing template
   server.registerTool(
@@ -1245,18 +1239,17 @@ export function registerAllTools(context: ToolContext): void {
     async (args) => {
       try {
         const filePath = args.filePath as string;
-        const resolvedPath = path.resolve(filePath);
+        const resolvedPath = store.resolveRef(filePath);
         const setAsActive = (args.setAsActive as boolean) ?? true;
-        
-        // Check if file already exists
-        if (fs.existsSync(resolvedPath)) {
-          throw new Error(`Template file already exists: ${resolvedPath}. Use set_template to switch to it, or other tools to modify it.`);
+
+        if (await store.exists(resolvedPath)) {
+          throw new Error(`Template already exists: ${resolvedPath}. Use set_template to switch to it, or other tools to modify it.`);
         }
-        
+
         // Create new template
         const template: Template = {
           name: args.name as string,
-          fileName: path.basename(resolvedPath),
+          fileName: refBasename(resolvedPath),
           version: (args.version as string) || '1.0.0',
           description: (args.description as string) || '',
           owner: (args.owner as string) || '',
@@ -1270,18 +1263,10 @@ export function registerAllTools(context: ToolContext): void {
           }],
         };
         
-        // Ensure directory exists
-        const dir = path.dirname(resolvedPath);
-        if (!fs.existsSync(dir)) {
-          fs.mkdirSync(dir, { recursive: true });
-        }
-        
-        // Save template
-        saveTemplate(resolvedPath, template);
-        
-        // Set as active template if requested
-        if (setAsActive && context.setTemplatePath) {
-          context.setTemplatePath(resolvedPath);
+        await store.save(resolvedPath, template);
+
+        if (setAsActive) {
+          store.setActiveRef(resolvedPath);
         }
         
         return {
@@ -1323,23 +1308,14 @@ export function registerAllTools(context: ToolContext): void {
     async (args) => {
       try {
         const filePath = args.filePath as string;
-        const resolvedPath = path.resolve(filePath);
-        
-        // Verify file exists and is valid
-        if (!fs.existsSync(resolvedPath)) {
-          throw new Error(`Template file not found: ${resolvedPath}`);
-        }
-        
-        // Try to load it to validate it's a proper template
-        const template = loadTemplate(resolvedPath);
-        
-        // Set as active template
-        if (context.setTemplatePath) {
-          context.setTemplatePath(resolvedPath);
-        }
-        
-        const previousPath = context.getCurrentTemplatePath?.();
-        
+        const resolvedPath = store.resolveRef(filePath);
+
+        // Load it first, so an unreadable template never becomes the active one.
+        const template = await store.load(resolvedPath);
+
+        const previousPath = store.activeRef();
+        store.setActiveRef(resolvedPath);
+
         return {
           content: [{
             type: 'text' as const,
@@ -1379,24 +1355,16 @@ export function registerAllTools(context: ToolContext): void {
     },
     async (args) => {
       try {
-        const targetPath = getTemplatePath(args.filePath as string | undefined);
-        const sourcePath = path.resolve(args.sourceTemplatePath as string);
-        
-        // Verify source file exists
-        if (!fs.existsSync(sourcePath)) {
-          throw new Error(`Source template file not found: ${sourcePath}`);
-        }
-        
-        // Load both templates
-        const targetTemplate = loadTemplate(targetPath);
-        const sourceTemplate = loadTemplate(sourcePath);
-        
-        // Merge templates
+        const targetPath = store.resolveRef(args.filePath as string | undefined);
+        const sourcePath = store.resolveRef(args.sourceTemplatePath as string);
+
+        const targetTemplate = await store.load(targetPath);
+        const sourceTemplate = await store.load(sourcePath);
+
         const mergedTemplate = mergeTemplates(targetTemplate, sourceTemplate);
-        
-        // Save merged template
-        saveTemplate(targetPath, mergedTemplate);
-        
+
+        await store.save(targetPath, mergedTemplate);
+
         // Calculate stats
         const newFields = mergedTemplate.fields.length - targetTemplate.fields.length;
         const newRules = (mergedTemplate.ruleSets?.[0]?.rules?.length ?? 0) - (targetTemplate.ruleSets?.[0]?.rules?.length ?? 0);
@@ -1457,16 +1425,23 @@ export function registerAllTools(context: ToolContext): void {
       async (args) => {
         try {
           const filePath = args.filePath as string | undefined;
-          const resolvedPath = getTemplatePath(filePath);
-          const template = loadTemplate(resolvedPath);
-          
+          const ref = store.resolveRef(filePath);
+          const template = await store.load(ref);
+
+          // Handlers are synchronous: save() marks the template dirty and the
+          // single persist happens here, once, after the handler returns.
+          let dirty = false;
           const ctx = {
-            filePath: resolvedPath,
-            save: () => saveTemplate(resolvedPath, template),
+            filePath: ref,
+            save: () => {
+              dirty = true;
+            },
           };
 
           const result = handler(args, template, ctx);
-          
+
+          if (dirty) await store.save(ref, template);
+
           return {
             content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }],
           };

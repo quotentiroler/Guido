@@ -11,6 +11,7 @@
  */
 import { type McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { type z } from 'zod';
+import type { ChangeTracker, TemplateStore } from '../store/index.js';
 
 // ============================================================================
 // Tool Registration Types
@@ -34,11 +35,10 @@ export interface ToolRegistrar {
 
 export type ToolContext = {
   server: ToolRegistrar;
-  getTemplatePath: (providedPath?: string) => string;
-  /** Set the active template path for subsequent operations */
-  setTemplatePath?: (newPath: string) => void;
-  /** Get the current active template path (undefined if not set) */
-  getCurrentTemplatePath?: () => string | undefined;
+  /** Where templates are read and written. Filesystem for stdio, tenant-scoped storage when hosted. */
+  store: TemplateStore;
+  /** Per-template change log and load-time snapshots. */
+  tracker: ChangeTracker;
 };
 
 /**

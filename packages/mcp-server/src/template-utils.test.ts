@@ -1,14 +1,10 @@
 /**
  * Tests for MCP Server template utilities
  */
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import * as fs from 'fs';
+import { describe, it, expect } from 'vitest';
 import { type Template, type Field, type Rule, RuleState } from '@guido/types';
 import { getDefaultRules, getRuleSetRules } from '@guido/core';
 import {
-  ensureRuleSets,
-  loadTemplate,
-  saveTemplate,
   findField,
   findFieldIndex,
   applyRulesToFields,
@@ -17,13 +13,8 @@ import {
   generateContrapositive,
   renameField,
   duplicateField,
-  recordChange,
-  getChanges,
-  clearChanges,
 } from './template-utils';
-
-// Mock fs module
-vi.mock('fs');
+import { ensureRuleSets } from './store/index.js';
 
 // Helper to create a minimal valid template
 function createTemplate(overrides: Partial<Template> = {}): Template {
@@ -134,63 +125,6 @@ describe('template-utils', () => {
     });
   });
 
-  // ============================================================================
-  // FILE I/O TESTS
-  // ============================================================================
-  describe('loadTemplate', () => {
-    beforeEach(() => {
-      vi.clearAllMocks();
-    });
-
-    it('should load and parse template file', () => {
-      const template = createTemplate({
-        fields: [createField('field1', 'test')],
-      });
-
-      vi.mocked(fs.existsSync).mockReturnValue(true);
-      vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(template));
-
-      const result = loadTemplate('/path/to/template.guido.json');
-
-      expect(result.name).toBe('Test Template');
-      expect(result.fields).toHaveLength(1);
-    });
-
-    it('should throw error if file not found', () => {
-      vi.mocked(fs.existsSync).mockReturnValue(false);
-
-      expect(() => loadTemplate('/nonexistent.json'))
-        .toThrow('Template file not found');
-    });
-
-    it('should normalize a template with no ruleSets to a default empty ruleset', () => {
-      const template = { ...createTemplate() };
-      delete (template as { ruleSets?: unknown }).ruleSets;
-
-      vi.mocked(fs.existsSync).mockReturnValue(true);
-      vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(template));
-
-      const result = loadTemplate('/path/to/template.guido.json');
-
-      expect(result.ruleSets).toBeDefined();
-      expect(result.ruleSets).toHaveLength(1);
-      expect(result.ruleSets[0].rules).toHaveLength(0);
-    });
-  });
-
-  describe('saveTemplate', () => {
-    it('should write template to file', () => {
-      const template = createTemplate();
-
-      saveTemplate('/path/to/output.json', template);
-
-      expect(fs.writeFileSync).toHaveBeenCalledWith(
-        expect.stringContaining('output.json'),
-        expect.stringContaining('"name": "Test Template"'),
-        'utf-8'
-      );
-    });
-  });
 
   // ============================================================================
   // FIELD FINDER TESTS
@@ -487,38 +421,4 @@ describe('template-utils', () => {
     });
   });
 
-  // ============================================================================
-  // CHANGE TRACKING TESTS
-  // ============================================================================
-  describe('change tracking', () => {
-    const testPath = '/test/template.json';
-
-    beforeEach(() => {
-      clearChanges(testPath);
-    });
-
-    it('should record and retrieve changes', () => {
-      recordChange(testPath, 'field_update', { field: 'test', value: 'new' });
-      recordChange(testPath, 'field_add', { field: 'newField' });
-
-      const changes = getChanges(testPath);
-
-      expect(changes).toHaveLength(2);
-      expect(changes[0].type).toBe('field_update');
-      expect(changes[1].type).toBe('field_add');
-    });
-
-    it('should clear changes', () => {
-      recordChange(testPath, 'field_update', { field: 'test' });
-      expect(getChanges(testPath)).toHaveLength(1);
-
-      clearChanges(testPath);
-
-      expect(getChanges(testPath)).toHaveLength(0);
-    });
-
-    it('should return empty array for path with no changes', () => {
-      expect(getChanges('/unknown/path.json')).toEqual([]);
-    });
-  });
 });

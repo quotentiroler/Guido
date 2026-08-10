@@ -31,6 +31,7 @@ import { fileURLToPath } from 'url';
 
 import { registerAllTools } from './dynamic-tools.js';
 import { asToolRegistrar, type ToolContext } from './tools/types.js';
+import { FsTemplateStore, InMemoryChangeTracker } from './store/index.js';
 
 // Keep legacy tool registrations for tools not yet migrated to dynamic
 import {
@@ -74,31 +75,16 @@ const server = new McpServer(
 // HELPER FUNCTIONS
 // ============================================================================
 
-function getTemplatePath(providedPath?: string): string {
-  const p = providedPath || templatePath;
-  if (!p) {
-    throw new Error('No template path provided. Use set_template, create_template, or provide filePath parameter.');
-  }
-  return path.resolve(p);
-}
-
-function setTemplatePath(newPath: string): void {
-  templatePath = path.resolve(newPath);
-}
-
-function getCurrentTemplatePath(): string | undefined {
-  return templatePath;
-}
-
 // ============================================================================
 // REGISTER ALL TOOLS
 // ============================================================================
 
-const context: ToolContext = { 
-  server: asToolRegistrar(server), 
-  getTemplatePath,
-  setTemplatePath,
-  getCurrentTemplatePath,
+const tracker = new InMemoryChangeTracker();
+
+const context: ToolContext = {
+  server: asToolRegistrar(server),
+  store: new FsTemplateStore(templatePath, tracker),
+  tracker,
 };
 
 // Core tools (field, rule, template, validation, export) - dynamically registered

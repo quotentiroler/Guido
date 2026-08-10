@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/require-await */
 /**
  * Import/Export tools for multiple formats
  */
@@ -8,11 +7,11 @@ import * as path from 'path';
 import { CONFIG_FORMATS, detectFormat, parseSettings, serializeFields, type ConfigFormat } from '@guido/core';
 import { type ToolContext } from './types';
 import type { Field, FieldValue } from '@guido/types';
-import { loadTemplate, saveTemplate, applyRulesToFields } from '../template-utils';
+import { applyRulesToFields } from '../template-utils';
 
 const FORMAT_ENUM = z.enum(CONFIG_FORMATS);
 
-export function registerImportExportTools({ server, getTemplatePath }: ToolContext) {
+export function registerImportExportTools({ server, store }: ToolContext) {
   // ============================================================================
   // IMPORT SETTINGS
   // ============================================================================
@@ -41,8 +40,8 @@ export function registerImportExportTools({ server, getTemplatePath }: ToolConte
       const mergeMode = (args.mergeMode as string | undefined) ?? 'update';
       const applyRulesAfter = (args.applyRulesAfter as boolean | undefined) ?? true;
 
-      const tPath = getTemplatePath(filePath);
-      const template = loadTemplate(tPath);
+      const tRef = store.resolveRef(filePath);
+      const template = await store.load(tRef);
 
       // Resolve settings path
       const absoluteSettingsPath = path.resolve(settingsPath);
@@ -129,7 +128,7 @@ export function registerImportExportTools({ server, getTemplatePath }: ToolConte
         appliedRulesInfo = appliedRules;
       }
 
-      saveTemplate(tPath, template);
+      await store.save(tRef, template);
 
       return {
         content: [{
@@ -176,7 +175,7 @@ export function registerImportExportTools({ server, getTemplatePath }: ToolConte
       const arrayStyle = args.arrayStyle as 'nargs' | 'repeat' | undefined;
       const outputPath = args.outputPath as string | undefined;
 
-      const template = loadTemplate(getTemplatePath(filePath));
+      const template = await store.load(store.resolveRef(filePath));
       const fieldsToExport = onlyChecked
         ? template.fields.filter((f: Field) => f.checked)
         : template.fields;

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/require-await */
 /**
  * Analysis and discovery tools for templates
  */
@@ -6,9 +5,9 @@ import { z } from 'zod';
 import { type ToolContext } from './types';
 import type { Field } from '@guido/types';
 import { translateRangeToHumanReadable, isFieldRequired } from '@guido/core';
-import { loadTemplate } from '../template-utils';
 
-export function registerAnalysisTools({ server, getTemplatePath }: ToolContext) {
+
+export function registerAnalysisTools({ server, store }: ToolContext) {
   // ============================================================================
   // GET REQUIRED FIELDS
   // ============================================================================
@@ -23,7 +22,7 @@ export function registerAnalysisTools({ server, getTemplatePath }: ToolContext) 
     },
     async (args) => {
       const filePath = args.filePath as string | undefined;
-      const template = loadTemplate(getTemplatePath(filePath));
+      const template = await store.load(store.resolveRef(filePath));
       const rules = template.ruleSets?.[0]?.rules ?? [];
 
       const requiredFields = template.fields
@@ -68,7 +67,7 @@ export function registerAnalysisTools({ server, getTemplatePath }: ToolContext) 
       const checkExample = (args.checkExample as boolean | undefined) ?? true;
       const checkRange = (args.checkRange as boolean | undefined) ?? true;
 
-      const template = loadTemplate(getTemplatePath(filePath));
+      const template = await store.load(store.resolveRef(filePath));
 
       const incompleteFields = template.fields
         .map((field: Field) => {
@@ -121,7 +120,7 @@ export function registerAnalysisTools({ server, getTemplatePath }: ToolContext) 
       const searchIn = (args.searchIn as string[] | undefined) ?? ['name', 'info', 'example', 'range', 'value'];
       const limit = args.limit as number | undefined;
 
-      const template = loadTemplate(getTemplatePath(filePath));
+      const template = await store.load(store.resolveRef(filePath));
 
       let results = template.fields
         .map((field: Field) => {
@@ -195,7 +194,7 @@ export function registerAnalysisTools({ server, getTemplatePath }: ToolContext) 
       const limit = (args.limit as number | undefined) ?? 10;
       const onlyUnchecked = args.onlyUnchecked as boolean | undefined;
 
-      const template = loadTemplate(getTemplatePath(filePath));
+      const template = await store.load(store.resolveRef(filePath));
 
       const suggestions = template.fields
         .filter((field: Field) => {
@@ -247,8 +246,8 @@ export function registerAnalysisTools({ server, getTemplatePath }: ToolContext) 
       const compareFields = (args.compareFields as boolean | undefined) ?? true;
       const compareRules = (args.compareRules as boolean | undefined) ?? true;
 
-      const template1 = loadTemplate(filePath1);
-      const template2 = loadTemplate(filePath2);
+      const template1 = await store.load(store.resolveRef(filePath1));
+      const template2 = await store.load(store.resolveRef(filePath2));
 
       const result: {
         template1: { name: string; fieldCount: number; ruleCount: number };

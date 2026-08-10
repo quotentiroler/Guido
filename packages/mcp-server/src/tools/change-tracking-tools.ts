@@ -1,13 +1,12 @@
-/* eslint-disable @typescript-eslint/require-await */
 /**
  * Change tracking tools
  */
 import { z } from 'zod';
 import { type ToolContext } from './types';
 import { type Field } from '@guido/types';
-import { loadTemplate, getChanges, clearChanges, getSnapshot } from '../template-utils';
 
-export function registerChangeTrackingTools({ server, getTemplatePath }: ToolContext) {
+
+export function registerChangeTrackingTools({ server, store, tracker }: ToolContext) {
   // ============================================================================
   // GET CHANGE SUMMARY
   // ============================================================================
@@ -25,10 +24,10 @@ export function registerChangeTrackingTools({ server, getTemplatePath }: ToolCon
       const filePath = args.filePath as string | undefined;
       const includeDetails = (args.includeDetails as boolean | undefined) ?? false;
 
-      const tPath = getTemplatePath(filePath);
-      const changes = getChanges(tPath);
-      const snapshot = getSnapshot(tPath);
-      const currentTemplate = loadTemplate(tPath);
+      const tRef = store.resolveRef(filePath);
+      const changes = await tracker.changes(tRef);
+      const snapshot = await tracker.snapshot(tRef);
+      const currentTemplate = await store.load(tRef);
 
       // Count changes by type
       const typeCounts: Record<string, number> = {};
@@ -95,10 +94,10 @@ export function registerChangeTrackingTools({ server, getTemplatePath }: ToolCon
     },
     async (args) => {
       const filePath = args.filePath as string | undefined;
-      const tPath = getTemplatePath(filePath);
+      const tRef = store.resolveRef(filePath);
       
-      const previousCount = getChanges(tPath).length;
-      clearChanges(tPath);
+      const previousCount = (await tracker.changes(tRef)).length;
+      await tracker.clear(tRef);
 
       return {
         content: [{
@@ -126,10 +125,10 @@ export function registerChangeTrackingTools({ server, getTemplatePath }: ToolCon
     },
     async (args) => {
       const filePath = args.filePath as string | undefined;
-      const tPath = getTemplatePath(filePath);
+      const tRef = store.resolveRef(filePath);
       
-      const snapshot = getSnapshot(tPath);
-      const current = loadTemplate(tPath);
+      const snapshot = await tracker.snapshot(tRef);
+      const current = await store.load(tRef);
 
       if (!snapshot) {
         return {
