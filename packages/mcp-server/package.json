@@ -1,6 +1,6 @@
 {
   "name": "@quotentiroler/guido-mcp-server",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "MCP Server for Guido template management - CRUD operations for fields and rules",
   "type": "module",
   "main": "dist/index.js",
@@ -56,6 +56,17 @@
   ],
   "publishConfig": {
     "registry": "https://npm.pkg.github.com",
-    "access": "restricted"
+    "access": "restricted",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+      ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
+      "./definitions": { "types": "./dist/exports.d.ts", "default": "./dist/exports.js" },
+      "./store": { "types": "./dist/store/index.d.ts", "default": "./dist/store/index.js" },
+      "./store/types": { "types": "./dist/store/types.d.ts", "default": "./dist/store/types.js" },
+      "./store/memory": { "types": "./dist/store/memory-store.d.ts", "default": "./dist/store/memory-store.js" },
+      "./store/change-tracker": { "types": "./dist/store/change-tracker.d.ts", "default": "./dist/store/change-tracker.js" },
+      "./template-utils": { "types": "./dist/template-utils.d.ts", "default": "./dist/template-utils.js" }
+    }
   }
 }

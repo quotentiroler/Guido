@@ -1,6 +1,6 @@
 {
   "name": "@quotentiroler/guido-types",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Shared TypeScript types for Guido configuration templates",
   "type": "module",
   "main": "./src/index.ts",
@@ -23,15 +23,18 @@
     "exports": {
       ".": {
         "types": "./dist/index.d.ts",
-        "import": "./dist/index.js"
+        "default": "./dist/index.js"
+      },
+      "./schemas": {
+        "types": "./dist/schemas.d.ts",
+        "default": "./dist/schemas.js"
       }
     },
     "registry": "https://npm.pkg.github.com",
     "access": "restricted"
   },
   "files": [
-    "dist",
-    "src"
+    "dist"
   ],
   "scripts": {
     "build": "tsc",

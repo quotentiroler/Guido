@@ -1,6 +1,6 @@
 {
   "name": "@quotentiroler/guido-logger",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Logging utilities for Guido packages",
   "type": "module",
   "main": "./src/index.ts",
@@ -16,7 +16,13 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "registry": "https://npm.pkg.github.com",
-    "access": "restricted"
+    "access": "restricted",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
   },
   "scripts": {
     "build": "tsc"

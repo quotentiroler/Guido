@@ -1,6 +1,6 @@
 {
   "name": "@quotentiroler/guido-cli",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "CLI tools for Guido template validation and schema conversion",
   "type": "module",
   "main": "./src/index.ts",
@@ -48,7 +48,33 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "registry": "https://npm.pkg.github.com",
-    "access": "restricted"
+    "access": "restricted",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "./validateTemplate": {
+        "types": "./dist/validateTemplate.d.ts",
+        "default": "./dist/validateTemplate.js"
+      },
+      "./validateSettings": {
+        "types": "./dist/validateSettings.d.ts",
+        "default": "./dist/validateSettings.js"
+      },
+      "./applyRules": {
+        "types": "./dist/applyRules.d.ts",
+        "default": "./dist/applyRules.js"
+      },
+      "./schemaToGuido": {
+        "types": "./dist/schemaToGuido.d.ts",
+        "default": "./dist/schemaToGuido.js"
+      },
+      "./guidoToSchema": {
+        "types": "./dist/guidoToSchema.d.ts",
+        "default": "./dist/guidoToSchema.js"
+      }
+    }
   },
   "scripts": {
     "build": "tsc",
