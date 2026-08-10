@@ -5,16 +5,12 @@
 import { z } from 'zod';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as yaml from 'js-yaml';
-import { ToolContext } from './types';
-import { 
-  flattenObject,
-  fieldsToNestedObject,
-  parseKeyValueFormat,
-  toFieldValues,
-} from '@guido/core';
+import { CONFIG_FORMATS, detectFormat, parseSettings, serializeFields, type ConfigFormat } from '@guido/core';
+import { type ToolContext } from './types';
 import type { Field, FieldValue } from '@guido/types';
 import { loadTemplate, saveTemplate, applyRulesToFields } from '../template-utils';
+
+const FORMAT_ENUM = z.enum(CONFIG_FORMATS);
 
 export function registerImportExportTools({ server, getTemplatePath }: ToolContext) {
   // ============================================================================
@@ -24,11 +20,12 @@ export function registerImportExportTools({ server, getTemplatePath }: ToolConte
     'import_settings',
     {
       title: 'Import Settings',
-      description: 'Import settings from a file (JSON, YAML, .properties, .env) into the template',
+      description:
+        'Import settings from a file (JSON, YAML, INI, command-line args, .properties, .env, .txt) into the template',
       inputSchema: {
         filePath: z.string().optional().describe('Path to the guido.json template file'),
         settingsPath: z.string().describe('Path to the settings file to import'),
-        format: z.enum(['auto', 'json', 'yaml', 'properties', 'env'])
+        format: z.enum(['auto', ...CONFIG_FORMATS])
           .optional()
           .describe('File format (default: auto-detect from extension)'),
         mergeMode: z.enum(['update', 'replace', 'addOnly'])
@@ -57,46 +54,13 @@ export function registerImportExportTools({ server, getTemplatePath }: ToolConte
       }
 
       const content = fs.readFileSync(absoluteSettingsPath, 'utf-8');
-      const ext = path.extname(settingsPath).toLowerCase();
 
-      // Determine format
-      let detectedFormat = format;
-      if (format === 'auto') {
-        if (ext === '.json') detectedFormat = 'json';
-        else if (ext === '.yaml' || ext === '.yml') detectedFormat = 'yaml';
-        else if (ext === '.properties') detectedFormat = 'properties';
-        else if (ext === '.env') detectedFormat = 'env';
-        else detectedFormat = 'json'; // default
-      }
+      const detectedFormat =
+        format === 'auto' ? detectFormat(path.basename(settingsPath)) ?? 'json' : (format as ConfigFormat);
 
-      // Parse content
       let settings: Record<string, FieldValue>;
       try {
-        switch (detectedFormat) {
-          case 'json': {
-            const jsonParsed = JSON.parse(content) as Record<string, unknown>;
-            const flattened = flattenObject(jsonParsed);
-            settings = toFieldValues(flattened);
-            break;
-          }
-          case 'yaml': {
-            const yamlParsed = yaml.load(content) as Record<string, unknown>;
-            const yamlFlattened = flattenObject(yamlParsed);
-            settings = toFieldValues(yamlFlattened);
-            break;
-          }
-          case 'properties':
-          case 'env': {
-            const kvParsed = parseKeyValueFormat(content);
-            settings = toFieldValues(kvParsed);
-            break;
-          }
-          default:
-            return {
-              content: [{ type: 'text' as const, text: `Unknown format: ${detectedFormat}` }],
-              isError: true,
-            };
-        }
+        settings = parseSettings(content, detectedFormat);
       } catch (error) {
         return {
           content: [{ type: 'text' as const, text: `Parse error: ${(error as Error).message}` }],
@@ -193,64 +157,31 @@ export function registerImportExportTools({ server, getTemplatePath }: ToolConte
     'export_config',
     {
       title: 'Export Configuration',
-      description: 'Export the template as configuration in various formats (JSON, YAML, properties, env)',
+      description:
+        'Export the template as configuration text (JSON, YAML, INI, command-line args, .properties, .env, .txt)',
       inputSchema: {
         filePath: z.string().optional().describe('Path to the guido.json template file'),
-        format: z.enum(['json', 'yaml', 'properties', 'env'])
-          .optional()
-          .describe('Output format (default: json)'),
+        format: FORMAT_ENUM.optional().describe('Output format (default: json)'),
         onlyChecked: z.boolean().optional().describe('Only export checked fields (default: true)'),
+        arrayStyle: z.enum(['nargs', 'repeat'])
+          .optional()
+          .describe("args format only: array values as '--f a b' (nargs, default) or '--f a --f b' (repeat)"),
         outputPath: z.string().optional().describe('Write to file instead of returning'),
       },
     },
     async (args) => {
       const filePath = args.filePath as string | undefined;
-      const format = (args.format as string | undefined) ?? 'json';
+      const format = (args.format as ConfigFormat | undefined) ?? 'json';
       const onlyChecked = (args.onlyChecked as boolean | undefined) ?? true;
+      const arrayStyle = args.arrayStyle as 'nargs' | 'repeat' | undefined;
       const outputPath = args.outputPath as string | undefined;
 
       const template = loadTemplate(getTemplatePath(filePath));
-
-      // Filter fields
       const fieldsToExport = onlyChecked
         ? template.fields.filter((f: Field) => f.checked)
         : template.fields;
 
-      let output: string;
-
-      switch (format) {
-        case 'json': {
-          const nested = fieldsToNestedObject(fieldsToExport);
-          output = JSON.stringify(nested, null, 2);
-          break;
-        }
-        case 'yaml': {
-          const nestedYaml = fieldsToNestedObject(fieldsToExport);
-          output = yaml.dump(nestedYaml, { indent: 2, lineWidth: -1 });
-          break;
-        }
-
-        case 'properties':
-        case 'env':
-          // Flat key=value format
-          output = fieldsToExport
-            .map((f: Field) => {
-              const value = typeof f.value === 'string' ? f.value : JSON.stringify(f.value);
-              // For .env format, use underscores for nested paths
-              const key = format === 'env' 
-                ? f.name.replace(/\./g, '_').toUpperCase()
-                : f.name;
-              return `${key}=${value}`;
-            })
-            .join('\n');
-          break;
-
-        default:
-          return {
-            content: [{ type: 'text' as const, text: `Unknown format: ${format}` }],
-            isError: true,
-          };
-      }
+      const output = serializeFields(template.fields, format, { onlyChecked, arrayStyle });
 
       // Write to file if outputPath provided
       if (outputPath) {

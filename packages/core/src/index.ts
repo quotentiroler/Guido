@@ -53,7 +53,6 @@ export {
   flattenNestedFields,
   flattenObject,
   fieldsToNestedObject,
-  parseKeyValueFormat,
   toFieldValues,
   mergeSettingsIntoFields,
   updateFields,
@@ -63,3 +62,26 @@ export {
 
 // Template utilities
 export { normalizeTemplateFields, mergeTemplates, createDefaultRuleSet } from './templateUtils.js';
+
+// Configuration formats (serialize/parse: json, yaml, ini, args, properties, env, txt)
+export {
+  CONFIG_FORMATS,
+  serializeFields,
+  parseSettings,
+  detectFormat,
+  formatMeta,
+  serializeIni,
+  parseIni,
+  serializeArgs,
+  parseArgs,
+  serializeKeyValue,
+  parseKeyValueFormat,
+} from './formats/index.js';
+export type {
+  ConfigFormat,
+  FormatMeta,
+  SerializeOptions,
+  IniSerializeOptions,
+  ArgsSerializeOptions,
+  KeyValueSerializeOptions,
+} from './formats/index.js';

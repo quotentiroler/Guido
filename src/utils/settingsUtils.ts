@@ -1,5 +1,4 @@
-import { parse } from "jsonc-parser";
-import { Rule, Field, FieldValue, Template } from "@guido/types";
+import { type Rule, type Field, type FieldValue, type Template } from "@guido/types";
 
 /**
  * Represents a recursively nested settings object.
@@ -117,12 +116,15 @@ const saveBlob = async (
 };
 
 import Papa from 'papaparse';
-import * as yaml from 'js-yaml';
 
 // Import from @guido/core for local use
-import { 
+import {
+  detectFormat,
+  fieldsToNestedObject,
   flattenObject,
-  parseKeyValueFormat,
+  formatMeta,
+  parseSettings,
+  serializeFields,
 } from '@guido/core';
 
 export const loadTemplateFromPublicFolder = async (
@@ -171,7 +173,7 @@ export const loadTemplateFromPublicFolder = async (
   }
 };
 
-const csvToJson = (csv: string): object => {
+const csvToJson = (csv: string): Record<string, unknown> => {
   const delimitersToTry = [",", "\t", " "]; // Comma, tab, and space delimiters
   let result;
   let errorMessage = "";
@@ -180,8 +182,8 @@ const csvToJson = (csv: string): object => {
     result = Papa.parse(csv, { header: true, delimiter, skipEmptyLines: true });
 
     if (!result.errors.length) {
-      // Parsing succeeded
-      return result.data;
+      // Rows keyed 1..n, so flattening yields the same "1.column" names as before.
+      return Object.fromEntries(result.data.map((row, index) => [String(index + 1), row]));
     }
 
     // Log errors for this attempt
@@ -191,10 +193,6 @@ const csvToJson = (csv: string): object => {
 
   // If all attempts fail, throw an error with the accumulated messages
   throw new Error(`Failed to parse CSV:\n${errorMessage}`);
-};
-
-const yamlToJson = (yamlStr: string): object => {
-  return yaml.load(yamlStr) as object;
 };
 
 /**
@@ -207,17 +205,10 @@ const parseContentToTemplate = (
   fileExtension: string
 ): Template | null => {
   try {
-    let parsedContent: string = textContent;
-    if (fileExtension === ".csv") {
-      parsedContent = JSON.stringify(csvToJson(textContent));
-    } else if (fileExtension === ".yaml" || fileExtension === ".yml") {
-      parsedContent = JSON.stringify(yamlToJson(textContent));
-    } else if (fileExtension === ".env" || fileExtension === ".properties" || fileExtension === ".txt") {
-      parsedContent = JSON.stringify(parseKeyValueFormat(textContent));
-    }
-
-    const settings = parse(parsedContent) as Record<string, unknown>;
-    const flattenedSettings = flattenObject(settings as Record<string, FieldValue | Record<string, unknown>>);
+    const flattenedSettings =
+      fileExtension.toLowerCase() === '.csv'
+        ? flattenObject(csvToJson(textContent))
+        : parseSettings(textContent, detectFormat(fileExtension) ?? 'json');
 
     const template: Template = {
       name: "",
@@ -308,127 +299,63 @@ export const parseSettingsFromText = (
   return parseContentToTemplate(textContent, fileName, fileExtension);
 };
 
-const downloadRawFile = async (data: string, fileName: string): Promise<string> => {
-  const blob = new Blob([data], { type: FILE_TYPES.text.mimeType });
-  return saveBlob(blob, fileName, FILE_TYPES.text);
-}
-
 const downloadJson = async (data: JsonSerializable, filename: string): Promise<string> => {
   const fileData = JSON.stringify(data, null, 2);
   const blob = new Blob([fileData], { type: FILE_TYPES.json.mimeType });
   return saveBlob(blob, filename, FILE_TYPES.json);
 };
 
+/**
+ * Fields hold array values as JSON strings while being edited; restore the real
+ * array before serializing so the output is a list, not a quoted string.
+ */
+const restoreArrayValues = (fields: Field[]): Field[] =>
+  fields.map((field) => {
+    if (typeof field.value !== 'string') return field;
+    try {
+      const parsed: unknown = JSON.parse(field.value);
+      if (Array.isArray(parsed) && parsed.every((item) => typeof item === 'string')) {
+        return { ...field, value: parsed };
+      }
+    } catch {
+      // Not JSON - keep the string as typed.
+    }
+    return field;
+  });
+
 export const saveSettings = async (fields: Field[], filename?: string, returnText = false): Promise<string> => {
   if (fields.length === 0) {
     return "Please check some fields to save!";
   }
 
-  const settings = fields.reduce((acc: NestedSettings, field) => {
-    const keys = field.name.split(".");
-    let current: NestedSettings = acc;
+  const targetName = filename ?? "appsettings.instance.json";
+  const exportFields = restoreArrayValues(fields);
 
-    keys.forEach((key, index) => {
-      if (index === keys.length - 1) {
-        if (Array.isArray(field.value) && field.value.every(item => typeof item === 'string')) {
-          current[key] = field.value;
-        } else if (typeof field.value === "string") {
-          try {
-            const parsedValue: unknown = JSON.parse(field.value);
-            if (Array.isArray(parsedValue) && parsedValue.every(item => typeof item === 'string')) {
-              current[key] = parsedValue;
-            } else {
-              current[key] = field.value;
-            }
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          } catch (e) {
-            current[key] = field.value;
-          }
-        } else {
-          current[key] = field.value;
-        }
-      } else {
-        if (!current[key]) {
-          current[key] = isNaN(Number(keys[index + 1])) ? {} : [] as unknown as NestedSettings;
-        }
-        const next = current[key];
-        if (typeof next === 'object' && next !== null && !Array.isArray(next)) {
-          current = next;
-        } else if (Array.isArray(next)) {
-          const arrayIndex = Number(keys[index + 1]);
-          if (!next[arrayIndex]) {
-            (next as NestedSettings[])[arrayIndex] = isNaN(Number(keys[index + 2])) ? {} : [] as unknown as NestedSettings;
-          }
-          const nextItem = next[arrayIndex];
-          if (typeof nextItem === 'object' && nextItem !== null) {
-            current = nextItem;
-          }
-        }
-      }
-    });
+  // CSV is tabular rather than key/value, so it stays outside the format registry.
+  if (targetName.toLowerCase().endsWith('.csv')) {
+    const rows = fieldsToNestedObject(exportFields.map((field) => ({ ...field, checked: true })));
+    if (returnText) return Papa.unparse(Object.values(rows) as Record<string, unknown>[]);
+    return downloadCsv(rows as Record<string, JsonSerializable>, targetName);
+  }
 
-    return acc;
-  }, {});
+  const format = detectFormat(targetName);
+  if (!format) {
+    return "File type not supported.";
+  }
 
-  // Remove null values from arrays
-  const removeNulls = (obj: NestedSettings | NestedSettings[]): NestedSettings | NestedSettings[] => {
-    if (Array.isArray(obj)) {
-      return obj.filter(item => item !== null).map(item => {
-        if (typeof item === 'object' && item !== null) {
-          return removeNulls(item) as NestedSettings;
-        }
-        return item as NestedSettings;
-      });
-    } else if (typeof obj === 'object' && obj !== null) {
-      const result: NestedSettings = {};
-      Object.keys(obj).forEach(key => {
-        const value = obj[key];
-        if (typeof value === 'object' && value !== null) {
-          result[key] = removeNulls(value as NestedSettings | NestedSettings[]);
-        } else {
-          result[key] = value;
-        }
-      });
-      return result;
-    }
-    return obj;
-  };
-
-  const cleanedSettings = removeNulls(settings);
-  
+  const content = serializeFields(exportFields, format, { onlyChecked: false });
   if (returnText) {
-    // Return text for clipboard instead of downloading
-    return JSON.stringify(cleanedSettings, null, 2);
+    return content;
   }
-  
-  return downloadFile(cleanedSettings, filename ?? "appsettings.instance.json");
 
+  const meta = formatMeta(format);
+  const blob = new Blob([content], { type: meta.mimeType });
+  return saveBlob(blob, targetName, {
+    mimeType: meta.mimeType,
+    description: meta.description,
+    extensions: meta.extensions,
+  });
 };
-
-const downloadFile = (data: JsonSerializable, filename: string): Promise<string> => {
-  if (filename.endsWith('.json')) {
-    return downloadJson(data, filename);
-  }
-  if (filename.endsWith('.csv')) {
-    return downloadCsv(data as Record<string, JsonSerializable>, filename);
-  }
-  if (filename.endsWith('.yaml') || filename.endsWith('.yml')) {
-    return downloadYaml(data, filename);
-  }
-  if (filename.endsWith('.txt') || filename.endsWith('.properties') || filename.endsWith('.env')) {
-    const content = Object.entries(data as Record<string, JsonSerializable>)
-      .map(([key, value]) => `${key}=${typeof value === 'object' ? JSON.stringify(value) : String(value)}`)
-      .join("\n");
-    return downloadRawFile(content, filename);
-  }
-  return Promise.resolve("File type not supported.");
-}
-
-const downloadYaml = async (data: JsonSerializable, filename: string): Promise<string> => {
-  const yamlStr = yaml.dump(data);
-  const blob = new Blob([yamlStr], { type: FILE_TYPES.yaml.mimeType });
-  return saveBlob(blob, filename, FILE_TYPES.yaml);
-}
 
 const downloadCsv = async (data: Record<string, JsonSerializable>, filename: string): Promise<string> => {
   const dataArray = Object.keys(data).map(key => data[key]);
@@ -438,7 +365,7 @@ const downloadCsv = async (data: Record<string, JsonSerializable>, filename: str
 }
 
 export const saveSettingsFields = (fields: Field[]) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   const cleanedFields = fields.map(({ checked, ...rest }) => rest);
   void downloadJson(cleanedFields, "appsettings.fields.json");
 };

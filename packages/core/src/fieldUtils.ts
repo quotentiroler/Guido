@@ -4,7 +4,7 @@
  * Pure functions for field validation and manipulation.
  */
 
-import { Field, FieldRange, FieldValue, NestedField, parseRange, ParsedRange } from '@guido/types';
+import { type Field, type FieldRange, type FieldValue, type NestedField, parseRange, type ParsedRange } from '@guido/types';
 
 /**
  * Translates a technical range specification to a user-friendly description.
@@ -545,43 +545,6 @@ export const fieldsToNestedObject = (fields: Field[]): Record<string, unknown> =
 };
 
 /**
- * Parse key=value format content (used by .properties, .env, .txt files).
- * Supports comments with # or // and quoted values.
- * 
- * @example
- * parseKeyValueFormat('KEY=value\n# comment\nOTHER="quoted"')
- * // Returns { KEY: 'value', OTHER: 'quoted' }
- */
-export const parseKeyValueFormat = (content: string): Record<string, string> => {
-  const result: Record<string, string> = {};
-  const lines = content.split('\n');
-  
-  for (const line of lines) {
-    const trimmedLine = line.trim();
-    // Skip empty lines and comments
-    if (!trimmedLine || trimmedLine.startsWith('#') || trimmedLine.startsWith('//')) {
-      continue;
-    }
-    
-    const equalsIndex = trimmedLine.indexOf('=');
-    if (equalsIndex > 0) {
-      const key = trimmedLine.substring(0, equalsIndex).trim();
-      let value = trimmedLine.substring(equalsIndex + 1).trim();
-      
-      // Remove surrounding quotes if present
-      if ((value.startsWith('"') && value.endsWith('"')) ||
-          (value.startsWith("'") && value.endsWith("'"))) {
-        value = value.slice(1, -1);
-      }
-      
-      result[key] = value;
-    }
-  }
-  
-  return result;
-};
-
-/**
  * Convert unknown values from parsed content to FieldValue types.
  * 
  * @example
@@ -599,7 +562,7 @@ export const toFieldValues = (obj: Record<string, unknown>): Record<string, Fiel
     } else if (typeof value === 'object') {
       result[key] = JSON.stringify(value);
     } else {
-      result[key] = String(value as string | number | boolean);
+      result[key] = String(value);
     }
   }
   return result;
@@ -637,7 +600,7 @@ export const mergeSettingsIntoFields = (
         value,
         info: '',
         example: '',
-        range: '' as FieldRange,
+        range: '',
         checked: true,
       });
     }
@@ -673,7 +636,7 @@ export const updateFields = (
       checked: true,
       info: "",
       example: "",
-      range: "" as FieldRange,
+      range: "",
     }));
 
   return [...updatedFields, ...newFields];
