@@ -26,7 +26,8 @@
         "import": "./dist/index.js"
       }
     },
-    "registry": "https://npm.pkg.github.com"
+    "registry": "https://npm.pkg.github.com",
+    "access": "restricted"
   },
   "files": [
     "dist",

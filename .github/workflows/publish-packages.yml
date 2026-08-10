@@ -53,7 +53,7 @@ jobs:
             fi
 
             echo "→ publishing $name@$version"
-            npm publish -w "$name" --access restricted
+            npm publish -w "$name"
             published=$((published + 1))
           done
           echo "published=$published" >> "$GITHUB_OUTPUT"
