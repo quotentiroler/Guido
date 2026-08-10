@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { validateRules } from '@guido/core';
-import { RuleState, Rule } from '@guido/types';
+import { RuleState, type Rule } from '@guido/types';
 
 describe('validateRules', () => {
   describe('Basic validation', () => {
@@ -344,7 +344,7 @@ describe('validateRules', () => {
       const rules: Rule[] = [
         {
           targets: [{ name: 'Field1', state: RuleState.Set }],
-        } as Rule,
+        },
       ];
       const result = validateRules(rules);
       expect(result.isValid).toBe(true);

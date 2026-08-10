@@ -2,8 +2,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import Button from "./shared/Button";
 import Portal from "./shared/Portal";
 import { useAI } from "@/hooks/useAI";
-import { LLMProvider, PROVIDER_LABELS, PROVIDER_PLACEHOLDER_KEYS } from "@/context/AIContext";
-import { fetchModels, checkOllamaAvailable, ModelInfo } from "@/services/llmService";
+import { type LLMProvider, PROVIDER_LABELS, PROVIDER_PLACEHOLDER_KEYS } from "@/context/AIContext";
+import { fetchModels, checkOllamaAvailable, type ModelInfo } from "@/services/llmService";
 
 interface AISetupModalProps {
   onClose: () => void;

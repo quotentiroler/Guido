@@ -1,5 +1,5 @@
 import React from 'react';
-import { Field, FieldValue } from '@guido/types';
+import { type Field, type FieldValue } from '@guido/types';
 
 export interface FieldContextProps {
   saveFields: () => void;

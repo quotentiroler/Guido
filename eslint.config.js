@@ -3,6 +3,7 @@ import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
+import { sharedRules, typeCheckedRules } from '@max-health-inc/config/eslint/rules'
 
 export default tseslint.config(
   { ignores: ['dist', '**/dist/**', 'node_modules', '**/node_modules/**', 'coverage', 'vitest.config.ts', 'vite.config.ts', 'vite-plugin-templates.ts'] },
@@ -22,18 +23,16 @@ export default tseslint.config(
       'react-refresh': reactRefresh,
     },
     rules: {
+      // Org-wide baseline (@max-health-inc/config)
+      ...sharedRules,
+      ...typeCheckedRules,
+
+      // React
       ...reactHooks.configs.recommended.rules,
-      'react-refresh/only-export-components': [
-        'warn',
-        { allowConstantExport: true },
-      ],
+      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+
+      // Guido additions on top of the baseline
       '@typescript-eslint/no-deprecated': 'warn',
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
-      '@typescript-eslint/no-explicit-any': 'warn',
-      // Promise handling - keep these as warnings to flag but not block builds
-      '@typescript-eslint/no-floating-promises': 'warn',
-      '@typescript-eslint/no-misused-promises': 'warn',
-      '@typescript-eslint/await-thenable': 'error',
       '@typescript-eslint/require-await': 'warn',
       '@typescript-eslint/no-unnecessary-type-assertion': 'warn',
       // Type safety - gradually tighten these
@@ -47,7 +46,6 @@ export default tseslint.config(
       '@typescript-eslint/restrict-plus-operands': 'warn',
       '@typescript-eslint/restrict-template-expressions': 'warn',
       '@typescript-eslint/no-redundant-type-constituents': 'warn',
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
     },
   },
 )

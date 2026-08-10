@@ -5,10 +5,10 @@ import ToggleSwitch from "./shared/ToggleSwitch";
 import { useFieldContext } from "@/hooks/useFieldContext";
 import { useAppContext } from "@/hooks/useAppContext";
 import { applyRules } from "@/utils/applyRules";
-import { Field, Rule } from "@guido/types";
+import { type Field, type Rule } from "@guido/types";
 import { resolveRuleSetRules } from "@guido/core";
 import { useTemplateContext } from "@/hooks/useTemplateContext";
-import { TriggerAction } from "@/context/HistoryContext";
+import { type TriggerAction } from "@/context/HistoryContext";
 
 interface SettingsFieldsListProps {
   fields: Field[];

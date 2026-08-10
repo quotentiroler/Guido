@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { EasterEggContext, EasterEggContextType } from "@/context/EasterEggContext";
+import { EasterEggContext, type EasterEggContextType } from "@/context/EasterEggContext";
 
 export const useEasterEgg = (): EasterEggContextType => {
   const context = useContext(EasterEggContext);

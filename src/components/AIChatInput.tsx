@@ -1,12 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import type { ChatMessageWithTools } from '../services/llmService'
-import { sendChatMessage } from '../services/llmService'
+import { type ChatMessageWithTools, sendChatMessage } from '../services/llmService'
 import { executeToolCalls, getToolsForMode, getSystemPrompt, type GuidoToolContext, type RegistrySearchItem, type TemplateContext } from '../services/guidoTools'
 import { useFieldContext } from '../hooks/useFieldContext'
 import { useTemplateContext } from '../hooks/useTemplateContext'
 import { useAI } from '../hooks/useAI'
 import { useAppContext } from '../hooks/useAppContext'
-import useRegistry, { SearchResultItem } from '../hooks/useRegistry'
+import useRegistry, { type SearchResultItem } from '../hooks/useRegistry'
 
 // Speech recognition types for TypeScript
 interface SpeechRecognitionResult {

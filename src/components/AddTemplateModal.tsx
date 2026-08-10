@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Button from "./shared/Button";
 import { useTemplateContext } from "@/hooks/useTemplateContext";
-import { Template } from "@guido/types";
+import { type Template } from "@guido/types";
 
 interface AddTemplateModalProps {
     handleClose: () => void;

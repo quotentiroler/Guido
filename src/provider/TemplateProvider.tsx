@@ -1,6 +1,6 @@
-import { Field, RuleSet, Template, isTemplate } from '@guido/types';
+import { type Field, type RuleSet, type Template, isTemplate } from '@guido/types';
 import { mergeTemplates, createDefaultRuleSet } from '@guido/core';
-import React, { useState, ReactNode, ReactElement, useEffect, useCallback } from 'react';
+import React, { useState, type ReactNode, type ReactElement, useEffect, useCallback } from 'react';
 import { TemplateContext } from '@/context/TemplateContext';
 import localforage from 'localforage';
 import { useAlert } from '@/hooks/useAlert';
@@ -193,7 +193,7 @@ export const TemplateProvider: React.FC<{ children: ReactNode }> = ({ children }
           const content = e.target?.result;
           if (content) {
             const parsed: unknown = JSON.parse(content as string);
-            if (!parsed || typeof parsed !== 'object' || !('fields' in parsed) || !Array.isArray((parsed as { fields: unknown }).fields)) {
+            if (!parsed || typeof parsed !== 'object' || !('fields' in parsed) || !Array.isArray((parsed).fields)) {
               alert('Invalid template format');
               return;
             }

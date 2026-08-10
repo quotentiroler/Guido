@@ -13,7 +13,7 @@ import {
   translateRule,
   translateRangeToHumanReadable,
 } from '@guido/core';
-import { Field, NestedField, Template, RuleState } from '@guido/types';
+import { type Field, type NestedField, type Template, RuleState } from '@guido/types';
 
 describe('flattenObject', () => {
   it('should flatten simple nested object', () => {

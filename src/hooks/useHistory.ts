@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { HistoryContext, HistoryContextType } from "@/context/HistoryContext";
+import { HistoryContext, type HistoryContextType } from "@/context/HistoryContext";
 
 export function useHistory(): HistoryContextType {
   const context = useContext(HistoryContext);

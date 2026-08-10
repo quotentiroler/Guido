@@ -5,10 +5,8 @@
  */
 
 import type { Field, Rule } from "@guido/types";
-import { applyRules as coreApplyRules, isFieldRequired } from '@guido/core';
-import type { ApplyRulesResult } from '@guido/core';
-import { logger } from "./logger";
-import type { TriggerAction } from "./logger";
+import { applyRules as coreApplyRules, isFieldRequired, type ApplyRulesResult } from '@guido/core';
+import { logger, type TriggerAction } from "./logger";
 
 // Re-export types and isFieldRequired
 export { isFieldRequired };

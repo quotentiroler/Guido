@@ -3,8 +3,8 @@
  * Change tracking tools
  */
 import { z } from 'zod';
-import { ToolContext } from './types';
-import { Field } from '@guido/types';
+import { type ToolContext } from './types';
+import { type Field } from '@guido/types';
 import { loadTemplate, getChanges, clearChanges, getSnapshot } from '../template-utils';
 
 export function registerChangeTrackingTools({ server, getTemplatePath }: ToolContext) {

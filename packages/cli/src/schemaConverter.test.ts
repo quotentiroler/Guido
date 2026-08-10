@@ -1,8 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { jsonSchemaToGuido } from './schemaToGuido';
 import { guidoToJsonSchema } from './guidoToSchema';
-import type { Template, Field, Rule, RuleDomain } from '@guido/types';
-import { RuleState } from '@guido/types';
+import { type Template, type Field, type Rule, type RuleDomain, RuleState } from '@guido/types';
 
 /**
  * JSON Schema type for testing
@@ -1320,7 +1319,7 @@ describe('$ref and Definitions', () => {
           },
         },
       },
-    } as unknown as JSONSchema;
+    };
 
     const { template } = jsonSchemaToGuido(schema);
     assertValidGuidoTemplate(template);
@@ -1347,7 +1346,7 @@ describe('$ref and Definitions', () => {
         home: { $ref: '#/$defs/Address' } as unknown as JSONSchema,
         work: { $ref: '#/$defs/Address' } as unknown as JSONSchema,
       },
-    } as unknown as JSONSchema;
+    };
 
     const { template } = jsonSchemaToGuido(schema);
     assertValidGuidoTemplate(template);
@@ -1374,7 +1373,7 @@ describe('Array Handling', () => {
           },
         },
       },
-    } as unknown as JSONSchema;
+    };
 
     const { template } = jsonSchemaToGuido(schema);
     assertValidGuidoTemplate(template);

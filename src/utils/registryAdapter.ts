@@ -1,9 +1,9 @@
 import { 
-  RegistryDefinition, 
-  RegistryItem, 
-  RegistrySearchResult,
-  EndpointConfig,
-  BuiltInRegistryType
+  type RegistryDefinition, 
+  type RegistryItem, 
+  type RegistrySearchResult,
+  type EndpointConfig,
+  type BuiltInRegistryType
 } from '@guido/types';
 import { logger } from './logger';
 

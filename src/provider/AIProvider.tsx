@@ -1,6 +1,6 @@
-import React, { useState, useEffect, ReactNode, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, type ReactNode, useCallback, useRef, useMemo } from 'react';
 import localforage from 'localforage';
-import { AIContext, LLMConfig, ChatPosition, ChatPhase, ChatHistoryItem } from '@/context/AIContext';
+import { AIContext, type LLMConfig, type ChatPosition, type ChatPhase, type ChatHistoryItem } from '@/context/AIContext';
 import type { ChatMessageWithTools } from '@/services/llmService';
 import { useSpeechSynthesis } from '@/hooks/useSpeechSynthesis';
 import { useTheme } from '@/hooks/useTheme';

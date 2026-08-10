@@ -1,5 +1,5 @@
 import { createContext } from 'react';
-import { Rule, RuleSet } from '@guido/types';
+import { type Rule, type RuleSet } from '@guido/types';
 
 export interface RuleContextProps {
   // Current ruleset operations

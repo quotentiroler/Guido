@@ -4,7 +4,7 @@
  * Pure functions for template manipulation.
  */
 
-import { Template, NestedField, RuleSet } from '@guido/types';
+import { type Template, type RuleSet } from '@guido/types';
 import { hasNestedFields, flattenNestedFields } from './fieldUtils';
 
 /**
@@ -79,6 +79,6 @@ export const normalizeTemplateFields = (template: Template): Template => {
 
   return {
     ...template,
-    fields: flattenNestedFields(template.fields as NestedField[]),
+    fields: flattenNestedFields(template.fields),
   };
 };

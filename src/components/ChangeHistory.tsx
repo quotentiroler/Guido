@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { useHistory, HistoryEntry, TriggerAction } from "@/hooks/useHistory";
+import { useHistory, type HistoryEntry, type TriggerAction } from "@/hooks/useHistory";
 
 interface ChangeHistoryProps {
   onUndo?: (entry: HistoryEntry) => void;
@@ -50,7 +50,7 @@ const ChangeHistory: React.FC<ChangeHistoryProps> = ({ onUndo }) => {
     if (Array.isArray(value)) return JSON.stringify(value);
     if (typeof value === 'object' && value !== null) return JSON.stringify(value);
     // For any remaining primitive types (symbols, bigints)
-    return typeof value === 'symbol' ? value.toString() : String(value as string | number | boolean | bigint);
+    return typeof value === 'symbol' ? value.toString() : String(value);
   };
 
   const formatTrigger = (trigger: TriggerAction): string => {

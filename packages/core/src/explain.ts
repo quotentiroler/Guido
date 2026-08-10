@@ -5,8 +5,7 @@
  * it, back to the root-cause inputs. Reuses the resolved state from applyRules, the
  * condition evaluator (checkCondition), and the human-readable rule/condition renderers.
  */
-import type { Field, Rule, RuleDomain } from '@guido/types';
-import { RuleState } from '@guido/types';
+import { type Field, type Rule, type RuleDomain, RuleState } from '@guido/types';
 import { applyRules, checkCondition } from './applyRules.js';
 import { translateRule, describeCondition } from './ruleTranslation.js';
 

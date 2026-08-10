@@ -3,8 +3,7 @@
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as fs from 'fs';
-import type { Template, Field, Rule } from '@guido/types';
-import { RuleState } from '@guido/types';
+import { type Template, type Field, type Rule, RuleState } from '@guido/types';
 import { getDefaultRules, getRuleSetRules } from '@guido/core';
 import {
   ensureRuleSets,

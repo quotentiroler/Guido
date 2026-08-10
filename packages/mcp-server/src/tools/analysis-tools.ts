@@ -3,7 +3,7 @@
  * Analysis and discovery tools for templates
  */
 import { z } from 'zod';
-import { ToolContext } from './types';
+import { type ToolContext } from './types';
 import type { Field } from '@guido/types';
 import { translateRangeToHumanReadable, isFieldRequired } from '@guido/core';
 import { loadTemplate } from '../template-utils';

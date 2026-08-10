@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Template } from "@guido/types";
+import { type Template } from "@guido/types";
 import { useAlert } from "@/hooks/useAlert";
 import { useAppContext } from "@/hooks/useAppContext";
 import Button from "./shared/Button";

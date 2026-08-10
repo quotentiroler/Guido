@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useEffect, ReactNode } from "react";
-import { HistoryContext, HistoryEntry, FieldChangeInput, TriggerAction, UNDOABLE_ACTIONS } from "@/context/HistoryContext";
+import React, { useState, useCallback, useEffect, type ReactNode } from "react";
+import { HistoryContext, type HistoryEntry, type FieldChangeInput, type TriggerAction, UNDOABLE_ACTIONS } from "@/context/HistoryContext";
 import { logger } from "@/utils/logger";
 
 interface HistoryProviderProps {

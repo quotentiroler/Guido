@@ -1,4 +1,4 @@
-import { TemplateContext, TemplateContextProps } from "@/context/TemplateContext";
+import { TemplateContext, type TemplateContextProps } from "@/context/TemplateContext";
 import { useContext } from "react";
 
 export const useTemplateContext = (): TemplateContextProps => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { convertMessagesToAISDK, ChatMessageWithTools } from '../services/llmService';
+import { convertMessagesToAISDK, type ChatMessageWithTools } from '../services/llmService';
 
 describe('convertMessagesToAISDK', () => {
   it('should convert simple user message', () => {

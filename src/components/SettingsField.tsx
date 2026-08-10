@@ -2,11 +2,16 @@ import React, { useState, useMemo, useRef, useCallback } from "react";
 import Tooltip from "./shared/ToolTip";
 import TooltipContent from "./shared/TooltipContent";
 import AddFieldModal from "./AddFieldModal";
-import { translateRule, validateValue, translateRangeToHumanReadable } from "@guido/core";
+import {
+  translateRule,
+  validateValue,
+  translateRangeToHumanReadable,
+  fieldValueToString,
+  isFieldValueEmpty,
+} from "@guido/core";
 import IconWithTooltip from "./shared/FancyIcon";
 import { useAlert } from "@/hooks/useAlert";
-import { Field, FieldValue, Rule } from "@guido/types";
-import { fieldValueToString, isFieldValueEmpty } from "@guido/core";
+import { type Field, type FieldValue, type Rule } from "@guido/types";
 
 interface SettingsFieldProps {
   field: Field;

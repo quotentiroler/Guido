@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { Template, FieldValue, Field } from '@guido/types';
-import { RuleState } from '@guido/types';
+import { type Template, type FieldValue, type Field, RuleState } from '@guido/types';
 import { 
   flattenObject, 
   toFieldValues, 

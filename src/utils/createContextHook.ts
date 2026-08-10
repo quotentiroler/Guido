@@ -1,4 +1,4 @@
-import { useContext, Context } from 'react';
+import { useContext, type Context } from 'react';
 
 /**
  * Factory function to create type-safe context hooks with consistent error handling.

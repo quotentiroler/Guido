@@ -2,15 +2,15 @@
 /* eslint-disable no-console */
 import { readFileSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
-import type { 
-  Field, 
-  FieldRange, 
-  Template, 
-  Rule,
-  JSONSchema,
-  SchemaConversionContext 
+import {
+  type Field,
+  type FieldRange,
+  type Template,
+  type Rule,
+  type JSONSchema,
+  type SchemaConversionContext,
+  RuleState,
 } from '@guido/types';
-import { RuleState } from '@guido/types';
 
 /**
  * Safely stringify a value that might be an object
@@ -1141,7 +1141,7 @@ export function jsonSchemaToGuido(schema: JSONSchema, options: {
     fileName: options.fileName || 'config.json',
     // Optional fields - only include if provided
     ...(options.application && { application: options.application }),
-    ...(options.docs || schema.$comment ? { docs: options.docs || (schema.$comment as string) } : {}),
+    ...(options.docs || schema.$comment ? { docs: options.docs || (schema.$comment) } : {}),
     ...(options.command && { command: options.command }),
     fields: [],
     ruleSets: [{

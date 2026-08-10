@@ -2,8 +2,7 @@
 /* eslint-disable no-console */
 import { readFileSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
-import type { Field, FieldValue, Template, Rule, JSONSchema } from '@guido/types';
-import { RuleState } from '@guido/types';
+import { type Field, type FieldValue, type Template, type Rule, type JSONSchema, RuleState } from '@guido/types';
 
 /**
  * Convert Guido range DSL string to JSON Schema constraints.

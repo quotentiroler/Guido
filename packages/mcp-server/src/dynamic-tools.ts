@@ -10,11 +10,10 @@ import { z } from 'zod';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
-import { toolDefinitions, InputType, InputDef } from './tool-definitions.js';
-import { ToolContext } from './tools/types.js';
+import { toolDefinitions, type InputType, type InputDef } from './tool-definitions.js';
+import { type ToolContext } from './tools/types.js';
 // Types only (no Zod bundled)
-import type { Field, Rule, RuleDomain, Template, FieldValue, RuleSet } from '@guido/types';
-import { RuleState } from '@guido/types';
+import type { Field, Rule, RuleDomain, Template, FieldValue, RuleSet, RuleState } from '@guido/types';
 // Zod schemas for runtime validation (MCP server needs these)
 import { 
   RuleDomainSchema,
@@ -24,8 +23,8 @@ import {
   FieldValueSchema,
   FieldUpdateSchema,
 } from '@guido/types/schemas';
-import type { Explanation } from '@guido/core';
 import {
+  type Explanation,
   validateRules,
   validateRulesAgainstFields,
   validateCardinality,

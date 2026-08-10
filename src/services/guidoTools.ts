@@ -14,8 +14,7 @@
 
 import { z } from 'zod';
 import type { ToolDefinition, ToolCall, ToolResult } from './llmService';
-import type { Field, Rule, RuleSet, RuleDomain } from '@guido/types';
-import { RuleState } from '@guido/types';
+import type { Field, Rule, RuleSet, RuleDomain, RuleState } from '@guido/types';
 import { translateRule, parseNaturalLanguageRule } from '@guido/core';
 import { logger } from '@/utils/logger';
 import {

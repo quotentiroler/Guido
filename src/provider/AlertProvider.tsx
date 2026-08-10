@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AlertContext, AlertContextProps, ChoiceOption } from '@/context/AlertContext';
+import { AlertContext, type AlertContextProps, type ChoiceOption } from '@/context/AlertContext';
 import FancyAlert from '@/components/shared/FancyAlert';
 import FancyConfirm from '@/components/shared/FancyConfirm';
 import FancyChoice from '@/components/shared/FancyChoice';

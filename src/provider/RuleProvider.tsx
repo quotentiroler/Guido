@@ -4,7 +4,7 @@ import {
 } from "@/utils/settingsUtils";
 import { RuleContext } from "@/context/RuleContext";
 import { useAlert } from "@/hooks/useAlert";
-import { Rule, RuleDomain, RuleSet } from "@guido/types";
+import { type Rule, type RuleDomain, type RuleSet } from "@guido/types";
 import { useTemplateContext } from "@/hooks/useTemplateContext";
 import { createDefaultRuleSet } from "@guido/core";
 

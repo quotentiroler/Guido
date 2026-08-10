@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import localforage from 'localforage';
 import { TarReader } from '@gera2ld/tarjs';
-import { Template, RegistryDefinition, RegistryItem, BuiltInRegistryType, isTemplate } from '@guido/types';
+import { type Template, type RegistryDefinition, type RegistryItem, type BuiltInRegistryType, isTemplate } from '@guido/types';
 import { 
   loadBuiltInRegistry, 
   loadCustomRegistry, 
@@ -242,7 +242,7 @@ const useRegistry = () => {
           description: `Custom registry at ${url}`,
           baseUrl: url,
           api: {}
-        } as RegistryDefinition;
+        };
       }
     }
 
@@ -299,9 +299,9 @@ const useRegistry = () => {
         const def = registryDefinitions.get('github')!;
         searchPromises.push(
           searchRegistry(def, query)
-            .then(result => result.items.map(item => ({
+            .then(result => result.items.map((item): SearchResultItem => ({
               ...item,
-              source: 'github' as BuiltInRegistryType,
+              source: 'github',
               registryName: def.name,
             })))
             .catch(error => {
@@ -315,9 +315,9 @@ const useRegistry = () => {
         const def = registryDefinitions.get('npm')!;
         searchPromises.push(
           searchRegistry(def, query)
-            .then(result => result.items.map(item => ({
+            .then(result => result.items.map((item): SearchResultItem => ({
               ...item,
-              source: 'npm' as BuiltInRegistryType,
+              source: 'npm',
               registryName: def.name,
             })))
             .catch(error => {
@@ -331,9 +331,9 @@ const useRegistry = () => {
         const def = registryDefinitions.get('simplifier')!;
         searchPromises.push(
           searchRegistry(def, query)
-            .then(result => result.items.map(item => ({
+            .then(result => result.items.map((item): SearchResultItem => ({
               ...item,
-              source: 'simplifier' as BuiltInRegistryType,
+              source: 'simplifier',
               registryName: def.name,
             })))
             .catch(error => {
@@ -370,7 +370,7 @@ const useRegistry = () => {
         const builtInItems: SearchResultItem[] = builtInResults.map(entry => ({
           name: entry.name,
           description: entry.template?.description || '',
-          source: 'builtIn' as BuiltInRegistryType,
+          source: 'builtIn',
           registryName: 'Built-in Templates',
           // Store the path for fetching later
           downloadUrl: entry.path,

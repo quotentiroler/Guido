@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { applyRules, isFieldRequired } from '../utils/applyRules';
-import { RuleState, Field, Rule } from '@guido/types';
+import { RuleState, type Field, type Rule } from '@guido/types';
 
 describe('applyRules', () => {
   describe('Set state', () => {
@@ -322,7 +322,7 @@ describe('isFieldRequired', () => {
     const rules: Rule[] = [
       {
         targets: [{ name: 'Field1', state: RuleState.Contains, value: 'test' }],
-      } as Rule,
+      },
     ];
     expect(isFieldRequired('Field1', rules)).toBe(true);
   });

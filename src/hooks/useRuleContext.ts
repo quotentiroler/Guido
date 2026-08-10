@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { RuleContext, RuleContextProps } from '@/context/RuleContext';
+import { RuleContext, type RuleContextProps } from '@/context/RuleContext';
 
 export const useRuleContext = (): RuleContextProps => {
   const context = useContext(RuleContext);

@@ -1,5 +1,4 @@
-import { RuleState, Rule, RuleDomain } from '@guido/types';
-import type { Field, CardinalityConstraint } from '@guido/types';
+import { RuleState, type Rule, type RuleDomain, type Field, type CardinalityConstraint } from '@guido/types';
 import { validateValue, translateRangeToHumanReadable } from './fieldUtils.js';
 
 export interface ValidationResult {

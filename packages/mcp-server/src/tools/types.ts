@@ -9,8 +9,8 @@
  * but without the deep generic chains. This provides proper typing while avoiding
  * the TypeScript compiler hanging on type resolution.
  */
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { z } from 'zod';
+import { type McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { type z } from 'zod';
 
 // ============================================================================
 // Tool Registration Types
@@ -46,7 +46,7 @@ export type ToolContext = {
  * The runtime behavior is identical - this only affects type checking.
  */
 export function asToolRegistrar(server: McpServer): ToolRegistrar {
-  return server as unknown as ToolRegistrar;
+  return server;
 }
 
 export type ToolResult = {

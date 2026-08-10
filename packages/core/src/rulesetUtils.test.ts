@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { Template, Rule } from '@guido/types';
-import { RuleState } from '@guido/types';
+import { type Template, type Rule, RuleState } from '@guido/types';
 import {
   resolveRuleSetRules,
   getDefaultRules,

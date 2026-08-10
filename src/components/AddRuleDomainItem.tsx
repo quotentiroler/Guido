@@ -1,7 +1,7 @@
 import React from "react";
 import { generateParentPaths } from "@guido/core";
 import Button from "./shared/Button";
-import { RuleDomain, RuleState } from "@guido/types";
+import { type RuleDomain, RuleState } from "@guido/types";
 import { useTemplateContext } from "@/hooks/useTemplateContext";
 
 interface AddRuleDomainItemProps {
@@ -82,7 +82,7 @@ const RuleDomainItem: React.FC<AddRuleDomainItemProps> = ({
           id={`rule-domain-state-${index}`}
           name={`rule-domain-state-${index}`}
           value={item.state}
-          onChange={(e) => handleChange("state", e.target.value as RuleState)}
+          onChange={(e) => handleChange("state", e.target.value)}
           className="block border rounded-default shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 bg-surface-0 text-text-primary"
         >
           <option value={RuleState.Set}>Set</option>

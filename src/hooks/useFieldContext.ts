@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { FieldContext, FieldContextProps } from '@/context/FieldContext';
+import { FieldContext, type FieldContextProps } from '@/context/FieldContext';
 
 export const useFieldContext = (): FieldContextProps => {
   const context = useContext(FieldContext);

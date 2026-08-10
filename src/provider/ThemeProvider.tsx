@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback, ReactNode } from "react";
+import React, { useState, useEffect, useCallback, type ReactNode } from "react";
 import localforage from "localforage";
-import { Theme, ThemeContext } from "@/context/ThemeContext";
+import { type Theme, ThemeContext } from "@/context/ThemeContext";
 
 const STORAGE_KEY = "theme";
 const BLEND_STORAGE_KEY = "theme-blend";

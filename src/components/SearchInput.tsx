@@ -1,4 +1,4 @@
-import React, { RefObject } from "react";
+import React, { type RefObject } from "react";
 import Delete from "@/assets/svg/delete.svg";
 import DisconnectedIcon from "@/assets/svg/disconnected-icon.svg";
 import EnterIcon from "@/assets/svg/search.svg"; // Import the Enter icon

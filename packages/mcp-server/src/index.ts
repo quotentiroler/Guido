@@ -30,7 +30,7 @@ import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 
 import { registerAllTools } from './dynamic-tools.js';
-import { asToolRegistrar, ToolContext } from './tools/types.js';
+import { asToolRegistrar, type ToolContext } from './tools/types.js';
 
 // Keep legacy tool registrations for tools not yet migrated to dynamic
 import {

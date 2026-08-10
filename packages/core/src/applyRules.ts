@@ -4,10 +4,8 @@
  * Core rule application logic for evaluating and applying rules to fields.
  */
 
-import type { Field, FieldValue, Rule, RuleDomain } from '@guido/types';
-import { RuleState } from '@guido/types';
-import type { ILogger, FieldChange, TriggerAction } from '@guido/logger';
-import { logger } from '@guido/logger';
+import { type Field, type FieldValue, type Rule, type RuleDomain, RuleState } from '@guido/types';
+import { type ILogger, type FieldChange, type TriggerAction, logger } from '@guido/logger';
 import { translateRule } from './ruleTranslation';
 
 export interface ApplyRulesResult {

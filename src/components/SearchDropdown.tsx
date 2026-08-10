@@ -1,5 +1,5 @@
 import React from "react";
-import { SearchResultItem } from "@/hooks/useRegistry";
+import { type SearchResultItem } from "@/hooks/useRegistry";
 
 interface DropdownItemsProps {
     selectedPackage?: SearchResultItem;

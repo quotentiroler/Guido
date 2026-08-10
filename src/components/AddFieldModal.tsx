@@ -2,7 +2,7 @@ import React from "react";
 import Button from "./shared/Button";
 import Portal from "./shared/Portal";
 import { useFieldContext } from "@/hooks/useFieldContext";
-import { Field } from "@guido/types";
+import { type Field } from "@guido/types";
 import { fieldValueToString } from "@guido/core";
 
 interface AddFieldModalProps {

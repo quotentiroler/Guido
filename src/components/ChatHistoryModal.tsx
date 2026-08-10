@@ -3,7 +3,7 @@ import { Interweave } from "interweave";
 import Button from "./shared/Button";
 import Portal from "./shared/Portal";
 import { useAI } from "@/hooks/useAI";
-import { ChatHistoryItem } from "@/context/AIContext";
+import { type ChatHistoryItem } from "@/context/AIContext";
 
 interface ChatHistoryModalProps {
   onClose: () => void;

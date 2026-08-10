@@ -3,11 +3,11 @@ import { useTemplateContext } from "@/hooks/useTemplateContext";
 import { useAlert } from "@/hooks/useAlert";
 import { useAI } from "@/hooks/useAI";
 import { useTheme } from "@/hooks/useTheme";
-import useRegistry, { SearchResultItem, NoGuidoTemplatesError, AlternativeFile } from "@/hooks/useRegistry";
+import useRegistry, { type SearchResultItem, NoGuidoTemplatesError, type AlternativeFile } from "@/hooks/useRegistry";
 import SearchInput from "./SearchInput";
 import AIChatInput from "./AIChatInput";
 import DropdownItems from "./SearchDropdown";
-import { Template } from "@guido/types";
+import { type Template } from "@guido/types";
 import { mergeTemplates } from "@guido/core";
 import { parseSettingsFromText } from "@/utils/settingsUtils";
 

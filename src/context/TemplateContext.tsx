@@ -1,5 +1,5 @@
-import { createContext, Dispatch, SetStateAction } from 'react';
-import { Template, RuleSet, Field } from '@guido/types';
+import { createContext, type Dispatch, type SetStateAction } from 'react';
+import { type Template, type RuleSet, type Field } from '@guido/types';
 
 export interface TemplateContextProps {
   template: Template;

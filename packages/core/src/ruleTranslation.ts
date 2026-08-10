@@ -4,7 +4,7 @@
  * Pure functions for translating between Guido rules and human-readable text.
  */
 
-import { Rule, RuleState, RuleDomain } from '@guido/types';
+import { type Rule, RuleState, type RuleDomain } from '@guido/types';
 
 /**
  * Human-readable text for a single rule condition, e.g. "'Repository' is set to the

@@ -5,7 +5,7 @@ import RuleDomainItem from "./AddRuleDomainItem";
 import { useRuleContext } from "@/hooks/useRuleContext";
 import AddRequiredModal from "./RequiredFieldsModal";
 import { useTemplateContext } from "@/hooks/useTemplateContext";
-import { Rule, RuleState, RuleDomain } from "@guido/types";
+import { type Rule, RuleState, type RuleDomain } from "@guido/types";
 
 interface AddRuleModalProps {
   edit?: boolean;

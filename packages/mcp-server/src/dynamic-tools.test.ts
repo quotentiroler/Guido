@@ -5,8 +5,7 @@
  * and return expected results.
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import type { Template, Field, Rule, RuleSet } from '@guido/types';
-import { RuleState } from '@guido/types';
+import { type Template, type Field, type Rule, type RuleSet, RuleState } from '@guido/types';
 
 // We need to test the handlers directly, so we'll import and test them
 // by simulating what registerAllTools does

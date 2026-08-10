@@ -1,6 +1,6 @@
 import React from 'react';
 import Button from "./Button";
-import { ChoiceOption } from '@/context/AlertContext';
+import { type ChoiceOption } from '@/context/AlertContext';
 
 interface FancyChoiceProps {
   message: string;

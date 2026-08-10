@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { Field, FieldValue } from "@guido/types";
+import { type Field, type FieldValue } from "@guido/types";
 import { resolveRuleSetRules } from "@guido/core";
 import { saveSettingsFields } from "@/utils/settingsUtils";
 import { FieldContext } from "@/context/FieldContext";
 import { applyRules, isFieldRequired } from "@/utils/applyRules";
 import { useAlert } from "@/hooks/useAlert";
 import { useTemplateContext } from "@/hooks/useTemplateContext";
-import { TriggerAction } from "@/context/HistoryContext";
+import { type TriggerAction } from "@/context/HistoryContext";
 
 interface FieldProviderProps {
   children: React.ReactNode;
