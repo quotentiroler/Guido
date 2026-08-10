@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 /**
- * @guido/logger - Logging utilities for Guido packages
+ * @quotentiroler/guido-logger - Logging utilities for Guido packages
  * 
  * Provides structured logging with different levels and field change tracking.
  */

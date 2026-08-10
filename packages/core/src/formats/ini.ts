@@ -1,12 +1,12 @@
 /**
- * @guido/core - INI format
+ * @quotentiroler/guido-core - INI format
  *
  * Maps Guido's flat dot-notation field names onto INI's two-level
  * `[section] key = value` grammar: the first dot is the section boundary,
  * everything after it stays in the key.
  */
 
-import type { Field, FieldValue } from '@guido/types';
+import type { Field, FieldValue } from '@quotentiroler/guido-types';
 
 export interface IniSerializeOptions {
   /** Export only fields with `checked: true` (default: true). */

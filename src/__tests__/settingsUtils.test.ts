@@ -12,8 +12,8 @@ import {
   parseNaturalLanguageRule,
   translateRule,
   translateRangeToHumanReadable,
-} from '@guido/core';
-import { type Field, type NestedField, type Template, RuleState } from '@guido/types';
+} from '@quotentiroler/guido-core';
+import { type Field, type NestedField, type Template, RuleState } from '@quotentiroler/guido-types';
 
 describe('flattenObject', () => {
   it('should flatten simple nested object', () => {

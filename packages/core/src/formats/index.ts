@@ -1,5 +1,5 @@
 /**
- * @guido/core - Configuration formats
+ * @quotentiroler/guido-core - Configuration formats
  */
 
 export { serializeIni, parseIni } from './ini.js';

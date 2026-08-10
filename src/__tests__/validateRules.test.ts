@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { validateRules } from '@guido/core';
-import { RuleState, type Rule } from '@guido/types';
+import { validateRules } from '@quotentiroler/guido-core';
+import { RuleState, type Rule } from '@quotentiroler/guido-types';
 
 describe('validateRules', () => {
   describe('Basic validation', () => {

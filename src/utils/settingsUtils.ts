@@ -1,4 +1,4 @@
-import { type Rule, type Field, type FieldValue, type Template } from "@guido/types";
+import { type Rule, type Field, type FieldValue, type Template } from "@quotentiroler/guido-types";
 
 /**
  * Represents a recursively nested settings object.
@@ -117,7 +117,7 @@ const saveBlob = async (
 
 import Papa from 'papaparse';
 
-// Import from @guido/core for local use
+// Import from @quotentiroler/guido-core for local use
 import {
   detectFormat,
   fieldsToNestedObject,
@@ -125,7 +125,7 @@ import {
   formatMeta,
   parseSettings,
   serializeFields,
-} from '@guido/core';
+} from '@quotentiroler/guido-core';
 
 export const loadTemplateFromPublicFolder = async (
   templateName: string,

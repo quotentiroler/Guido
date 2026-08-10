@@ -1,5 +1,5 @@
 {
-  "name": "@guido/mcp-server",
+  "name": "@quotentiroler/guido-mcp-server",
   "version": "1.0.0",
   "description": "MCP Server for Guido template management - CRUD operations for fields and rules",
   "type": "module",
@@ -26,8 +26,8 @@
   "author": "Maximilian Nussbaumer",
   "license": "MIT",
   "dependencies": {
-    "@guido/core": "^1.0.0",
-    "@guido/types": "^1.0.0",
+    "@quotentiroler/guido-core": "^1.0.0",
+    "@quotentiroler/guido-types": "^1.0.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "js-yaml": "^5.2.1",
     "zod": "^4.4.3"
@@ -39,5 +39,17 @@
   },
   "engines": {
     "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/quotentiroler/Guido.git",
+    "directory": "packages/mcp-server"
+  },
+  "homepage": "https://quotentiroler.github.io/Guido/",
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   }
 }

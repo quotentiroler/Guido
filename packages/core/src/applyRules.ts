@@ -1,11 +1,11 @@
 /**
- * @guido/core - Apply Rules
+ * @quotentiroler/guido-core - Apply Rules
  * 
  * Core rule application logic for evaluating and applying rules to fields.
  */
 
-import { type Field, type FieldValue, type Rule, type RuleDomain, RuleState } from '@guido/types';
-import { type ILogger, type FieldChange, type TriggerAction, logger } from '@guido/logger';
+import { type Field, type FieldValue, type Rule, type RuleDomain, RuleState } from '@quotentiroler/guido-types';
+import { type ILogger, type FieldChange, type TriggerAction, logger } from '@quotentiroler/guido-logger';
 import { translateRule } from './ruleTranslation';
 
 export interface ApplyRulesResult {
@@ -14,7 +14,7 @@ export interface ApplyRulesResult {
 }
 
 export interface ApplyRulesOptions {
-  /** Logger instance to use. Defaults to the global logger from @guido/logger */
+  /** Logger instance to use. Defaults to the global logger from @quotentiroler/guido-logger */
   logger?: ILogger;
   /** What triggered this rule application */
   trigger?: TriggerAction;

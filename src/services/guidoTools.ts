@@ -14,8 +14,8 @@
 
 import { z } from 'zod';
 import type { ToolDefinition, ToolCall, ToolResult } from './llmService';
-import type { Field, Rule, RuleSet, RuleDomain, RuleState } from '@guido/types';
-import { translateRule, parseNaturalLanguageRule } from '@guido/core';
+import type { Field, Rule, RuleSet, RuleDomain, RuleState } from '@quotentiroler/guido-types';
+import { translateRule, parseNaturalLanguageRule } from '@quotentiroler/guido-core';
 import { logger } from '@/utils/logger';
 import {
   EXPERT_SYSTEM_PROMPT,
@@ -30,7 +30,7 @@ import {
   toolDefinitions as mcpToolDefinitions, 
   buildInputSchema,
   type ToolDef,
-} from '@guido/mcp-server/definitions';
+} from '@quotentiroler/guido-mcp-server/definitions';
 
 // Re-export prompts for external consumers
 export { EXPERT_SYSTEM_PROMPT, SIMPLE_SYSTEM_PROMPT, getSystemPrompt, formatToolList, type TemplateContext };

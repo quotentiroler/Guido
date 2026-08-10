@@ -1,10 +1,10 @@
 /**
  * Logger utility for the GUI
  * 
- * Re-exports from @guido/logger with development mode enabled by default.
+ * Re-exports from @quotentiroler/guido-logger with development mode enabled by default.
  */
 
-// Re-export all types and classes from @guido/logger
+// Re-export all types and classes from @quotentiroler/guido-logger
 export {
   type LogLevel,
   type LoggerOptions,
@@ -16,10 +16,10 @@ export {
   SilentLogger,
   UNDOABLE_ACTIONS,
   createLogger,
-} from '@guido/logger';
+} from '@quotentiroler/guido-logger';
 
 // Import the Logger class to create a dev-enabled instance
-import { Logger } from '@guido/logger';
+import { Logger } from '@quotentiroler/guido-logger';
 
 // Check if we're in development mode
 const isDev = typeof import.meta !== 'undefined' && 

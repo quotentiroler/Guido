@@ -1,11 +1,11 @@
 /**
- * @guido/mcp-server - In-memory template store.
+ * @quotentiroler/guido-mcp-server - In-memory template store.
  *
  * Backs stateless HTTP requests, where the caller passes a template in and gets
  * the modified one back, and serves as the test double for the port.
  */
 
-import type { Template } from '@guido/types';
+import type { Template } from '@quotentiroler/guido-types';
 import {
   ensureRuleSets,
   NoTemplateRefError,

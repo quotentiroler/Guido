@@ -1,5 +1,5 @@
 /**
- * @guido/mcp-server - Filesystem template store.
+ * @quotentiroler/guido-mcp-server - Filesystem template store.
  *
  * The stdio adapter: refs are file paths, canonicalized to absolute so the same
  * template reached by two relative paths is one entry.
@@ -7,7 +7,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import type { Template } from '@guido/types';
+import type { Template } from '@quotentiroler/guido-types';
 import {
   ensureRuleSets,
   NoTemplateRefError,

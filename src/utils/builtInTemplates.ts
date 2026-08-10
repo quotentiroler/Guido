@@ -5,7 +5,7 @@
  * Templates are auto-discovered at build time by the vite-plugin-templates plugin.
  */
 
-import { type Template, isTemplate } from '@guido/types';
+import { type Template, isTemplate } from '@quotentiroler/guido-types';
 import { logger } from './logger';
 import { BUNDLED_TEMPLATES } from 'virtual:bundled-templates';
 

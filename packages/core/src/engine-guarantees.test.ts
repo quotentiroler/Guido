@@ -6,7 +6,7 @@
  * roadmap of guarantees not yet implemented (Tier 1-3: solver proofs, repair, cross-scope).
  */
 import { describe, it, expect } from 'vitest';
-import { RuleState, type Field, type Rule } from '@guido/types';
+import { RuleState, type Field, type Rule } from '@quotentiroler/guido-types';
 import { applyRules, validateRules, validateRulesAgainstFields, findContradictions, validateValue, validateCardinality } from './index.js';
 
 const f = (name: string, value: Field['value'] = '', checked = false, range = ''): Field => ({

@@ -2,8 +2,8 @@
  * Tests for MCP Server template utilities
  */
 import { describe, it, expect } from 'vitest';
-import { type Template, type Field, type Rule, RuleState } from '@guido/types';
-import { getDefaultRules, getRuleSetRules } from '@guido/core';
+import { type Template, type Field, type Rule, RuleState } from '@quotentiroler/guido-types';
+import { getDefaultRules, getRuleSetRules } from '@quotentiroler/guido-core';
 import {
   findField,
   findFieldIndex,

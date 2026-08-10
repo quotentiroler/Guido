@@ -10,12 +10,12 @@
     "noUncheckedSideEffectImports": true,
     "paths": {
       "@/*": ["./src/*"],
-      "@guido/core": ["./packages/core/src/index.ts"],
-      "@guido/types": ["./packages/types/src/index.ts"],
-      "@guido/types/*": ["./packages/types/src/*"],
-      "@guido/logger": ["./packages/logger/src/index.ts"],
-      "@guido/mcp-server": ["./packages/mcp-server/src/index.ts"],
-      "@guido/mcp-server/definitions": ["./packages/mcp-server/src/exports.ts"]
+      "@quotentiroler/guido-core": ["./packages/core/src/index.ts"],
+      "@quotentiroler/guido-types": ["./packages/types/src/index.ts"],
+      "@quotentiroler/guido-types/*": ["./packages/types/src/*"],
+      "@quotentiroler/guido-logger": ["./packages/logger/src/index.ts"],
+      "@quotentiroler/guido-mcp-server": ["./packages/mcp-server/src/index.ts"],
+      "@quotentiroler/guido-mcp-server/definitions": ["./packages/mcp-server/src/exports.ts"]
     }
   },
   "include": ["src"]

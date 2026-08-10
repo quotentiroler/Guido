@@ -1,8 +1,8 @@
 /**
- * @guido/core - Flat key=value formats (.properties, .env, .txt)
+ * @quotentiroler/guido-core - Flat key=value formats (.properties, .env, .txt)
  */
 
-import type { Field, FieldValue } from '@guido/types';
+import type { Field, FieldValue } from '@quotentiroler/guido-types';
 
 export interface KeyValueSerializeOptions {
   /** Export only fields with `checked: true` (default: true). */

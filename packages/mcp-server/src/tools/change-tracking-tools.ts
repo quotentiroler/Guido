@@ -3,7 +3,7 @@
  */
 import { z } from 'zod';
 import { type ToolContext } from './types';
-import { type Field } from '@guido/types';
+import { type Field } from '@quotentiroler/guido-types';
 
 
 export function registerChangeTrackingTools({ server, store, tracker }: ToolContext) {

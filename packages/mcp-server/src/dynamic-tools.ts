@@ -12,7 +12,7 @@ import * as path from 'path';
 import { toolDefinitions, type InputType, type InputDef } from './tool-definitions.js';
 import { type ToolContext } from './tools/types.js';
 // Types only (no Zod bundled)
-import type { Field, Rule, RuleDomain, Template, FieldValue, RuleSet, RuleState } from '@guido/types';
+import type { Field, Rule, RuleDomain, Template, FieldValue, RuleSet, RuleState } from '@quotentiroler/guido-types';
 // Zod schemas for runtime validation (MCP server needs these)
 import { 
   RuleDomainSchema,
@@ -21,7 +21,7 @@ import {
   FieldSchema,
   FieldValueSchema,
   FieldUpdateSchema,
-} from '@guido/types/schemas';
+} from '@quotentiroler/guido-types/schemas';
 import {
   type Explanation,
   validateRules,
@@ -40,7 +40,7 @@ import {
   getRuleSetInheritanceChain,
   validateRuleSetInheritance,
   mergeTemplates,
-} from '@guido/core';
+} from '@quotentiroler/guido-core';
 import {
   findField,
   findFieldIndex,

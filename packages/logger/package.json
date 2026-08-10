@@ -1,5 +1,5 @@
 {
-  "name": "@guido/logger",
+  "name": "@quotentiroler/guido-logger",
   "version": "1.0.0",
   "description": "Logging utilities for Guido packages",
   "type": "module",
@@ -14,7 +14,8 @@
   },
   "publishConfig": {
     "main": "./dist/index.js",
-    "types": "./dist/index.d.ts"
+    "types": "./dist/index.d.ts",
+    "registry": "https://npm.pkg.github.com"
   },
   "scripts": {
     "build": "tsc"
@@ -31,5 +32,14 @@
   },
   "engines": {
     "node": ">=18"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/quotentiroler/Guido.git",
+    "directory": "packages/logger"
+  },
+  "homepage": "https://quotentiroler.github.io/Guido/",
+  "files": [
+    "dist"
+  ]
 }

@@ -1,5 +1,5 @@
 /**
- * @guido/core - Core utilities for Guido template management
+ * @quotentiroler/guido-core - Core utilities for Guido template management
  */
 
 // Rule validation

@@ -1,5 +1,5 @@
 {
-  "name": "@guido/core",
+  "name": "@quotentiroler/guido-core",
   "version": "1.0.0",
   "description": "Core utilities for Guido template management - validation, rule application, settings utilities",
   "type": "module",
@@ -14,7 +14,8 @@
   },
   "publishConfig": {
     "main": "./dist/index.js",
-    "types": "./dist/index.d.ts"
+    "types": "./dist/index.d.ts",
+    "registry": "https://npm.pkg.github.com"
   },
   "scripts": {
     "build": "tsc"
@@ -27,12 +28,22 @@
   ],
   "author": "Maximilian Nussbaumer",
   "dependencies": {
-    "@guido/logger": "^1.0.0",
-    "@guido/types": "^1.0.0",
+    "@quotentiroler/guido-logger": "^1.0.0",
+    "@quotentiroler/guido-types": "^1.0.0",
     "js-yaml": "^5.2.1",
     "jsonc-parser": "^3.3.1"
   },
   "devDependencies": {
     "typescript": "^6.0.3"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/quotentiroler/Guido.git",
+    "directory": "packages/core"
+  },
+  "license": "Apache-2.0",
+  "homepage": "https://quotentiroler.github.io/Guido/",
+  "files": [
+    "dist"
+  ]
 }

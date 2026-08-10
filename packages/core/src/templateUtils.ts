@@ -1,10 +1,10 @@
 /**
- * @guido/core - Template Utilities
+ * @quotentiroler/guido-core - Template Utilities
  * 
  * Pure functions for template manipulation.
  */
 
-import { type Template, type RuleSet } from '@guido/types';
+import { type Template, type RuleSet } from '@quotentiroler/guido-types';
 import { hasNestedFields, flattenNestedFields } from './fieldUtils';
 
 /**

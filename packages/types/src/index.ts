@@ -1,18 +1,18 @@
 /**
- * @guido/types - Shared TypeScript types for Guido configuration templates
+ * @quotentiroler/guido-types - Shared TypeScript types for Guido configuration templates
  * 
  * All types are derived from Zod schemas (source of truth in schemas.ts).
  * This entry point exports only types via `export type` - NO Zod bundled.
  * 
- * For Zod schemas (runtime validation), import from '@guido/types/schemas'.
+ * For Zod schemas (runtime validation), import from '@quotentiroler/guido-types/schemas'.
  * 
  * @example
  * // Types only (no Zod bundled) - for frontend
- * import type { Field, Rule, Template } from '@guido/types';
- * import { RuleState, parseRange, isTemplate } from '@guido/types';
+ * import type { Field, Rule, Template } from '@quotentiroler/guido-types';
+ * import { RuleState, parseRange, isTemplate } from '@quotentiroler/guido-types';
  * 
  * // Zod schemas for runtime validation - for MCP server
- * import { FieldSchema, RuleSchema, TemplateSchema } from '@guido/types/schemas';
+ * import { FieldSchema, RuleSchema, TemplateSchema } from '@quotentiroler/guido-types/schemas';
  */
 
 // ============================================================================

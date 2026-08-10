@@ -4,7 +4,7 @@ import {
   type RegistrySearchResult,
   type EndpointConfig,
   type BuiltInRegistryType
-} from '@guido/types';
+} from '@quotentiroler/guido-types';
 import { logger } from './logger';
 
 /**

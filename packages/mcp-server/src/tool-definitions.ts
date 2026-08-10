@@ -39,11 +39,11 @@ export interface InputDef {
 }
 
 /**
- * Implementation reference - points to a function in @guido/core or inline code
+ * Implementation reference - points to a function in @quotentiroler/guido-core or inline code
  */
 export interface Implementation {
   /** 
-   * Import path: '@guido/core' or '../template-utils' 
+   * Import path: '@quotentiroler/guido-core' or '../template-utils' 
    */
   from: string;
   /** 

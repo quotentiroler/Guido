@@ -1,5 +1,5 @@
 {
-  "name": "@guido/types",
+  "name": "@quotentiroler/guido-types",
   "version": "1.0.0",
   "description": "Shared TypeScript types for Guido configuration templates",
   "type": "module",
@@ -25,7 +25,8 @@
         "types": "./dist/index.d.ts",
         "import": "./dist/index.js"
       }
-    }
+    },
+    "registry": "https://npm.pkg.github.com"
   },
   "files": [
     "dist",
@@ -40,5 +41,12 @@
   },
   "devDependencies": {
     "typescript": "^6.0.3"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/quotentiroler/Guido.git",
+    "directory": "packages/types"
+  },
+  "license": "Apache-2.0",
+  "homepage": "https://quotentiroler.github.io/Guido/"
 }

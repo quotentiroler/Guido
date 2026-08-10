@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import useRegistry from "@/hooks/useRegistry";
-import { type RegistryDefinition } from "@guido/types";
+import { type RegistryDefinition } from "@quotentiroler/guido-types";
 import { getBuiltInTemplates, verifyBuiltInTemplates } from "@/utils/builtInTemplates";
 import Button from "./shared/Button";
 import FileInput, { type FileInputRef } from "./shared/FileInput";

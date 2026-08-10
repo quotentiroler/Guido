@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Button from "./shared/Button";
 import RuleItem from "./RuleItem";
-import { validateRules, type ValidationResult } from "@guido/core";
+import { validateRules, type ValidationResult } from "@quotentiroler/guido-core";
 import { useRuleContext } from "@/hooks/useRuleContext";
 import { useAppContext } from "@/hooks/useAppContext";
 

@@ -1,5 +1,5 @@
 /**
- * @guido/core - Command-line argument format
+ * @quotentiroler/guido-core - Command-line argument format
  *
  * Renders fields as the flag string a CLI actually takes, and reads one back.
  * A boolean field is a store_true flag: true emits `--flag`, false emits nothing,
@@ -7,7 +7,7 @@
  * appear or do not.
  */
 
-import type { Field, FieldValue } from '@guido/types';
+import type { Field, FieldValue } from '@quotentiroler/guido-types';
 
 export interface ArgsSerializeOptions {
   /** Export only fields with `checked: true` (default: true). */

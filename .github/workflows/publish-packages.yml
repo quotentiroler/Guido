@@ -1,0 +1,60 @@
+name: Publish Packages
+
+# Version-bump-is-the-release: bump a package's version, merge to main, and that
+# version is published. Re-running on an already-published version is a no-op.
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'packages/**/package.json'
+      - '.github/workflows/publish-packages.yml'
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@quotentiroler'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build packages
+        run: npm run build:packages
+
+      # Dependency order: a dependent must not publish before what it depends on.
+      - name: Publish changed packages
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
+        run: |
+          set -euo pipefail
+          published=0
+          for pkg in types logger core mcp-server cli; do
+            dir="packages/$pkg"
+            name=$(node -p "require('./$dir/package.json').name")
+            version=$(node -p "require('./$dir/package.json').version")
+
+            if npm view "$name@$version" version >/dev/null 2>&1; then
+              echo "· $name@$version already published, skipping"
+              continue
+            fi
+
+            echo "→ publishing $name@$version"
+            npm publish -w "$name" --access restricted
+            published=$((published + 1))
+          done
+          echo "published=$published" >> "$GITHUB_OUTPUT"
+          echo "Published $published package(s)"

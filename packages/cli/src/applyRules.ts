@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
 /**
- * @guido/cli - Apply Rules CLI
+ * @quotentiroler/guido-cli - Apply Rules CLI
  * 
  * Applies Guido template rules to a settings file.
  * Rules can enable/disable fields, set values, or add items to arrays.
@@ -15,8 +15,8 @@ import {
   parseKeyValueFormat,
   toFieldValues,
   mergeSettingsIntoFields 
-} from '@guido/core';
-import type { Template, Field, FieldValue } from '@guido/types';
+} from '@quotentiroler/guido-core';
+import type { Template, Field, FieldValue } from '@quotentiroler/guido-types';
 import * as yaml from 'js-yaml';
 
 interface ApplyOptions {

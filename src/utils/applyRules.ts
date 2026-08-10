@@ -1,11 +1,11 @@
 /**
  * Apply Rules - GUI wrapper
  * 
- * Re-exports applyRules from @guido/core with the GUI's logger injected.
+ * Re-exports applyRules from @quotentiroler/guido-core with the GUI's logger injected.
  */
 
-import type { Field, Rule } from "@guido/types";
-import { applyRules as coreApplyRules, isFieldRequired, type ApplyRulesResult } from '@guido/core';
+import type { Field, Rule } from "@quotentiroler/guido-types";
+import { applyRules as coreApplyRules, isFieldRequired, type ApplyRulesResult } from '@quotentiroler/guido-core';
 import { logger, type TriggerAction } from "./logger";
 
 // Re-export types and isFieldRequired

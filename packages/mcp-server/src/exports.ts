@@ -1,5 +1,5 @@
 /**
- * Public exports for @guido/mcp-server
+ * Public exports for @quotentiroler/guido-mcp-server
  * 
  * These are the types and utilities that can be imported by other packages,
  * particularly for sharing tool definitions with the AI assistant.
@@ -13,7 +13,7 @@ import {
   FieldSchema,
   FieldValueSchema,
   FieldUpdateSchema,
-} from '@guido/types/schemas';
+} from '@quotentiroler/guido-types/schemas';
 
 // Re-export tool definitions
 export { 

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import localforage from 'localforage';
 import { TarReader } from '@gera2ld/tarjs';
-import { type Template, type RegistryDefinition, type RegistryItem, type BuiltInRegistryType, isTemplate } from '@guido/types';
+import { type Template, type RegistryDefinition, type RegistryItem, type BuiltInRegistryType, isTemplate } from '@quotentiroler/guido-types';
 import { 
   loadBuiltInRegistry, 
   loadCustomRegistry, 

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Button from "./shared/Button";
 import Portal from "./shared/Portal";
 import { useRuleContext } from "@/hooks/useRuleContext";
-import { RuleState, type Rule } from "@guido/types";
+import { RuleState, type Rule } from "@quotentiroler/guido-types";
 import { useTemplateContext } from "@/hooks/useTemplateContext";
 
 interface RequiredFieldsModalProps {

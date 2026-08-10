@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
 /**
- * @guido/cli - Validate Settings CLI
+ * @quotentiroler/guido-cli - Validate Settings CLI
  * 
  * Validates a settings file against a Guido template.
  * - Applies rules to determine which fields should be set
@@ -20,8 +20,8 @@ import {
   validateCardinality,
   isFieldRequired,
   translateRangeToHumanReadable,
-} from '@guido/core';
-import type { Template, FieldValue, RuleSet } from '@guido/types';
+} from '@quotentiroler/guido-core';
+import type { Template, FieldValue, RuleSet } from '@quotentiroler/guido-types';
 import * as yaml from 'js-yaml';
 
 interface ValidationIssue {

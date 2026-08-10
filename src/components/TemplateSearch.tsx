@@ -7,8 +7,8 @@ import useRegistry, { type SearchResultItem, NoGuidoTemplatesError, type Alterna
 import SearchInput from "./SearchInput";
 import AIChatInput from "./AIChatInput";
 import DropdownItems from "./SearchDropdown";
-import { type Template } from "@guido/types";
-import { mergeTemplates } from "@guido/core";
+import { type Template } from "@quotentiroler/guido-types";
+import { mergeTemplates } from "@quotentiroler/guido-core";
 import { parseSettingsFromText } from "@/utils/settingsUtils";
 
 interface TemplateSearchProps {

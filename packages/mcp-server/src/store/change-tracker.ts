@@ -1,12 +1,12 @@
 /**
- * @guido/mcp-server - In-process change tracking.
+ * @quotentiroler/guido-mcp-server - In-process change tracking.
  *
  * Suitable for the stdio server, where one process serves one user. A hosted
  * server needs a tenant-scoped implementation of the same port, because module
  * state on a Worker is per-isolate and shared across requests.
  */
 
-import type { Template } from '@guido/types';
+import type { Template } from '@quotentiroler/guido-types';
 import type { ChangeEntry, ChangeTracker, ChangeType, TemplateSnapshot } from './types.js';
 
 const deepCopy = (template: Template): Template => JSON.parse(JSON.stringify(template)) as Template;

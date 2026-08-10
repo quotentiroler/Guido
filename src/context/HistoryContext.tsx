@@ -1,8 +1,8 @@
 import { createContext } from "react";
 
 // Import base types from logger package
-import type { TriggerAction, FieldChange as BaseFieldChange } from "@guido/logger";
-export { UNDOABLE_ACTIONS } from "@guido/logger";
+import type { TriggerAction, FieldChange as BaseFieldChange } from "@quotentiroler/guido-logger";
+export { UNDOABLE_ACTIONS } from "@quotentiroler/guido-logger";
 export type { TriggerAction };
 
 // Re-export BaseFieldChange as FieldChangeInput for backwards compatibility

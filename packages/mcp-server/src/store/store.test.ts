@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { type Template } from '@guido/types';
+import { type Template } from '@quotentiroler/guido-types';
 import { type TemplateStore } from './types.js';
 import { MemoryTemplateStore } from './memory-store.js';
 import { FsTemplateStore } from './fs-store.js';

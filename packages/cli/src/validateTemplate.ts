@@ -2,9 +2,9 @@
 /* eslint-disable no-console */
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
-import { validateRules, applyRules } from '@guido/core';
-import { SilentLogger } from '@guido/logger';
-import type { Template, RuleSet, Field } from '@guido/types';
+import { validateRules, applyRules } from '@quotentiroler/guido-core';
+import { SilentLogger } from '@quotentiroler/guido-logger';
+import type { Template, RuleSet, Field } from '@quotentiroler/guido-types';
 
 function printUsage() {
   console.log(`

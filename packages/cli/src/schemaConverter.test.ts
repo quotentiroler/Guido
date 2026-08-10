@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { jsonSchemaToGuido } from './schemaToGuido';
 import { guidoToJsonSchema } from './guidoToSchema';
-import { type Template, type Field, type Rule, type RuleDomain, RuleState } from '@guido/types';
+import { type Template, type Field, type Rule, type RuleDomain, RuleState } from '@quotentiroler/guido-types';
 
 /**
  * JSON Schema type for testing

@@ -3,7 +3,7 @@ import Button from "./shared/Button";
 import SettingsFieldsList from "./SettingsFieldsList";
 import { useFieldContext } from "@/hooks/useFieldContext";
 import { useAppContext } from "@/hooks/useAppContext";
-import { type Field } from "@guido/types";
+import { type Field } from "@quotentiroler/guido-types";
 import AddFieldModal from "./AddFieldModal";
 import { useTemplateContext } from "@/hooks/useTemplateContext";
 

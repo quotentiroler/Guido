@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { type Template, type FieldValue, type Field, RuleState } from '@guido/types';
+import { type Template, type FieldValue, type Field, RuleState } from '@quotentiroler/guido-types';
 import { 
   flattenObject, 
   toFieldValues, 
@@ -7,7 +7,7 @@ import {
   validateValue,
   mergeSettingsIntoFields,
   fieldsToNestedObject
-} from '@guido/core';
+} from '@quotentiroler/guido-core';
 
 describe('validateSettings CLI logic', () => {
   const mockTemplate: Template = {

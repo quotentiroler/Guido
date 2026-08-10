@@ -3,7 +3,7 @@ import Button from "./shared/Button";
 import FileInput from "./shared/FileInput";
 import { CopyButton, PasteButton } from "./shared/ClipboardButtons";
 import { parseSettingsFromFile, saveSettings } from "@/utils/settingsUtils";
-import { validateValue } from "@guido/core";
+import { validateValue } from "@quotentiroler/guido-core";
 import { useAlert } from "@/hooks/useAlert";
 import { useTemplateContext } from "@/hooks/useTemplateContext";
 

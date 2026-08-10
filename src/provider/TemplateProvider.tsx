@@ -1,5 +1,5 @@
-import { type Field, type RuleSet, type Template, isTemplate } from '@guido/types';
-import { mergeTemplates, createDefaultRuleSet } from '@guido/core';
+import { type Field, type RuleSet, type Template, isTemplate } from '@quotentiroler/guido-types';
+import { mergeTemplates, createDefaultRuleSet } from '@quotentiroler/guido-core';
 import React, { useState, type ReactNode, type ReactElement, useEffect, useCallback } from 'react';
 import { TemplateContext } from '@/context/TemplateContext';
 import localforage from 'localforage';

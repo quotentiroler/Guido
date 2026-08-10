@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { readFileSync, existsSync } from 'fs';
-import { type Template, type Field, RuleState } from '@guido/types';
-import { applyRules } from '@guido/core';
+import { type Template, type Field, RuleState } from '@quotentiroler/guido-types';
+import { applyRules } from '@quotentiroler/guido-core';
 
 // Mock the fs module
 vi.mock('fs', () => ({

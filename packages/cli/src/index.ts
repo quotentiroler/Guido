@@ -1,5 +1,5 @@
 /**
- * @guido/cli - CLI tools for Guido template management
+ * @quotentiroler/guido-cli - CLI tools for Guido template management
  */
 
 export { jsonSchemaToGuido } from './schemaToGuido';

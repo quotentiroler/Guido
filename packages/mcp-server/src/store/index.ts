@@ -1,5 +1,5 @@
 /**
- * @guido/mcp-server - Storage ports and adapters
+ * @quotentiroler/guido-mcp-server - Storage ports and adapters
  */
 
 export {

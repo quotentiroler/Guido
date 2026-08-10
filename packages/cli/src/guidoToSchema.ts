@@ -2,12 +2,12 @@
 /* eslint-disable no-console */
 import { readFileSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
-import { type Field, type FieldValue, type Template, type Rule, type JSONSchema, RuleState } from '@guido/types';
+import { type Field, type FieldValue, type Template, type Rule, type JSONSchema, RuleState } from '@quotentiroler/guido-types';
 
 /**
  * Convert Guido range DSL string to JSON Schema constraints.
  * 
- * Note: This is different from parseRange() in @guido/types which parses
+ * Note: This is different from parseRange() in @quotentiroler/guido-types which parses
  * to ParsedRange objects. This function converts directly to JSON Schema.
  */
 function rangeToJsonSchema(range: string): Partial<JSONSchema> {

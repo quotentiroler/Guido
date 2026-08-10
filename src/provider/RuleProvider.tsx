@@ -4,9 +4,9 @@ import {
 } from "@/utils/settingsUtils";
 import { RuleContext } from "@/context/RuleContext";
 import { useAlert } from "@/hooks/useAlert";
-import { type Rule, type RuleDomain, type RuleSet } from "@guido/types";
+import { type Rule, type RuleDomain, type RuleSet } from "@quotentiroler/guido-types";
 import { useTemplateContext } from "@/hooks/useTemplateContext";
-import { createDefaultRuleSet } from "@guido/core";
+import { createDefaultRuleSet } from "@quotentiroler/guido-core";
 
 interface RuleProviderProps {
   children: React.ReactNode;

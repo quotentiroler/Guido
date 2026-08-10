@@ -5,8 +5,8 @@ import ToggleSwitch from "./shared/ToggleSwitch";
 import { useFieldContext } from "@/hooks/useFieldContext";
 import { useAppContext } from "@/hooks/useAppContext";
 import { applyRules } from "@/utils/applyRules";
-import { type Field, type Rule } from "@guido/types";
-import { resolveRuleSetRules } from "@guido/core";
+import { type Field, type Rule } from "@quotentiroler/guido-types";
+import { resolveRuleSetRules } from "@quotentiroler/guido-core";
 import { useTemplateContext } from "@/hooks/useTemplateContext";
 import { type TriggerAction } from "@/context/HistoryContext";
 

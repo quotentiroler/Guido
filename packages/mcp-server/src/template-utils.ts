@@ -4,11 +4,11 @@
  * Storage lives behind the TemplateStore port in ./store, so these stay pure and
  * work the same on the filesystem and in a hosted server.
  *
- * For core logic, import directly from @guido/core.
- * For types, import directly from @guido/types.
+ * For core logic, import directly from @quotentiroler/guido-core.
+ * For types, import directly from @quotentiroler/guido-types.
  */
-import type { Template, Field, Rule, RuleDomain } from '@guido/types';
-import { applyRules, isFieldRequired, getDefaultRules } from '@guido/core';
+import type { Template, Field, Rule, RuleDomain } from '@quotentiroler/guido-types';
+import { applyRules, isFieldRequired, getDefaultRules } from '@quotentiroler/guido-core';
 
 /**
  * Find a field by name in the template

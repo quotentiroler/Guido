@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { Field } from '@guido/types';
+import type { Field } from '@quotentiroler/guido-types';
 import { serializeFields, parseSettings, detectFormat, formatMeta, CONFIG_FORMATS } from './registry.js';
 
 const f = (name: string, value: Field['value'], checked = true): Field => ({

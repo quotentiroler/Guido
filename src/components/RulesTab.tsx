@@ -3,8 +3,8 @@ import Button from "./shared/Button";
 import RulesList from "./RulesList";
 import { useRuleContext } from "@/hooks/useRuleContext";
 import { useAppContext } from "@/hooks/useAppContext";
-import { type Rule, RuleState, type RuleSet, type CardinalityConstraint } from "@guido/types";
-import { resolveRuleSetRules } from "@guido/core";
+import { type Rule, RuleState, type RuleSet, type CardinalityConstraint } from "@quotentiroler/guido-types";
+import { resolveRuleSetRules } from "@quotentiroler/guido-core";
 import AddOrEditRuleModal from "./AddRuleModal";
 import { useTemplateContext } from "@/hooks/useTemplateContext";
 

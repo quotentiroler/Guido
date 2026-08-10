@@ -1,10 +1,10 @@
 /**
- * @guido/core - Field Utilities
+ * @quotentiroler/guido-core - Field Utilities
  * 
  * Pure functions for field validation and manipulation.
  */
 
-import { type Field, type FieldRange, type FieldValue, type NestedField, parseRange, type ParsedRange } from '@guido/types';
+import { type Field, type FieldRange, type FieldValue, type NestedField, parseRange, type ParsedRange } from '@quotentiroler/guido-types';
 
 /**
  * Translates a technical range specification to a user-friendly description.

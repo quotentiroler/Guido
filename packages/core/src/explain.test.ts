@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { RuleState, type Field, type Rule } from '@guido/types';
+import { RuleState, type Field, type Rule } from '@quotentiroler/guido-types';
 import { explainField } from './explain.js';
 
 const f = (name: string, value: Field['value'] = '', checked = false, range = ''): Field => ({

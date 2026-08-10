@@ -1,7 +1,7 @@
 import React from "react";
-import { generateParentPaths } from "@guido/core";
+import { generateParentPaths } from "@quotentiroler/guido-core";
 import Button from "./shared/Button";
-import { type RuleDomain, RuleState } from "@guido/types";
+import { type RuleDomain, RuleState } from "@quotentiroler/guido-types";
 import { useTemplateContext } from "@/hooks/useTemplateContext";
 
 interface AddRuleDomainItemProps {

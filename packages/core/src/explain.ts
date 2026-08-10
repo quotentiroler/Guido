@@ -1,11 +1,11 @@
 /**
- * @guido/core - Explain
+ * @quotentiroler/guido-core - Explain
  *
  * Answers "why is field X in its current state?" by tracing the rule chain that forced
  * it, back to the root-cause inputs. Reuses the resolved state from applyRules, the
  * condition evaluator (checkCondition), and the human-readable rule/condition renderers.
  */
-import { type Field, type Rule, type RuleDomain, RuleState } from '@guido/types';
+import { type Field, type Rule, type RuleDomain, RuleState } from '@quotentiroler/guido-types';
 import { applyRules, checkCondition } from './applyRules.js';
 import { translateRule, describeCondition } from './ruleTranslation.js';
 

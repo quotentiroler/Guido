@@ -6,7 +6,7 @@
  * filesystem paths) and a hosted server (refs are tenant-scoped storage keys).
  */
 
-import type { Template } from '@guido/types';
+import type { Template } from '@quotentiroler/guido-types';
 
 export type ChangeType =
   | 'field_update'

@@ -3,8 +3,8 @@
  */
 import { z } from 'zod';
 import { type ToolContext } from './types';
-import type { Field } from '@guido/types';
-import { translateRangeToHumanReadable, isFieldRequired } from '@guido/core';
+import type { Field } from '@quotentiroler/guido-types';
+import { translateRangeToHumanReadable, isFieldRequired } from '@quotentiroler/guido-core';
 
 
 export function registerAnalysisTools({ server, store }: ToolContext) {

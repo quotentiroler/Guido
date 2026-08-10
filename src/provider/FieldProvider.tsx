@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { type Field, type FieldValue } from "@guido/types";
-import { resolveRuleSetRules } from "@guido/core";
+import { type Field, type FieldValue } from "@quotentiroler/guido-types";
+import { resolveRuleSetRules } from "@quotentiroler/guido-core";
 import { saveSettingsFields } from "@/utils/settingsUtils";
 import { FieldContext } from "@/context/FieldContext";
 import { applyRules, isFieldRequired } from "@/utils/applyRules";

@@ -1,5 +1,5 @@
 /**
- * @guido/core - Configuration format registry
+ * @quotentiroler/guido-core - Configuration format registry
  *
  * The single place that knows how a Guido template becomes a config file and
  * back. Call sites (browser download, MCP export_config, CLI) dispatch here
@@ -8,7 +8,7 @@
 
 import { parse as parseJsonc } from 'jsonc-parser';
 import * as yaml from 'js-yaml';
-import type { Field, FieldValue } from '@guido/types';
+import type { Field, FieldValue } from '@quotentiroler/guido-types';
 import { fieldsToNestedObject, flattenObject, toFieldValues } from '../fieldUtils.js';
 import { serializeIni, parseIni } from './ini.js';
 import { serializeArgs, parseArgs, type ArgsSerializeOptions } from './args.js';

@@ -1,10 +1,10 @@
 /**
- * @guido/core - Rule Translation Utilities
+ * @quotentiroler/guido-core - Rule Translation Utilities
  * 
  * Pure functions for translating between Guido rules and human-readable text.
  */
 
-import { type Rule, RuleState, type RuleDomain } from '@guido/types';
+import { type Rule, RuleState, type RuleDomain } from '@quotentiroler/guido-types';
 
 /**
  * Human-readable text for a single rule condition, e.g. "'Repository' is set to the

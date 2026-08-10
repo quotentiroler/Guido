@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { applyRules, isFieldRequired } from '../utils/applyRules';
-import { RuleState, type Field, type Rule } from '@guido/types';
+import { RuleState, type Field, type Rule } from '@quotentiroler/guido-types';
 
 describe('applyRules', () => {
   describe('Set state', () => {

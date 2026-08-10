@@ -1,5 +1,5 @@
 /**
- * @guido/core - RuleSet Utilities
+ * @quotentiroler/guido-core - RuleSet Utilities
  * 
  * Core utilities for working with RuleSets including:
  * - Rule resolution with inheritance
@@ -7,7 +7,7 @@
  * - Inheritance validation (circular detection, missing parents)
  */
 
-import type { Rule, RuleSet, Template } from '@guido/types';
+import type { Rule, RuleSet, Template } from '@quotentiroler/guido-types';
 
 // ============================================================================
 // Rule Resolution (with Inheritance)

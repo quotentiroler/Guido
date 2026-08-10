@@ -8,10 +8,10 @@ import {
   translateRangeToHumanReadable,
   fieldValueToString,
   isFieldValueEmpty,
-} from "@guido/core";
+} from "@quotentiroler/guido-core";
 import IconWithTooltip from "./shared/FancyIcon";
 import { useAlert } from "@/hooks/useAlert";
-import { type Field, type FieldValue, type Rule } from "@guido/types";
+import { type Field, type FieldValue, type Rule } from "@quotentiroler/guido-types";
 
 interface SettingsFieldProps {
   field: Field;

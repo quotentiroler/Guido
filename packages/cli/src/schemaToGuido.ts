@@ -10,7 +10,7 @@ import {
   type JSONSchema,
   type SchemaConversionContext,
   RuleState,
-} from '@guido/types';
+} from '@quotentiroler/guido-types';
 
 /**
  * Safely stringify a value that might be an object
