@@ -519,30 +519,43 @@ export const flattenObject = (
  */
 export const fieldsToNestedObject = (fields: Field[]): Record<string, unknown> => {
   const result: Record<string, unknown> = {};
-  
+
   for (const field of fields) {
     if (!field.checked) continue;
-    
+
     const keys = field.name.split('.');
     let current: Record<string, unknown> = result;
-    
+
     for (let i = 0; i < keys.length - 1; i++) {
-      const key = keys[i];
       const nextKey = keys[i + 1];
-      
-      if (!(key in current)) {
-        // Determine if next level should be array or object
-        current[key] = /^\d+$/.test(nextKey) ? [] : {};
+      const slot = containerKey(current, keys[i]);
+
+      if (!(slot in current)) {
+        current[slot] = /^\d+$/.test(nextKey) ? [] : {};
       }
-      current = current[key] as Record<string, unknown>;
+      current = current[slot] as Record<string, unknown>;
     }
-    
-    const lastKey = keys[keys.length - 1];
-    current[lastKey] = field.value;
+
+    current[containerKey(current, keys[keys.length - 1])] = field.value;
   }
-  
+
   return result;
 };
+
+/**
+ * Where a path segment lands in its container.
+ *
+ * flattenObject numbers array items from ONE (`a.1`, `a.2`) so the names read
+ * naturally, so rebuilding an array has to subtract that offset again. Writing
+ * `a.1` at index 1 was leaving a hole at index 0, which turned a ComfyUI link
+ * `["5", 0]` into `[null, "5", 0]` and every other list into one with a null in
+ * front. Object keys, including numeric ones like a ComfyUI node id, are used
+ * verbatim.
+ */
+function containerKey(container: Record<string, unknown>, key: string): string {
+  if (!Array.isArray(container) || !/^\d+$/.test(key)) return key;
+  return String(Math.max(0, Number(key) - 1));
+}
 
 /**
  * Convert unknown values from parsed content to FieldValue types.
