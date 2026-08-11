@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "guido": {
+      "type": "http",
+      "url": "https://guido-manager.maxivities.workers.dev/mcp"
+    }
+  }
+}

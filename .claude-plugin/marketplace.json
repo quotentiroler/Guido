@@ -1,0 +1,13 @@
+{
+  "name": "guido",
+  "owner": {
+    "name": "quotentiroler"
+  },
+  "plugins": [
+    {
+      "name": "guido",
+      "source": "./plugins/guido",
+      "description": "Configuration, compiled. Author config as fields with rules, then emit JSON, YAML, INI, .env, .properties or a launcher flag string — each validated against the same contract. Bundles the guido skill + the hosted Guido MCP so an agent can read a config you already have, change one value, and hand back a valid file."
+    }
+  ]
+}

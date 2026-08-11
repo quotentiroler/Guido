@@ -1,0 +1,9 @@
+{
+  "name": "guido",
+  "description": "Configuration, compiled. Bundles the guido skill + the hosted Guido MCP server so any agent can read a config file you already have, change one value, and hand back a valid one — in JSON, YAML, INI, .env, .properties or as a command-line flag string. Rules decide what may be set together, so contradictory combinations are refused rather than shipped.",
+  "version": "0.1.0",
+  "author": { "name": "Maximilian Nussbaumer", "url": "https://quotentiroler.github.io/Guido/" },
+  "homepage": "https://quotentiroler.github.io/Guido/",
+  "repository": "https://github.com/quotentiroler/Guido",
+  "license": "Apache-2.0"
+}

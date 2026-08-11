@@ -1,0 +1,21 @@
+{
+  "name": "guido",
+  "version": "0.1.0",
+  "description": "Configuration, compiled. Bundles the guido skill + the hosted Guido MCP server so Codex can read a config file you already have, change one value, and hand back a valid one — in JSON, YAML, INI, .env, .properties or as a command-line flag string. Rules decide what may be set together, so contradictory combinations are refused rather than shipped.",
+  "author": { "name": "Maximilian Nussbaumer", "url": "https://quotentiroler.github.io/Guido/" },
+  "homepage": "https://quotentiroler.github.io/Guido/",
+  "repository": "https://github.com/quotentiroler/Guido",
+  "license": "Apache-2.0",
+  "keywords": ["configuration", "config", "settings", "validation", "rules", "ini", "yaml", "mcp"],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.codex.json",
+  "interface": {
+    "displayName": "Guido",
+    "shortDescription": "Configuration, compiled — one template, every format.",
+    "longDescription": "Guido turns a configuration file into fields with rules. Ask for a value to change and it applies the rules, refuses contradictions, and renders the result as JSON, YAML, INI, .env, .properties or a launcher flag string. Paste a command line you already run and get it back corrected.",
+    "developerName": "Maximilian Nussbaumer",
+    "category": "Productivity",
+    "websiteURL": "https://quotentiroler.github.io/Guido/",
+    "brandColor": "#FDD106"
+  }
+}
