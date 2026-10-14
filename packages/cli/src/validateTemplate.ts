@@ -3,7 +3,7 @@
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import type { Template } from '@quotentiroler/guido-types';
-import { selectRuleSets, validateTemplateRuleSet } from './templateValidation.js';
+import { selectRuleSets, validateTemplateRuleSet, ruleSetPasses } from './templateValidation.js';
 
 function printUsage() {
   console.log(`
@@ -19,7 +19,7 @@ Validates a Guido template file for:
   - Rule contradictions
   - Circular dependencies
   - Logical conflicts
-  - Default field state compliance with rules
+  - Default field state compliance with the default (first) ruleset
   - Merge optimization opportunities
 
 Examples:
@@ -123,11 +123,11 @@ function main() {
 
       const { errors, suggestions, compliance } = validation;
       const rulesValid = errors.length === 0 && suggestions.length === 0;
+      if (!ruleSetPasses(validation)) hasErrors = true;
 
       if (rulesValid) {
         console.log('   ✅ Validation passed!');
       } else {
-        hasErrors = true;
         console.log('   ❌ Validation failed:\n');
 
         if (errors.length > 0) {
@@ -147,8 +147,13 @@ function main() {
         }
       }
 
-      if (!compliance.compliant) {
-        hasErrors = true;
+      if (!compliance.compliant && !validation.isDefault) {
+        console.log('   Note: selecting this ruleset changes these fields from the template defaults:');
+        for (const issue of compliance.issues) {
+          console.log(`      • ${issue.field}: ${issue.property} → ${JSON.stringify(issue.expected)}`);
+        }
+        console.log();
+      } else if (!compliance.compliant) {
         console.log('   ⚠️  Field compliance issues (fields would be modified on load):');
         for (const issue of compliance.issues) {
           const actualStr = issue.actual === undefined ? 'undefined' : 

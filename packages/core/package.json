@@ -1,6 +1,6 @@
 {
   "name": "@quotentiroler/guido-core",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Core utilities for Guido template management - validation, rule application, settings utilities",
   "type": "module",
   "main": "./dist/index.js",

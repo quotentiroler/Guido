@@ -114,6 +114,64 @@ describe('contradiction detection catches real conflicts', () => {
   });
 });
 
+describe('contradiction detection accepts targets one field state satisfies', () => {
+  it('accepts a requirement alongside a conditional exclusion of one value', () => {
+    const rules: Rule[] = [
+      { conditions: [], targets: [{ name: 'X', state: RuleState.Set }] },
+      { conditions: [{ name: 'A', state: RuleState.Set }], targets: [{ name: 'X', state: RuleState.SetToValue, value: 'v', not: true }] },
+    ];
+    expect(findContradictions(rules)).toEqual([]);
+  });
+
+  it('accepts a requirement alongside an assignment of the same field', () => {
+    const rules: Rule[] = [
+      { conditions: [], targets: [{ name: 'X', state: RuleState.Set }] },
+      { conditions: [{ name: 'A', state: RuleState.Set }], targets: [{ name: 'X', state: RuleState.SetToValue, value: 'v' }] },
+    ];
+    expect(findContradictions(rules)).toEqual([]);
+  });
+
+  it('flags an assignment alongside the exclusion of that value', () => {
+    const rules: Rule[] = [
+      { conditions: [], targets: [{ name: 'X', state: RuleState.SetToValue, value: 'v' }] },
+      { conditions: [{ name: 'A', state: RuleState.Set }], targets: [{ name: 'X', state: RuleState.SetToValue, value: 'v', not: true }] },
+    ];
+    expect(findContradictions(rules)).toHaveLength(1);
+  });
+
+  it('flags an assignment whose value lacks an item another rule requires', () => {
+    const rules: Rule[] = [
+      { conditions: [], targets: [{ name: 'X', state: RuleState.SetToValue, value: '["a"]' }] },
+      { conditions: [], targets: [{ name: 'X', state: RuleState.Contains, value: 'b' }] },
+    ];
+    expect(findContradictions(rules)).toHaveLength(1);
+  });
+
+  it('accepts an assignment whose value holds the item another rule requires', () => {
+    const rules: Rule[] = [
+      { conditions: [], targets: [{ name: 'X', state: RuleState.SetToValue, value: '["a","b"]' }] },
+      { conditions: [], targets: [{ name: 'X', state: RuleState.Contains, value: 'b' }] },
+    ];
+    expect(findContradictions(rules)).toEqual([]);
+  });
+});
+
+describe('a negated assignment excludes one value', () => {
+  it('keeps a field holding any other value', () => {
+    const fields = [f('A', 'true', true), f('X', 'other', true)];
+    const rules: Rule[] = [{ conditions: [{ name: 'A', state: RuleState.Set }], targets: [{ name: 'X', state: RuleState.SetToValue, value: 'v', not: true }] }];
+    const x = applyRules(fields, rules).updatedFields.find((field) => field.name === 'X');
+    expect(x).toMatchObject({ value: 'other', checked: true });
+  });
+
+  it('clears a field holding the excluded value', () => {
+    const fields = [f('A', 'true', true), f('X', 'v', true)];
+    const rules: Rule[] = [{ conditions: [{ name: 'A', state: RuleState.Set }], targets: [{ name: 'X', state: RuleState.SetToValue, value: 'v', not: true }] }];
+    const x = applyRules(fields, rules).updatedFields.find((field) => field.name === 'X');
+    expect(x).toMatchObject({ value: '', checked: false });
+  });
+});
+
 // ============================================================================
 // Cycle detection
 // ============================================================================

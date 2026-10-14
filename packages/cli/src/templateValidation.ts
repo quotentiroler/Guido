@@ -18,6 +18,8 @@ export interface RuleSetValidation {
   errors: string[];
   suggestions: string[];
   compliance: { compliant: boolean; issues: ComplianceIssue[] };
+  /** The template loads with this ruleset, so its defaults must already satisfy it. */
+  isDefault: boolean;
 }
 
 export interface RuleSetSelection {
@@ -65,5 +67,12 @@ export function validateTemplateRuleSet(template: Template, ruleSet: RuleSet): R
     errors: result.errors.filter((e) => !e.includes('can be merged')),
     suggestions: result.errors.filter((e) => e.includes('can be merged')),
     compliance: checkFieldCompliance(template.fields, rules),
+    isDefault: template.ruleSets?.[0]?.name === ruleSet.name,
   };
+}
+
+/** Rules must be consistent everywhere; the field defaults only need to satisfy the default ruleset. */
+export function ruleSetPasses(validation: RuleSetValidation): boolean {
+  const rulesValid = validation.errors.length === 0 && validation.suggestions.length === 0;
+  return rulesValid && (validation.compliance.compliant || !validation.isDefault);
 }

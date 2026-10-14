@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { type Template, RuleState } from '@quotentiroler/guido-types';
-import { selectRuleSets, validateTemplateRuleSet } from './templateValidation.js';
+import { selectRuleSets, validateTemplateRuleSet, ruleSetPasses } from './templateValidation.js';
 
 const field = (name: string) => ({ name, value: '', info: name, example: '', range: 'string', checked: false });
 
@@ -38,5 +38,21 @@ describe('template validation', () => {
   it('checks a ruleset together with the rules it inherits', () => {
     expect(validateTemplateRuleSet(template, template.ruleSets[0]).errors).toEqual([]);
     expect(validateTemplateRuleSet(template, template.ruleSets[1]).errors.length).toBeGreaterThan(0);
+  });
+
+  it('holds only the default ruleset to the template defaults', () => {
+    const layered: Template = {
+      ...template,
+      ruleSets: [
+        { name: 'Base', description: 'base', tags: [], rules: [] },
+        { name: 'Deployed', description: 'adds requirements', tags: [], extends: 'Base', rules: [{ description: 'Deployments need a host', conditions: [], targets: [{ name: 'CacheHost', state: RuleState.Set }] }] },
+      ],
+    };
+    const deployed = validateTemplateRuleSet(layered, layered.ruleSets[1]);
+    expect(deployed.compliance.compliant).toBe(false);
+    expect(ruleSetPasses(deployed)).toBe(true);
+
+    const asDefault = validateTemplateRuleSet({ ...layered, ruleSets: [layered.ruleSets[1]] }, layered.ruleSets[1]);
+    expect(ruleSetPasses(asDefault)).toBe(false);
   });
 });

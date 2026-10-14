@@ -1,6 +1,6 @@
 {
   "name": "@quotentiroler/guido-mcp-server",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "MCP Server for Guido template management - CRUD operations for fields and rules",
   "type": "module",
   "main": "./dist/index.js",
@@ -52,7 +52,7 @@
   "author": "Maximilian Nussbaumer",
   "license": "MIT",
   "dependencies": {
-    "@quotentiroler/guido-core": "^1.2.0",
+    "@quotentiroler/guido-core": "^1.2.1",
     "@quotentiroler/guido-types": "^1.1.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "js-yaml": "^5.2.1",

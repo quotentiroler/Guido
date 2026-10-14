@@ -80,7 +80,7 @@ describe('validateRules', () => {
       ];
       const result = validateRules(rules);
       expect(result.isValid).toBe(false);
-      expect(result.errors.some(e => e.includes('cannot be both required'))).toBe(true);
+      expect(result.errors.some(e => e.includes('Contradiction detected for field "Field1"'))).toBe(true);
     });
 
     it('should allow same not-flag under same conditions', () => {
@@ -107,7 +107,7 @@ describe('validateRules', () => {
       const rules: Rule[] = [
         {
           conditions: [{ name: 'Repo', state: RuleState.Set }],
-          targets: [{ name: 'Field1', state: RuleState.Set }],
+          targets: [{ name: 'Field1', state: RuleState.Contains, value: 'other' }],
         },
         {
           conditions: [{ name: 'Repo', state: RuleState.Set }],
@@ -116,7 +116,21 @@ describe('validateRules', () => {
       ];
       const result = validateRules(rules);
       expect(result.isValid).toBe(false);
-      expect(result.errors.some(e => e.includes('conflicting states'))).toBe(true);
+      expect(result.errors.some(e => e.includes('Contradiction detected for field "Field1"'))).toBe(true);
+    });
+
+    it('should accept a requirement and an assignment of the same field', () => {
+      const rules: Rule[] = [
+        {
+          conditions: [{ name: 'Repo', state: RuleState.Set }],
+          targets: [{ name: 'Field1', state: RuleState.Set }],
+        },
+        {
+          conditions: [{ name: 'Repo', state: RuleState.Set }],
+          targets: [{ name: 'Field1', state: RuleState.SetToValue, value: 'test' }],
+        },
+      ];
+      expect(validateRules(rules).errors.some(e => e.includes('Contradiction'))).toBe(false);
     });
 
     it('should allow different states for different fields', () => {
@@ -258,13 +272,13 @@ describe('validateRules', () => {
         },
         {
           conditions: [{ name: 'Repo', state: RuleState.Set }],
-          targets: [{ name: 'Field1', state: RuleState.SetToValue, value: 'test' }],
+          targets: [{ name: 'Field1', state: RuleState.Set, not: true }],
         },
       ];
       const result = validateRules(rules);
       expect(result.isValid).toBe(false);
       // Should have contradiction error, not merge suggestion
-      expect(result.errors.some(e => e.includes('conflicting states'))).toBe(true);
+      expect(result.errors.some(e => e.includes('Contradiction detected'))).toBe(true);
       expect(result.errors.some(e => e.includes('can be merged'))).toBe(false);
     });
 
@@ -298,7 +312,7 @@ describe('validateRules', () => {
       ];
       const result = validateRules(rules);
       expect(result.isValid).toBe(false);
-      expect(result.errors.some(e => e.includes('conflicting values'))).toBe(true);
+      expect(result.errors.some(e => e.includes('Contradiction detected for field "Field1"'))).toBe(true);
     });
 
     it('should allow same set_to_value under different conditions', () => {
