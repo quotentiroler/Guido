@@ -1,5 +1,7 @@
 import { RuleState, type Rule, type RuleDomain, type Field, type CardinalityConstraint } from '@quotentiroler/guido-types';
 import { validateValue, translateRangeToHumanReadable } from './fieldUtils.js';
+import { describeCondition } from './ruleTranslation.js';
+import { hasItem } from './membership.js';
 
 export interface ValidationResult {
   isValid: boolean;
@@ -205,6 +207,11 @@ function fieldConditionsConflict(c1: RuleDomain, c2: RuleDomain): boolean {
   if ((positiveValue(c1) && negatedSet(c2)) || (positiveValue(c2) && negatedSet(c1))) return true;
   // "contains v" and "does not contain v"
   if (c1.state === RuleState.Contains && c2.state === RuleState.Contains && c1.value === c2.value && c1.not !== c2.not) return true;
+  // "= v" fixes the items: it must hold what "contains w" requires and lack what "not contains w" excludes
+  const [assigned, member] = positiveValue(c1) ? [c1, c2] : [c2, c1];
+  if (positiveValue(assigned) && member.state === RuleState.Contains && assigned.value !== undefined && member.value !== undefined) {
+    return hasItem(assigned.value, member.value) === (member.not === true);
+  }
   return false;
 }
 
@@ -226,19 +233,10 @@ function conditionsCanCoOccur(a: RuleDomain[] = [], b: RuleDomain[] = []): boole
   return true;
 }
 
-/** The conflict message for two targets on the same field, or null when compatible. */
+/** The conflict message for two targets on the same field, or null when one field state satisfies both. */
 function targetConflictMessage(t1: RuleDomain, t2: RuleDomain): string | null {
-  if (t1.not !== t2.not) {
-    return `Contradiction detected for field "${t1.name}": cannot be both required (not=${t1.not}) and not required (not=${t2.not}) under the same conditions`;
-  }
-  if (t1.state !== t2.state) {
-    return `Contradiction detected for field "${t1.name}": has conflicting states (${t1.state} vs ${t2.state}) under the same conditions`;
-  }
-  // set_to_value with different values conflict; contains values are additive.
-  if (t1.state === RuleState.SetToValue && t1.value !== t2.value) {
-    return `Contradiction detected for field "${t1.name}": has conflicting values ("${t1.value}" vs "${t2.value}") under the same conditions`;
-  }
-  return null;
+  if (!fieldConditionsConflict(t1, t2)) return null;
+  return `Contradiction detected for field "${t1.name}": no value satisfies both ${describeCondition(t1)} and ${describeCondition(t2)} under the same conditions`;
 }
 
 /** A detected contradiction plus the config assignment (witness) that triggers it. */

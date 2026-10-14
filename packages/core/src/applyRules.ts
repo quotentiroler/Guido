@@ -7,6 +7,7 @@
 import { type Field, type FieldValue, type Rule, type RuleDomain, RuleState } from '@quotentiroler/guido-types';
 import { type ILogger, type FieldChange, type TriggerAction, logger } from '@quotentiroler/guido-logger';
 import { translateRule } from './ruleTranslation.js';
+import { hasItem, listItems, writeItems } from './membership.js';
 
 export interface ApplyRulesResult {
   updatedFields: Field[];
@@ -191,23 +192,8 @@ export const checkCondition = (field: Field, condition: RuleDomain, fieldMap?: M
       return field.value !== '' && isChecked;
     case RuleState.SetToValue:
       return isChecked && comparand !== undefined && field.value === comparand;
-    case RuleState.Contains: {
-      // Membership: the value is an array element, or (for a string field) an exact match.
-      // Not a substring match - 'production' does NOT contain the item 'prod'.
-      if (comparand === undefined || !isChecked) return false;
-      const item = String(comparand);
-      if (Array.isArray(field.value)) {
-        return (field.value as (string | number)[]).map(String).includes(item);
-      }
-      if (typeof field.value === 'string') {
-        try {
-          const parsed: unknown = JSON.parse(field.value);
-          if (Array.isArray(parsed)) return (parsed as (string | number)[]).map(String).includes(item);
-        } catch { /* not JSON: fall through to exact match */ }
-        return field.value === item;
-      }
-      return false;
-    }
+    case RuleState.Contains:
+      return comparand !== undefined && isChecked && hasItem(field.value, String(comparand));
     case RuleState.GreaterThan:
     case RuleState.LessThan:
     case RuleState.GreaterOrEqual:
@@ -271,55 +257,25 @@ export const applyTarget = (field: Field, target: RuleDomain): void => {
       if (shouldApply) {
         field.value = target.value!;
         field.checked = true;
-      } else {
+      } else if (checkCondition(field, target)) {
         field.value = '';
         field.checked = false;
       }
       break;
-    case RuleState.Contains:
-      // Membership: ensure the value is present as a discrete item (array element, or an
-      // exact string value). No substring join.
-      if (shouldApply && target.value !== undefined) {
-        if (Array.isArray(field.value)) {
-          const arr = field.value as (string | number)[];
-          if (!arr.includes(target.value)) field.value = [...arr, target.value] as string[];
-        } else if (typeof field.value === 'string') {
-          try {
-            const parsed: unknown = JSON.parse(field.value);
-            if (Array.isArray(parsed)) {
-              const arr = parsed as (string | number)[];
-              if (!arr.includes(target.value)) field.value = JSON.stringify([...arr, target.value]);
-            } else {
-              field.value = target.value;
-            }
-          } catch {
-            field.value = target.value;
-          }
-        } else {
-          field.value = target.value;
-        }
+    case RuleState.Contains: {
+      if (target.value === undefined) break;
+      const items = listItems(field.value);
+      if (shouldApply) {
+        if (!items) field.value = target.value;
+        else if (!items.map(String).includes(target.value)) writeItems(field, [...items, target.value]);
         field.checked = true;
-      } else if (!shouldApply && target.value !== undefined) {
-        // "not contains" - remove the item from the field
-        if (Array.isArray(field.value)) {
-          field.value = (field.value as (string | number)[]).filter(v => String(v) !== target.value) as string[];
-        } else if (typeof field.value === 'string') {
-          try {
-            const parsed: unknown = JSON.parse(field.value);
-            if (Array.isArray(parsed)) {
-              field.value = JSON.stringify((parsed as (string | number)[]).filter(v => String(v) !== target.value));
-            } else if (field.value === target.value) {
-              field.value = '';
-            }
-          } catch {
-            if (field.value === target.value) field.value = '';
-          }
-        }
-        if (field.value === '' || field.value === '[]') {
-          field.checked = false;
-        }
+        break;
       }
+      if (items) writeItems(field, items.filter((v) => String(v) !== target.value));
+      else if (field.value === target.value) field.value = '';
+      if (listItems(field.value)?.length === 0 || field.value === '') field.checked = false;
       break;
+    }
     default:
       break;
   }
