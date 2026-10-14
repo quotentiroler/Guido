@@ -15,8 +15,8 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/React-19-61dafb?logo=react" alt="React 19">
-  <img src="https://img.shields.io/badge/TypeScript-5.9-3178c6?logo=typescript" alt="TypeScript">
-  <img src="https://img.shields.io/badge/Vite-7-646cff?logo=vite" alt="Vite">
+  <img src="https://img.shields.io/badge/TypeScript-6-3178c6?logo=typescript" alt="TypeScript">
+  <img src="https://img.shields.io/badge/Vite-8-646cff?logo=vite" alt="Vite">
   <img src="https://img.shields.io/badge/Tailwind-4-38bdf8?logo=tailwindcss" alt="Tailwind CSS">
   <img src="https://img.shields.io/github/license/quotentiroler/Guido" alt="License">
 </p>
