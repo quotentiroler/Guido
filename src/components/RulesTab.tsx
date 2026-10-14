@@ -236,6 +236,7 @@ const RulesTab: React.FC = () => {
                   <option value="exactly-one">Exactly one of</option>
                   <option value="at-least-one">At least one of</option>
                   <option value="at-most-one">At most one of</option>
+                  <option value="all-or-none">All or none of</option>
                 </select>
                 <input
                   type="text"

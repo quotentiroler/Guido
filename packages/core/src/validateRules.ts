@@ -475,7 +475,7 @@ function isSet(field: Field | undefined): boolean {
 /**
  * Validate cardinality constraints against the current field values: each constraint
  * counts how many of its fields are set and checks the required cardinality
- * ('exactly-one' == 1, 'at-least-one' >= 1, 'at-most-one' <= 1).
+ * ('exactly-one' == 1, 'at-least-one' >= 1, 'at-most-one' <= 1, 'all-or-none' 0 or all).
  */
 export function validateCardinality(constraints: CardinalityConstraint[], fields: Field[]): ValidationResult {
   const byName = new Map(fields.map((f) => [f.name, f]));
@@ -487,6 +487,9 @@ export function validateCardinality(constraints: CardinalityConstraint[], fields
       errors.push(`Exactly one of ${label} must be set, but ${setCount} are.`);
     } else if (c.kind === 'at-least-one' && setCount < 1) {
       errors.push(`At least one of ${label} must be set, but none are.`);
+    } else if (c.kind === 'all-or-none' && setCount > 0 && setCount < c.fields.length) {
+      const unset = c.fields.filter((name) => !isSet(byName.get(name))).map((f) => `"${f}"`).join(', ');
+      errors.push(`${label} must be set together or not at all, but ${unset} ${c.fields.length - setCount === 1 ? 'is' : 'are'} missing.`);
     } else if (c.kind === 'at-most-one' && setCount > 1) {
       errors.push(`At most one of ${label} may be set, but ${setCount} are.`);
     }

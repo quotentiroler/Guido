@@ -96,16 +96,7 @@ export const applyRules = (
   do {
     before = snapshot();
     rules.forEach((rule) => {
-    const evalCondition = (condition: RuleDomain): boolean => {
-      const field = fieldMap.get(condition.name);
-      const conditionMet = field ? checkCondition(field, condition, fieldMap) : checkChildConditionsFast(fieldMap, updatedFields, condition);
-      return condition.not ? !conditionMet : conditionMet;
-    };
-    const conditionsMet =
-      !rule.conditions || rule.conditions.length === 0 ||
-      (rule.match === 'any'
-        ? rule.conditions.some(evalCondition)   // OR
-        : rule.conditions.every(evalCondition)); // AND (default)
+    const conditionsMet = ruleConditionsHold(rule, fieldMap);
 
     log.logRuleEvaluation(
       rule.targets.map(t => t.name).join(', '),
@@ -250,6 +241,21 @@ const checkChildConditionsFast = (
   const prefix = condition.name + '.';
   const childFields = fields.filter((f) => f.name.startsWith(prefix));
   return childFields.every((childField) => checkCondition(childField, condition, fieldMap));
+};
+
+/** Whether a condition holds, `not` applied; a name with no field of its own is matched through its child fields. */
+export const conditionHolds = (condition: RuleDomain, fieldMap: Map<string, Field>): boolean => {
+  const field = fieldMap.get(condition.name);
+  const met = field ? checkCondition(field, condition, fieldMap) : checkChildConditionsFast(fieldMap, [...fieldMap.values()], condition);
+  return condition.not ? !met : met;
+};
+
+/** Whether a rule's conditions hold: every one, or any one with `match: 'any'`; a rule without conditions always applies. */
+export const ruleConditionsHold = (rule: Rule, fieldMap: Map<string, Field>): boolean => {
+  if (!rule.conditions || rule.conditions.length === 0) return true;
+  return rule.match === 'any'
+    ? rule.conditions.some((c) => conditionHolds(c, fieldMap))
+    : rule.conditions.every((c) => conditionHolds(c, fieldMap));
 };
 
 /**

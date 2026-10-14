@@ -69,6 +69,58 @@ describe('validateSettings', () => {
     expect(result.issues.some((i) => i.field === '(constraint)')).toBe(true);
   });
 
+  describe('value rules', () => {
+    const valueTemplate: Template = {
+      ...template,
+      fields: [field('Mode'), field('Environment'), field('Database'), field('DatabaseDriver'), field('Roles', 'string[]')],
+      ruleSets: [{
+        name: 'Values',
+        description: 'value rules',
+        tags: [],
+        rules: [
+          {
+            description: 'Debug mode never runs in production',
+            conditions: [{ name: 'Mode', state: RuleState.SetToValue, value: 'debug' }],
+            targets: [{ name: 'Environment', state: RuleState.SetToValue, value: 'production', not: true }],
+          },
+          {
+            description: 'A database uses the postgres driver',
+            conditions: [{ name: 'Database', state: RuleState.Set }],
+            targets: [{ name: 'DatabaseDriver', state: RuleState.SetToValue, value: 'postgres' }],
+          },
+          {
+            description: 'Production grants the auditor role',
+            conditions: [{ name: 'Environment', state: RuleState.SetToValue, value: 'production' }],
+            targets: [{ name: 'Roles', state: RuleState.Contains, value: 'auditor' }],
+          },
+        ],
+      }],
+    };
+    const values = valueTemplate.ruleSets[0];
+    const invalid = (result: ReturnType<typeof validateSettings>) =>
+      result.issues.filter((i) => i.type === 'invalid').map((i) => i.field);
+
+    it('refuses a value a negated target forbids, once its condition holds', () => {
+      const result = validateSettings(valueTemplate, { Mode: 'debug', Environment: 'production', Roles: ['auditor'] }, values);
+      expect(invalid(result)).toEqual(['Environment']);
+      expect(result.issues.find((i) => i.field === 'Environment')?.message).toContain('Debug mode never runs in production');
+    });
+
+    it('accepts the same value when the condition does not hold', () => {
+      expect(validateSettings(valueTemplate, { Mode: 'release', Environment: 'production', Roles: ['auditor'] }, values).isValid).toBe(true);
+    });
+
+    it('requires the value a set_to_value target names', () => {
+      expect(invalid(validateSettings(valueTemplate, { Database: 'db', DatabaseDriver: 'mysql' }, values))).toEqual(['DatabaseDriver']);
+      expect(validateSettings(valueTemplate, { Database: 'db', DatabaseDriver: 'postgres' }, values).isValid).toBe(true);
+    });
+
+    it('requires the item a contains target names', () => {
+      expect(invalid(validateSettings(valueTemplate, { Environment: 'production', Roles: ['user'] }, values))).toEqual(['Roles']);
+      expect(validateSettings(valueTemplate, { Environment: 'production', Roles: ['user', 'auditor'] }, values).isValid).toBe(true);
+    });
+  });
+
   it('reports a value outside its range and a key the template does not declare', () => {
     const result = validateSettings(template, { BASE_URL: 'https://example.org', PORT: '70000', PROT: '1' }, base);
     expect(result.issues.find((i) => i.field === 'PORT')?.type).toBe('invalid');

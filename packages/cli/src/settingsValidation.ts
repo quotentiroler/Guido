@@ -9,8 +9,11 @@ import {
   translateRangeToHumanReadable,
   resolveRuleSetRules,
   getRuleSetInheritanceChain,
+  conditionHolds,
+  ruleConditionsHold,
+  describeCondition,
 } from '@quotentiroler/guido-core';
-import type { Template, FieldValue, RuleSet, Field } from '@quotentiroler/guido-types';
+import { RuleState, type Template, type FieldValue, type RuleSet, type Field, type Rule } from '@quotentiroler/guido-types';
 
 export interface ValidationIssue {
   field: string;
@@ -30,6 +33,31 @@ export interface ValidationResult {
     invalidValues: number;
     warnings: number;
   };
+}
+
+/** Targets that constrain a value; a plain `set` target is a requirement, checked as such. */
+const VALUE_STATES: ReadonlySet<string> = new Set([RuleState.SetToValue, RuleState.Contains]);
+
+/** Value targets of rules whose conditions the settings meet, which the settings do not satisfy. */
+function valueRuleViolations(rules: Rule[], fields: Field[]): ValidationIssue[] {
+  const fieldMap = new Map(fields.map((f) => [f.name, f]));
+  const issues: ValidationIssue[] = [];
+  for (const rule of rules) {
+    if (!ruleConditionsHold(rule, fieldMap)) continue;
+    for (const target of rule.targets) {
+      const constrainsValue = VALUE_STATES.has(target.state) || (target.state === RuleState.Set && target.not === true);
+      if (!constrainsValue || conditionHolds(target, fieldMap)) continue;
+      const field = fieldMap.get(target.name);
+      issues.push({
+        field: target.name,
+        type: 'invalid',
+        message: `Violates rule "${rule.description ?? 'unnamed'}"`,
+        expected: describeCondition(target),
+        actual: field?.checked ? String(field.value) : '(not set)',
+      });
+    }
+  }
+  return issues;
 }
 
 /**
@@ -57,7 +85,8 @@ export function validateSettings(
       ? { ...field, value: settings[field.name], checked: true }
       : { ...field, checked: false }
   );
-  const { updatedFields } = applyRules(fields, rules);
+  const valueIssues = valueRuleViolations(rules, fields);
+  const { updatedFields } = applyRules(fields.map((f) => ({ ...f })), rules);
 
   let validFields = 0;
   let missingRequired = 0;
@@ -109,6 +138,11 @@ export function validateSettings(
         warnings++;
       }
     }
+  }
+
+  for (const issue of valueIssues) {
+    issues.push(issue);
+    invalidValues++;
   }
 
   const cardinality = validateCardinality(constraints, updatedFields);
