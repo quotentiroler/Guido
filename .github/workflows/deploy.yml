@@ -43,10 +43,11 @@ jobs:
           node-version: '22'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Fix dependencies
-        run: npm audit fix
+      - name: Audit dependencies
+        continue-on-error: true
+        run: npm audit --omit=dev --audit-level=high
 
       - name: Run linting
         run: npm run lint
