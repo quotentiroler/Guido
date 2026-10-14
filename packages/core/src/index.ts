@@ -24,6 +24,8 @@ export type { InheritanceValidationResult } from './rulesetUtils.js';
 export { 
   applyRules, 
   checkCondition, 
+  conditionHolds,
+  ruleConditionsHold,
   applyTarget, 
   isFieldRequired 
 } from './applyRules.js';

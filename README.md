@@ -194,7 +194,7 @@ A ruleset can also declare cardinality constraints over a set of fields (validat
 }
 ```
 
-`kind` is `exactly-one` (exactly 1 of the fields set), `at-least-one` (>= 1), or `at-most-one` (<= 1). A field counts as set when it is enabled with a non-empty value.
+`kind` is `exactly-one` (exactly 1 of the fields set), `at-least-one` (>= 1), `at-most-one` (<= 1), or `all-or-none` (none or every field, e.g. a certificate and its key). A field counts as set when it is enabled with a non-empty value.
 
 **RuleDomain Properties:**
 

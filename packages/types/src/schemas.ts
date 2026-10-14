@@ -133,8 +133,8 @@ export const RuleUpdateSchema = z.object({
  * A field counts as "set" when it is enabled and has a non-empty value.
  */
 export const CardinalityConstraintSchema = z.object({
-  /** 'exactly-one' (== 1 set), 'at-least-one' (>= 1), or 'at-most-one' (<= 1). */
-  kind: z.enum(['exactly-one', 'at-least-one', 'at-most-one']),
+  /** 'exactly-one' (== 1 set), 'at-least-one' (>= 1), 'at-most-one' (<= 1), or 'all-or-none' (0 or every field). */
+  kind: z.enum(['exactly-one', 'at-least-one', 'at-most-one', 'all-or-none']),
   /** The field names the constraint ranges over. */
   fields: z.array(z.string()).min(1),
   /** Optional human-readable description. */

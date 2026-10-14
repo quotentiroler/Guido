@@ -1,6 +1,6 @@
 {
   "name": "@quotentiroler/guido-cli",
-  "version": "1.0.5",
+  "version": "1.1.0",
   "description": "CLI tools for Guido template validation and schema conversion",
   "type": "module",
   "main": "./dist/index.js",
@@ -65,8 +65,8 @@
   ],
   "author": "Maximilian Nussbaumer",
   "dependencies": {
-    "@quotentiroler/guido-core": "^1.0.0",
-    "@quotentiroler/guido-types": "^1.0.0",
+    "@quotentiroler/guido-core": "^1.2.0",
+    "@quotentiroler/guido-types": "^1.1.0",
     "js-yaml": "^5.2.1"
   },
   "devDependencies": {

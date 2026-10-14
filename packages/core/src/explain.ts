@@ -6,7 +6,7 @@
  * condition evaluator (checkCondition), and the human-readable rule/condition renderers.
  */
 import { type Field, type Rule, type RuleDomain, RuleState } from '@quotentiroler/guido-types';
-import { applyRules, checkCondition } from './applyRules.js';
+import { applyRules, ruleConditionsHold } from './applyRules.js';
 import { translateRule, describeCondition } from './ruleTranslation.js';
 
 /** Where a satisfied condition's truth comes from. */
@@ -56,20 +56,9 @@ function outcomeOf(target: RuleDomain): ExplanationOutcome {
   }
 }
 
-/** Whether all of a rule's conditions hold in the given (resolved) field state. */
-function conditionsHold(rule: Rule, fieldMap: Map<string, Field>): boolean {
-  if (!rule.conditions || rule.conditions.length === 0) return true;
-  const evalC = (c: RuleDomain): boolean => {
-    const field = fieldMap.get(c.name);
-    const met = field ? checkCondition(field, c, fieldMap) : false;
-    return c.not ? !met : met;
-  };
-  return rule.match === 'any' ? rule.conditions.some(evalC) : rule.conditions.every(evalC);
-}
-
 /** Whether some rule forces `fieldName` given the resolved state (drives the source classification). */
 function isRuleDriven(fieldName: string, rules: Rule[], fieldMap: Map<string, Field>): boolean {
-  return rules.some((r) => r.targets.some((t) => t.name === fieldName) && conditionsHold(r, fieldMap));
+  return rules.some((r) => r.targets.some((t) => t.name === fieldName) && ruleConditionsHold(r, fieldMap));
 }
 
 function explainResolved(
@@ -90,7 +79,7 @@ function explainResolved(
 
   rules.forEach((rule, i) => {
     const target = rule.targets.find((t) => t.name === fieldName);
-    if (!target || !conditionsHold(rule, fieldMap)) return;
+    if (!target || !ruleConditionsHold(rule, fieldMap)) return;
 
     outcome = outcomeOf(target);
     if (target.state === RuleState.SetToValue) value = target.value;

@@ -2,9 +2,8 @@
 /* eslint-disable no-console */
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
-import { validateRules, applyRules } from '@quotentiroler/guido-core';
-import { SilentLogger } from '@quotentiroler/guido-logger';
-import type { Template, RuleSet, Field } from '@quotentiroler/guido-types';
+import type { Template } from '@quotentiroler/guido-types';
+import { selectRuleSets, validateTemplateRuleSet } from './templateValidation.js';
 
 function printUsage() {
   console.log(`
@@ -13,7 +12,7 @@ Usage: npm run validate <template-file> [options]
 Options:
   --ruleset <name>    Validate a specific ruleset by name
   --tag <tag>         Validate rulesets with a specific tag
-  --all               Validate all rulesets (default: first ruleset only)
+  --all               Validate all rulesets (the default)
   -h, --help          Show this help message
 
 Validates a Guido template file for:
@@ -63,88 +62,6 @@ function parseArgs(args: string[]): ParsedArgs {
   return result;
 }
 
-function findRuleSets(template: Template, args: ParsedArgs): RuleSet[] {
-  const allRuleSets = template.ruleSets || [];
-  
-  if (args.all) {
-    return allRuleSets;
-  }
-  
-  if (args.rulesetName) {
-    const found = allRuleSets.filter(rs => 
-      rs.name.toLowerCase() === args.rulesetName!.toLowerCase()
-    );
-    if (found.length === 0) {
-      console.error(`\n❌ RuleSet "${args.rulesetName}" not found.`);
-      console.error(`   Available rulesets: ${allRuleSets.map(rs => rs.name).join(', ')}\n`);
-      process.exit(1);
-    }
-    return found;
-  }
-  
-  if (args.tag) {
-    const found = allRuleSets.filter(rs => 
-      rs.tags?.some(t => t.toLowerCase() === args.tag!.toLowerCase())
-    );
-    if (found.length === 0) {
-      console.error(`\n❌ No rulesets found with tag "${args.tag}".`);
-      const allTags = [...new Set(allRuleSets.flatMap(rs => rs.tags || []))];
-      console.error(`   Available tags: ${allTags.join(', ') || '(none)'}\n`);
-      process.exit(1);
-    }
-    return found;
-  }
-  
-  // Default: first ruleset only
-  return allRuleSets.length > 0 ? [allRuleSets[0]] : [];
-}
-
-/**
- * Check if field states comply with rules (no changes needed on initial load)
- */
-function checkFieldCompliance(fields: Field[], ruleSet: RuleSet): { 
-  compliant: boolean; 
-  issues: Array<{ field: string; property: 'checked' | 'value'; expected: unknown; actual: unknown; reason: string }> 
-} {
-  const issues: Array<{ field: string; property: 'checked' | 'value'; expected: unknown; actual: unknown; reason: string }> = [];
-  
-  // Deep clone fields to avoid mutation
-  const fieldsCopy = fields.map(f => ({ ...f }));
-  
-  // Apply rules with silent logger
-  const { updatedFields, disabledReasons } = applyRules(fieldsCopy, ruleSet.rules, {
-    logger: new SilentLogger(),
-  });
-  
-  // Compare original fields with updated fields
-  for (let i = 0; i < fields.length; i++) {
-    const original = fields[i];
-    const updated = updatedFields[i];
-    
-    if (original.checked !== updated.checked) {
-      issues.push({
-        field: original.name,
-        property: 'checked',
-        expected: updated.checked,
-        actual: original.checked,
-        reason: disabledReasons[original.name] || 'Rule enforcement',
-      });
-    }
-    
-    if (original.value !== updated.value) {
-      issues.push({
-        field: original.name,
-        property: 'value',
-        expected: updated.value,
-        actual: original.value,
-        reason: disabledReasons[original.name] || 'Rule enforcement',
-      });
-    }
-  }
-  
-  return { compliant: issues.length === 0, issues };
-}
-
 function main() {
   const args = parseArgs(process.argv.slice(2));
 
@@ -164,8 +81,23 @@ function main() {
     console.log(`   File: ${templatePath}`);
     console.log(`   Total rulesets: ${template.ruleSets?.length || 0}\n`);
 
-    const ruleSetsToValidate = findRuleSets(template, args);
-    
+    const ruleSetsToValidate = selectRuleSets(template, args);
+
+    if (args.rulesetName && ruleSetsToValidate.length === 0) {
+      console.error(`
+❌ RuleSet "${args.rulesetName}" not found.`);
+      console.error(`   Available rulesets: ${(template.ruleSets || []).map(rs => rs.name).join(', ')}
+`);
+      process.exit(1);
+    }
+    if (args.tag && ruleSetsToValidate.length === 0) {
+      console.error(`
+❌ No rulesets found with tag "${args.tag}".`);
+      const allTags = [...new Set((template.ruleSets || []).flatMap(rs => rs.tags || []))];
+      console.error(`   Available tags: ${allTags.join(', ') || '(none)'}
+`);
+      process.exit(1);
+    }
     if (ruleSetsToValidate.length === 0) {
       console.log('✅ No rulesets to validate.\n');
       process.exit(0);
@@ -181,23 +113,22 @@ function main() {
       if (ruleSet.tags && ruleSet.tags.length > 0) {
         console.log(`   Tags: ${ruleSet.tags.join(', ')}`);
       }
-      console.log(`   Rules: ${ruleSet.rules.length}`);
+      const validation = validateTemplateRuleSet(template, ruleSet);
+      console.log(`   Rules: ${validation.ruleCount}${validation.ruleCount !== ruleSet.rules.length ? ` (${ruleSet.rules.length} own, the rest inherited)` : ''}`);
 
-      if (ruleSet.rules.length === 0) {
+      if (validation.ruleCount === 0) {
         console.log('   ✅ No rules to validate.\n');
         continue;
       }
 
-      const result = validateRules(ruleSet.rules);
+      const { errors, suggestions, compliance } = validation;
+      const rulesValid = errors.length === 0 && suggestions.length === 0;
 
-      if (result.isValid) {
+      if (rulesValid) {
         console.log('   ✅ Validation passed!');
       } else {
         hasErrors = true;
         console.log('   ❌ Validation failed:\n');
-
-        const errors = result.errors.filter((e: string) => !e.includes('can be merged'));
-        const suggestions = result.errors.filter((e: string) => e.includes('can be merged'));
 
         if (errors.length > 0) {
           console.log('   🔴 Errors:');
@@ -216,8 +147,6 @@ function main() {
         }
       }
 
-      // Check if default field states comply with rules
-      const compliance = checkFieldCompliance(template.fields, ruleSet);
       if (!compliance.compliant) {
         hasErrors = true;
         console.log('   ⚠️  Field compliance issues (fields would be modified on load):');
@@ -236,7 +165,7 @@ function main() {
         console.log();
         console.log('   💡 Fix: Set these fields to their expected states in the template,');
         console.log('      or use --schema-to-guido to regenerate with correct defaults.\n');
-      } else if (result.isValid) {
+      } else if (rulesValid) {
         console.log('   ✅ Field compliance: all fields match rule expectations.\n');
       }
     }

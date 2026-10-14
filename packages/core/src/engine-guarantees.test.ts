@@ -269,6 +269,15 @@ describe('cardinality constraints', () => {
     expect(validateCardinality(c, [set('A', false), set('B', false)]).isValid).toBe(false);
   });
 
+  it('all-or-none allows none or every field set, never some', () => {
+    const c = [{ kind: 'all-or-none' as const, fields: ['A', 'B'] }];
+    expect(validateCardinality(c, [set('A', false), set('B', false)]).isValid).toBe(true);
+    expect(validateCardinality(c, [set('A', true), set('B', true)]).isValid).toBe(true);
+    const partial = validateCardinality(c, [set('A', true), set('B', false)]);
+    expect(partial.isValid).toBe(false);
+    expect(partial.errors[0]).toContain('"B"');
+  });
+
   it('at-most-one allows 0 or 1 but not 2', () => {
     const c = [{ kind: 'at-most-one' as const, fields: ['A', 'B'] }];
     expect(validateCardinality(c, [set('A', false), set('B', false)]).isValid).toBe(true);
