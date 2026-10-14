@@ -10,39 +10,10 @@
  */
 import { readFileSync, existsSync } from 'fs';
 import { resolve, extname } from 'path';
-import { 
-  applyRules, 
-  flattenObject, 
-  parseKeyValueFormat,
-  toFieldValues,
-  mergeSettingsIntoFields,
-  validateValue,
-  validateCardinality,
-  isFieldRequired,
-  translateRangeToHumanReadable,
-} from '@quotentiroler/guido-core';
+import { flattenObject, parseKeyValueFormat, toFieldValues } from '@quotentiroler/guido-core';
+import { validateSettings, type ValidationIssue } from './settingsValidation.js';
 import type { Template, FieldValue, RuleSet } from '@quotentiroler/guido-types';
 import * as yaml from 'js-yaml';
-
-interface ValidationIssue {
-  field: string;
-  type: 'missing' | 'invalid' | 'warning';
-  message: string;
-  expected?: string;
-  actual?: string;
-}
-
-interface ValidationResult {
-  isValid: boolean;
-  issues: ValidationIssue[];
-  summary: {
-    totalFields: number;
-    validFields: number;
-    missingRequired: number;
-    invalidValues: number;
-    warnings: number;
-  };
-}
 
 interface ValidateOptions {
   templatePath: string;
@@ -203,104 +174,6 @@ function findRuleSet(template: Template, options: ValidateOptions): RuleSet | nu
   }
   
   return allRuleSets[0];
-}
-
-function validateSettings(
-  template: Template,
-  settings: Record<string, FieldValue>,
-  ruleSet: RuleSet | null
-): ValidationResult {
-  const issues: ValidationIssue[] = [];
-  const rules = ruleSet?.rules || [];
-  
-  // Merge settings into template fields
-  const fields = mergeSettingsIntoFields(template.fields, settings);
-  
-  // Apply rules to determine which fields should be enabled
-  const { updatedFields } = applyRules(fields, rules);
-  
-  // Create sets for lookup
-  const settingsKeys = new Set(Object.keys(settings));
-  
-  let validFields = 0;
-  let missingRequired = 0;
-  let invalidValues = 0;
-  let warnings = 0;
-  
-  // Check each template field
-  for (const field of updatedFields) {
-    const hasValue = settingsKeys.has(field.name);
-    const isRequired = field.checked === true || isFieldRequired(field.name, rules);
-    const value = settings[field.name];
-    
-    // Check for missing required fields
-    if (isRequired && !hasValue) {
-      issues.push({
-        field: field.name,
-        type: 'missing',
-        message: `Required field is missing`,
-        expected: field.range ? translateRangeToHumanReadable(field.range) : 'any value',
-      });
-      missingRequired++;
-      continue;
-    }
-    
-    // Validate value against range if present
-    if (hasValue && field.range && field.range !== 'string') {
-      const isValid = validateValue(value, field.range);
-      if (!isValid) {
-        issues.push({
-          field: field.name,
-          type: 'invalid',
-          message: `Value does not match expected range`,
-          expected: translateRangeToHumanReadable(field.range),
-          actual: String(value),
-        });
-        invalidValues++;
-        continue;
-      }
-    }
-    
-    if (hasValue) {
-      validFields++;
-    }
-  }
-  
-  // Check for extra fields not in template (warnings)
-  const templateFieldNames = new Set(template.fields.map(f => f.name));
-  for (const key of settingsKeys) {
-    if (!templateFieldNames.has(key)) {
-      // Check if it's a child of a known field
-      const isChild = [...templateFieldNames].some(name => key.startsWith(name + '.'));
-      if (!isChild) {
-        issues.push({
-          field: key,
-          type: 'warning',
-          message: `Field not defined in template`,
-        });
-        warnings++;
-      }
-    }
-  }
-  
-  // Cardinality constraints (exactly-one / at-least-one / at-most-one over field sets)
-  const cardinality = validateCardinality(ruleSet?.constraints ?? [], updatedFields);
-  for (const message of cardinality.errors) {
-    issues.push({ field: '(constraint)', type: 'invalid', message });
-    invalidValues++;
-  }
-
-  return {
-    isValid: missingRequired === 0 && invalidValues === 0,
-    issues,
-    summary: {
-      totalFields: settingsKeys.size,
-      validFields,
-      missingRequired,
-      invalidValues,
-      warnings,
-    },
-  };
 }
 
 function formatIssue(issue: ValidationIssue): string {

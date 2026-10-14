@@ -1,6 +1,6 @@
 {
   "name": "@quotentiroler/guido-cli",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "CLI tools for Guido template validation and schema conversion",
   "type": "module",
   "main": "./dist/index.js",
@@ -49,7 +49,7 @@
     "access": "restricted"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "validate-template": "node dist/validateTemplate.js",
     "validate-settings": "node dist/validateSettings.js",
     "apply-rules": "node dist/applyRules.js",
