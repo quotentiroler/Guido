@@ -4,18 +4,16 @@ import * as path from 'path';
 import { toolDefinitions } from './tool-definitions.js';
 import { buildInputSchema } from './exports.js';
 import { type ToolContext, errorResult, textResult } from './tools/types.js';
-import type { FieldValue, RuleSet, Template } from '@quotentiroler/guido-types';
+import type { FieldValue, Template } from '@quotentiroler/guido-types';
 import {
-  mergeSettingsIntoFields,
   detectFormat,
   parseSettings,
   CONFIG_FORMATS,
-  translateRangeToHumanReadable,
-  validateValue,
-  resolveRuleSetRules,
+  listRuleSetTags,
   mergeTemplates,
+  selectRuleSets,
+  validateSettings,
 } from '@quotentiroler/guido-core';
-import { applyRulesToFields, isFieldRequiredInTemplate } from './template-utils.js';
 import { templateToolHandlers, type ToolHandler } from './handlers/index.js';
 import { optBoolean, optString, reqString } from './handlers/args.js';
 
@@ -31,7 +29,6 @@ const settingsHandlers: Record<string, ToolHandler> = {
     const rulesetTag = optString(args, 'rulesetTag');
     const strict = optBoolean(args, 'strict') ?? false;
 
-    // Load settings file
     const absolutePath = path.resolve(settingsPath);
     if (!fs.existsSync(absolutePath)) {
       throw new Error(`Settings file not found: ${absolutePath}`);
@@ -47,118 +44,21 @@ const settingsHandlers: Record<string, ToolHandler> = {
 
     const settings: Record<string, FieldValue> = parseSettings(content, format);
 
-    // Find ruleset
-    const allRuleSets = template.ruleSets || [];
-    let ruleSet: RuleSet | null = null;
-    let ruleSetIndex = 0;
-    
-    if (rulesetName) {
-      ruleSetIndex = allRuleSets.findIndex(rs => rs.name.toLowerCase() === rulesetName.toLowerCase());
-      if (ruleSetIndex === -1) {
-        throw new Error(`RuleSet "${rulesetName}" not found. Available: ${allRuleSets.map(rs => rs.name).join(', ')}`);
-      }
-      ruleSet = allRuleSets[ruleSetIndex];
-    } else if (rulesetTag) {
-      ruleSetIndex = allRuleSets.findIndex(rs => rs.tags?.some(t => t.toLowerCase() === rulesetTag.toLowerCase()));
-      if (ruleSetIndex === -1) {
-        throw new Error(`No rulesets found with tag "${rulesetTag}"`);
-      }
-      ruleSet = allRuleSets[ruleSetIndex];
-    } else if (allRuleSets.length > 0) {
-      ruleSet = allRuleSets[0];
-      ruleSetIndex = 0;
+    const [ruleSet] = selectRuleSets(template, { rulesetName, tag: rulesetTag });
+    if (rulesetName && !ruleSet) {
+      throw new Error(`RuleSet "${rulesetName}" not found. Available: ${template.ruleSets.map(rs => rs.name).join(', ')}`);
+    }
+    if (rulesetTag && !ruleSet) {
+      throw new Error(`No rulesets found with tag "${rulesetTag}". Available tags: ${listRuleSetTags(template).join(', ')}`);
     }
 
-    // Get resolved rules (including inherited)
-    const rules = ruleSet ? resolveRuleSetRules(template, ruleSetIndex) : [];
-    
-    // Merge settings into template fields and apply rules
-    const fields = mergeSettingsIntoFields(template.fields, settings);
-    const { updatedFields } = applyRulesToFields(fields, rules);
-    
-    // Validate
-    interface ValidationIssue {
-      field: string;
-      type: 'missing' | 'invalid' | 'warning';
-      message: string;
-      expected?: string;
-      actual?: string;
-    }
-    
-    const issues: ValidationIssue[] = [];
-    const settingsKeys = new Set(Object.keys(settings));
-    
-    let validFields = 0;
-    let missingRequired = 0;
-    let invalidValues = 0;
-    let warnings = 0;
-    
-    for (const field of updatedFields) {
-      const hasValue = settingsKeys.has(field.name);
-      const fieldIsRequired = field.checked === true || isFieldRequiredInTemplate(template, field.name);
-      const value = settings[field.name];
-      
-      if (fieldIsRequired && !hasValue) {
-        issues.push({
-          field: field.name,
-          type: 'missing',
-          message: 'Required field is missing',
-          expected: field.range ? translateRangeToHumanReadable(field.range) : 'any value',
-        });
-        missingRequired++;
-        continue;
-      }
-      
-      if (hasValue && field.range && field.range !== 'string') {
-        const isValid = validateValue(value, field.range);
-        if (!isValid) {
-          issues.push({
-            field: field.name,
-            type: 'invalid',
-            message: 'Value does not match expected range',
-            expected: translateRangeToHumanReadable(field.range),
-            actual: String(value),
-          });
-          invalidValues++;
-          continue;
-        }
-      }
-      
-      if (hasValue) {
-        validFields++;
-      }
-    }
-    
-    // Check for extra fields not in template
-    const templateFieldNames = new Set(template.fields.map(f => f.name));
-    for (const key of settingsKeys) {
-      if (!templateFieldNames.has(key)) {
-        const isChild = [...templateFieldNames].some(name => key.startsWith(name + '.'));
-        if (!isChild) {
-          issues.push({
-            field: key,
-            type: 'warning',
-            message: 'Field not defined in template',
-          });
-          warnings++;
-        }
-      }
-    }
-    
-    const isValid = missingRequired === 0 && invalidValues === 0 && (!strict || warnings === 0);
-    
+    const result = validateSettings(template, settings, ruleSet ?? null);
     return {
-      valid: isValid,
+      valid: result.isValid && (!strict || result.summary.warnings === 0),
       settingsFile: settingsPath,
       ruleSet: ruleSet?.name ?? '(none)',
-      issues: issues,
-      summary: {
-        totalFields: settingsKeys.size,
-        validFields,
-        missingRequired,
-        invalidValues,
-        warnings,
-      },
+      issues: result.issues,
+      summary: result.summary,
     };
   },
 };

@@ -1,4 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { mkdtempSync, writeFileSync } from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
 import { type Field, type Rule, type Template, RuleState } from '@quotentiroler/guido-types';
 import { applyRulesToFields } from './template-utils';
 import { registerAllTools } from './dynamic-tools';
@@ -56,6 +59,20 @@ describe('registerAllTools', () => {
     await call('set_field', { name: 'a', value: 'x' });
     const saved = await store.load('t.json');
     expect(saved.fields[0].value).toBe('x');
+  });
+
+  it('validate_settings reports only fields the ruleset requires', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'guido-settings-'));
+    const settingsPath = join(dir, 'settings.json');
+    writeFileSync(settingsPath, JSON.stringify({ optional: 'x' }));
+    const template = createTemplate([createField('optional'), createField('required'), createField('unused')]);
+    template.ruleSets[0].rules = [{ targets: [{ name: 'required', state: RuleState.Set }] }];
+    const { json } = await setup(template).call('validate_settings', { settingsPath });
+    expect(json).toMatchObject({
+      valid: false,
+      issues: [{ field: 'required', type: 'missing' }],
+      summary: { missingRequired: 1 },
+    });
   });
 
   it('returns a handler error as an error result', async () => {
