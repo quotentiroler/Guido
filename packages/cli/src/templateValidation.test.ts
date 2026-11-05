@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { type Template, RuleState } from '@quotentiroler/guido-types';
-import { selectRuleSets, validateTemplateRuleSet, ruleSetPasses } from './templateValidation.js';
+import { validateTemplateRuleSet, ruleSetPasses } from './templateValidation.js';
 
 const field = (name: string) => ({ name, value: '', info: name, example: '', range: 'string', checked: false });
 
@@ -29,12 +29,6 @@ const template: Template = {
 };
 
 describe('template validation', () => {
-  it('validates every ruleset unless one is named', () => {
-    expect(selectRuleSets(template, {}).map((rs) => rs.name)).toEqual(['Base', 'Strict']);
-    expect(selectRuleSets(template, { rulesetName: 'strict' }).map((rs) => rs.name)).toEqual(['Strict']);
-    expect(selectRuleSets(template, { tag: 'base' }).map((rs) => rs.name)).toEqual(['Base']);
-  });
-
   it('checks a ruleset together with the rules it inherits', () => {
     expect(validateTemplateRuleSet(template, template.ruleSets[0]).errors).toEqual([]);
     expect(validateTemplateRuleSet(template, template.ruleSets[1]).errors.length).toBeGreaterThan(0);

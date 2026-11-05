@@ -10,6 +10,8 @@ import {
   findRuleSetIndex,
   getChildRuleSets,
   hasChildRuleSets,
+  selectRuleSets,
+  listRuleSetTags,
 } from './rulesetUtils.js';
 
 /**
@@ -479,6 +481,26 @@ describe('rulesetUtils', () => {
       const found = findRuleSet(template, 'production'); // lowercase
       
       expect(found).toBeUndefined();
+    });
+  });
+
+  describe('selectRuleSets', () => {
+    it('narrows by case-insensitive name, then tag, else keeps every ruleset', () => {
+      const template = createTemplateWithInheritance();
+      const names = (selection: Parameters<typeof selectRuleSets>[1]) => selectRuleSets(template, selection).map((rs) => rs.name);
+
+      expect(names({})).toEqual(['Base', 'Development', 'Production', 'ProductionSecure', 'Standalone']);
+      expect(names({ rulesetName: 'production' })).toEqual(['Production']);
+      expect(names({ tag: 'DEV' })).toEqual(['Development']);
+      expect(names({ tag: 'prod' })).toEqual(['Production', 'ProductionSecure']);
+      expect(names({ rulesetName: 'Base', tag: 'prod' })).toEqual(['Base']);
+      expect(names({ rulesetName: 'Missing' })).toEqual([]);
+    });
+  });
+
+  describe('listRuleSetTags', () => {
+    it('lists each tag once', () => {
+      expect(listRuleSetTags(createTemplateWithInheritance())).toEqual(['base', 'dev', 'prod', 'secure', 'standalone']);
     });
   });
 

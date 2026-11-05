@@ -22,25 +22,6 @@ export interface RuleSetValidation {
   isDefault: boolean;
 }
 
-export interface RuleSetSelection {
-  rulesetName?: string;
-  tag?: string;
-}
-
-/** Every ruleset, unless a name or tag narrows it: a template is valid only when all of them are. */
-export function selectRuleSets(template: Template, selection: RuleSetSelection): RuleSet[] {
-  const all = template.ruleSets || [];
-  if (selection.rulesetName) {
-    const name = selection.rulesetName.toLowerCase();
-    return all.filter((rs) => rs.name.toLowerCase() === name);
-  }
-  if (selection.tag) {
-    const tag = selection.tag.toLowerCase();
-    return all.filter((rs) => rs.tags?.some((t) => t.toLowerCase() === tag));
-  }
-  return all;
-}
-
 /** Whether the template's default field states already satisfy the rules (nothing changes on load). */
 export function checkFieldCompliance(fields: Field[], rules: Rule[]): RuleSetValidation['compliance'] {
   const issues: ComplianceIssue[] = [];
