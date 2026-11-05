@@ -296,3 +296,25 @@ export function getChildRuleSets(template: Template, parentName: string): RuleSe
 export function hasChildRuleSets(template: Template, name: string): boolean {
   return template.ruleSets?.some(rs => rs.extends === name) ?? false;
 }
+
+export interface RuleSetSelection {
+  rulesetName?: string;
+  tag?: string;
+}
+
+export function selectRuleSets(template: Template, selection: RuleSetSelection): RuleSet[] {
+  const all = template.ruleSets || [];
+  if (selection.rulesetName) {
+    const name = selection.rulesetName.toLowerCase();
+    return all.filter((rs) => rs.name.toLowerCase() === name);
+  }
+  if (selection.tag) {
+    const tag = selection.tag.toLowerCase();
+    return all.filter((rs) => rs.tags?.some((t) => t.toLowerCase() === tag));
+  }
+  return all;
+}
+
+export function listRuleSetTags(template: Template): string[] {
+  return [...new Set((template.ruleSets || []).flatMap((rs) => rs.tags || []))];
+}

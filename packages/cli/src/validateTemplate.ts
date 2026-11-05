@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
-import { readFileSync } from 'fs';
 import { resolve } from 'path';
-import type { Template } from '@quotentiroler/guido-types';
-import { selectRuleSets, validateTemplateRuleSet, ruleSetPasses } from './templateValidation.js';
+import { listRuleSetTags, selectRuleSets } from '@quotentiroler/guido-core';
+import { parseArgv } from './cliArgs.js';
+import { exitWithFileError, exitWithUsage, isEntryPoint, readTemplateFile } from './cliIO.js';
+import { validateTemplateRuleSet, ruleSetPasses } from './templateValidation.js';
 
-function printUsage() {
-  console.log(`
+const USAGE = `
 Usage: npm run validate <template-file> [options]
 
 Options:
@@ -27,8 +27,7 @@ Examples:
   npm run validate ./template.guido.json --ruleset "Security Rules"
   npm run validate ./template.guido.json --tag production
   npm run validate ./template.guido.json --all
-  `);
-}
+  `;
 
 interface ParsedArgs {
   templatePath?: string;
@@ -38,43 +37,49 @@ interface ParsedArgs {
   help: boolean;
 }
 
-function parseArgs(args: string[]): ParsedArgs {
-  const result: ParsedArgs = {
-    all: false,
-    help: false,
+export function parseValidateTemplateArgs(args: readonly string[]): ParsedArgs {
+  const parsed = parseArgv(args, {
+    values: [
+      { key: 'ruleset', names: ['--ruleset'], ignoreWithoutValue: true },
+      { key: 'tag', names: ['--tag'], ignoreWithoutValue: true },
+    ],
+    flags: [{ key: 'all', names: ['--all'] }],
+  });
+
+  return {
+    templatePath: parsed.positionals.at(-1),
+    rulesetName: parsed.value('ruleset'),
+    tag: parsed.value('tag'),
+    all: parsed.flag('all'),
+    help: parsed.help,
   };
+}
 
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
-    if (arg === '-h' || arg === '--help') {
-      result.help = true;
-    } else if (arg === '--ruleset' && args[i + 1]) {
-      result.rulesetName = args[++i];
-    } else if (arg === '--tag' && args[i + 1]) {
-      result.tag = args[++i];
-    } else if (arg === '--all') {
-      result.all = true;
-    } else if (!arg.startsWith('-')) {
-      result.templatePath = arg;
-    }
-  }
+function formatFieldState(value: unknown): string {
+  if (value === undefined) return 'undefined';
+  if (value === null) return 'null';
+  if (typeof value === 'boolean') return value ? '✓' : '✗';
+  return JSON.stringify(value);
+}
 
-  return result;
+function printNumbered(heading: string, items: readonly string[]): void {
+  if (items.length === 0) return;
+  console.log(heading);
+  items.forEach((item, index) => console.log(`      ${index + 1}. ${item}`));
+  console.log();
 }
 
 function main() {
-  const args = parseArgs(process.argv.slice(2));
+  const args = parseValidateTemplateArgs(process.argv.slice(2));
 
   if (args.help || !args.templatePath) {
-    printUsage();
-    process.exit(args.help ? 0 : 1);
+    exitWithUsage(USAGE, args.help, 1);
   }
 
   const templatePath = resolve(args.templatePath);
 
   try {
-    const fileContent = readFileSync(templatePath, 'utf-8');
-    const template = JSON.parse(fileContent) as Template;
+    const template = readTemplateFile(templatePath);
 
     console.log(`\n📋 Validating template: ${template.name || 'Unknown'}`);
     console.log(`   Version: ${template.version || 'N/A'}`);
@@ -93,8 +98,7 @@ function main() {
     if (args.tag && ruleSetsToValidate.length === 0) {
       console.error(`
 ❌ No rulesets found with tag "${args.tag}".`);
-      const allTags = [...new Set((template.ruleSets || []).flatMap(rs => rs.tags || []))];
-      console.error(`   Available tags: ${allTags.join(', ') || '(none)'}
+      console.error(`   Available tags: ${listRuleSetTags(template).join(', ') || '(none)'}
 `);
       process.exit(1);
     }
@@ -130,21 +134,8 @@ function main() {
       } else {
         console.log('   ❌ Validation failed:\n');
 
-        if (errors.length > 0) {
-          console.log('   🔴 Errors:');
-          errors.forEach((error: string, index: number) => {
-            console.log(`      ${index + 1}. ${error}`);
-          });
-          console.log();
-        }
-
-        if (suggestions.length > 0) {
-          console.log('   💡 Optimization suggestions:');
-          suggestions.forEach((suggestion: string, index: number) => {
-            console.log(`      ${index + 1}. ${suggestion}`);
-          });
-          console.log();
-        }
+        printNumbered('   🔴 Errors:', errors);
+        printNumbered('   💡 Optimization suggestions:', suggestions);
       }
 
       if (!compliance.compliant && !validation.isDefault) {
@@ -156,15 +147,7 @@ function main() {
       } else if (!compliance.compliant) {
         console.log('   ⚠️  Field compliance issues (fields would be modified on load):');
         for (const issue of compliance.issues) {
-          const actualStr = issue.actual === undefined ? 'undefined' : 
-                           issue.actual === null ? 'null' : 
-                           typeof issue.actual === 'boolean' ? (issue.actual ? '✓' : '✗') :
-                           JSON.stringify(issue.actual);
-          const expectedStr = issue.expected === undefined ? 'undefined' : 
-                             issue.expected === null ? 'null' :
-                             typeof issue.expected === 'boolean' ? (issue.expected ? '✓' : '✗') :
-                             JSON.stringify(issue.expected);
-          console.log(`      • ${issue.field}: ${issue.property} ${actualStr} → ${expectedStr}`);
+          console.log(`      • ${issue.field}: ${issue.property} ${formatFieldState(issue.actual)} → ${formatFieldState(issue.expected)}`);
           console.log(`        Reason: ${issue.reason}`);
         }
         console.log();
@@ -178,19 +161,8 @@ function main() {
     process.exit(hasErrors ? 1 : 0);
 
   } catch (error) {
-    if (error instanceof Error) {
-      if (error.message.includes('ENOENT')) {
-        console.error(`\n❌ Error: File not found: ${templatePath}\n`);
-      } else if (error.message.includes('JSON')) {
-        console.error(`\n❌ Error: Invalid JSON in template file\n${error.message}\n`);
-      } else {
-        console.error(`\n❌ Error: ${error.message}\n`);
-      }
-    } else {
-      console.error(`\n❌ Unknown error occurred\n`);
-    }
-    process.exit(1);
+    exitWithFileError(error, templatePath, 'Invalid JSON in template file');
   }
 }
 
-main();
+if (isEntryPoint(import.meta.url)) main();
