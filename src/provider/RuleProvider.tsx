@@ -8,6 +8,11 @@ import { type Rule, type RuleDomain, type RuleSet } from "@quotentiroler/guido-t
 import { useTemplateContext } from "@/hooks/useTemplateContext";
 import { createDefaultRuleSet } from "@quotentiroler/guido-core";
 
+const INVALID_RULE_MESSAGE = "A rule must have at least one target with both name and state set.";
+
+const updateAt = <T,>(items: T[], index: number, update: (item: T) => T): T[] =>
+  items.map((item, i) => (i === index ? update(item) : item));
+
 interface RuleProviderProps {
   children: React.ReactNode;
 }
@@ -16,23 +21,11 @@ export const RuleProvider: React.FC<RuleProviderProps> = ({ children }) => {
   const { alert, confirm } = useAlert();
   const { ruleSets, setRuleSets, selectedRuleSetIndex, setSelectedRuleSetIndex } = useTemplateContext();
 
-  // Get the currently selected ruleset (first one is default)
   const currentRuleSet = ruleSets[selectedRuleSetIndex] || ruleSets[0] || createDefaultRuleSet();
   const currentRules = currentRuleSet.rules;
 
-  // Helper to update rules in the current ruleset
   const updateCurrentRules = (updater: (rules: Rule[]) => Rule[]) => {
-    setRuleSets(prevRuleSets => {
-      const newRuleSets = [...prevRuleSets];
-      const idx = selectedRuleSetIndex;
-      if (newRuleSets[idx]) {
-        newRuleSets[idx] = {
-          ...newRuleSets[idx],
-          rules: updater(newRuleSets[idx].rules)
-        };
-      }
-      return newRuleSets;
-    });
+    setRuleSets(prev => updateAt(prev, selectedRuleSetIndex, ruleSet => ({ ...ruleSet, rules: updater(ruleSet.rules) })));
   };
 
   const saveRules = () => {
@@ -48,19 +41,12 @@ export const RuleProvider: React.FC<RuleProviderProps> = ({ children }) => {
 
   const handleAddOrEditRule = (newRule: Rule, index?: number, callback?: () => void) => {
     if (!isValidRule(newRule)) {
-      alert(
-        "A rule must have at least one target with both name and state set."
-      );
+      alert(INVALID_RULE_MESSAGE);
       return;
     }
 
     if (index !== undefined && index >= 0) {
-      // Edit rule
-      updateCurrentRules((prevRules) => {
-        const updatedRules = [...prevRules];
-        updatedRules[index] = newRule;
-        return updatedRules;
-      });
+      updateCurrentRules((prevRules) => updateAt(prevRules, index, () => newRule));
       if (callback) callback();
       return;
     }
@@ -122,9 +108,7 @@ export const RuleProvider: React.FC<RuleProviderProps> = ({ children }) => {
     };
 
     if (!isValidRule(mergedRule)) {
-      alert(
-        "A rule must have at least one target with both name and state set."
-      );
+      alert(INVALID_RULE_MESSAGE);
       return;
     }
 
@@ -159,13 +143,7 @@ export const RuleProvider: React.FC<RuleProviderProps> = ({ children }) => {
   };
 
   const handleUpdateRuleSet = (index: number, updates: Partial<RuleSet>) => {
-    setRuleSets(prev => {
-      const newRuleSets = [...prev];
-      if (newRuleSets[index]) {
-        newRuleSets[index] = { ...newRuleSets[index], ...updates };
-      }
-      return newRuleSets;
-    });
+    setRuleSets(prev => updateAt(prev, index, ruleSet => ({ ...ruleSet, ...updates })));
   };
 
   return (

@@ -1,7 +1,7 @@
 import React from "react";
 import { Interweave } from "interweave";
-import Button from "./shared/Button";
-import Portal from "./shared/Portal";
+import Button from "@/components/shared/Button";
+import ModalShell from "./ModalShell";
 import { useAI } from "@/hooks/useAI";
 import { type ChatHistoryItem } from "@/context/AIContext";
 
@@ -96,68 +96,64 @@ const ChatHistoryModal: React.FC<ChatHistoryModalProps> = ({ onClose }) => {
   };
 
   return (
-    <Portal>
-      <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-        <div className="bg-surface-0 p-6 rounded-default shadow-lg w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col mx-4 border border-border">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-text-primary flex items-center gap-2">
-              <span className="text-2xl">💬</span> Chat History
-            </h2>
-            <button
-              onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-surface-2 rounded-lg transition-colors"
-            >
-              ✕
-            </button>
-          </div>
-          
-          <p className="text-sm text-text-secondary mb-4">
-            Your recent conversations with Guido AI. History is stored locally in your browser.
-          </p>
-
-          {/* History list */}
-          <div className="flex-1 overflow-y-auto space-y-3 min-h-0">
-            {chatHistory.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-text-tertiary">
-                <span className="text-4xl mb-3">🤖</span>
-                <p className="text-center">No chat history yet.</p>
-                <p className="text-sm text-center mt-1">Start a conversation with Guido by clicking on the mascot!</p>
-              </div>
-            ) : (
-              chatHistory.map((item) => (
-                <ChatHistoryItemCard key={item.id} item={item} />
-              ))
-            )}
-          </div>
-
-          {/* Actions */}
-          <div className="flex justify-between mt-6 pt-4 border-t border-border">
-            <div>
-              {chatHistory.length > 0 && !showConfirmClear && (
-                <Button onClick={() => setShowConfirmClear(true)} type="error-text">
-                  Clear History
-                </Button>
-              )}
-              {showConfirmClear && (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-error-600">Are you sure?</span>
-                  <Button onClick={handleClearHistory} type="error-text">
-                    Yes, Clear
-                  </Button>
-                  <Button onClick={() => setShowConfirmClear(false)} type="secondary-text">
-                    Cancel
-                  </Button>
-                </div>
-              )}
-            </div>
-            <Button onClick={onClose} type="primary">
-              Close
-            </Button>
-          </div>
-        </div>
+    <ModalShell panelClassName="bg-surface-0 p-6 rounded-default shadow-lg w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col mx-4 border border-border">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-bold text-text-primary flex items-center gap-2">
+          <span className="text-2xl">💬</span> Chat History
+        </h2>
+        <button
+          onClick={onClose}
+          className="w-8 h-8 flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-surface-2 rounded-lg transition-colors"
+        >
+          ✕
+        </button>
       </div>
-    </Portal>
+          
+      <p className="text-sm text-text-secondary mb-4">
+        Your recent conversations with Guido AI. History is stored locally in your browser.
+      </p>
+
+      {/* History list */}
+      <div className="flex-1 overflow-y-auto space-y-3 min-h-0">
+        {chatHistory.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-text-tertiary">
+            <span className="text-4xl mb-3">🤖</span>
+            <p className="text-center">No chat history yet.</p>
+            <p className="text-sm text-center mt-1">Start a conversation with Guido by clicking on the mascot!</p>
+          </div>
+        ) : (
+          chatHistory.map((item) => (
+            <ChatHistoryItemCard key={item.id} item={item} />
+          ))
+        )}
+      </div>
+
+      {/* Actions */}
+      <div className="flex justify-between mt-6 pt-4 border-t border-border">
+        <div>
+          {chatHistory.length > 0 && !showConfirmClear && (
+            <Button onClick={() => setShowConfirmClear(true)} type="error-text">
+              Clear History
+            </Button>
+          )}
+          {showConfirmClear && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-error-600">Are you sure?</span>
+              <Button onClick={handleClearHistory} type="error-text">
+                Yes, Clear
+              </Button>
+              <Button onClick={() => setShowConfirmClear(false)} type="secondary-text">
+                Cancel
+              </Button>
+            </div>
+          )}
+        </div>
+        <Button onClick={onClose} type="primary">
+          Close
+        </Button>
+      </div>
+    </ModalShell>
   );
 };
 

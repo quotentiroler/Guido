@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from "react";
-import { useHistory, type HistoryEntry, type TriggerAction } from "@/hooks/useHistory";
+import type { TriggerAction } from "@quotentiroler/guido-logger";
+import { useHistory } from "@/hooks/useHistory";
+import { type HistoryEntry } from "@/context/HistoryContext";
 
 interface ChangeHistoryProps {
   onUndo?: (entry: HistoryEntry) => void;

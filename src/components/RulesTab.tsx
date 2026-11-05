@@ -3,19 +3,24 @@ import Button from "./shared/Button";
 import RulesList from "./RulesList";
 import { useRuleContext } from "@/hooks/useRuleContext";
 import { useAppContext } from "@/hooks/useAppContext";
-import { type Rule, RuleState, type RuleSet, type CardinalityConstraint } from "@quotentiroler/guido-types";
+import { type Rule, type RuleSet, type CardinalityConstraint } from "@quotentiroler/guido-types";
 import { resolveRuleSetRules } from "@quotentiroler/guido-core";
-import AddOrEditRuleModal from "./AddRuleModal";
+import AddOrEditRuleModal from "@/components/modals/AddRuleModal";
 import { useTemplateContext } from "@/hooks/useTemplateContext";
+import { createEmptyRule } from "@/utils/drafts";
+
+const CONSTRAINT_KINDS: { value: CardinalityConstraint['kind']; label: string }[] = [
+  { value: 'exactly-one', label: 'Exactly one of' },
+  { value: 'at-least-one', label: 'At least one of' },
+  { value: 'at-most-one', label: 'At most one of' },
+  { value: 'all-or-none', label: 'All or none of' },
+];
 
 const RulesTab: React.FC = () => {
   const { handleDeleteRule, handleDeleteRules, currentRules, handleUpdateRuleSet, handleAddRuleSet, handleDeleteRuleSet } = useRuleContext();
   const { template, ruleSets, selectedRuleSetIndex, setSelectedRuleSetIndex } = useTemplateContext();
   const { isExpertMode } = useAppContext();
-  const [newRule, setNewRule] = useState<Rule>({
-    targets: [{ name: "", state: RuleState.Set }],
-    conditions: [],
-  });
+  const [newRule, setNewRule] = useState<Rule>(createEmptyRule);
   const [showRuleModal, setShowRuleModal] = useState(false);
   const [showRuleSetEditor, setShowRuleSetEditor] = useState(false);
   const [editingRuleSet, setEditingRuleSet] = useState<Partial<RuleSet>>({});
@@ -50,6 +55,13 @@ const RulesTab: React.FC = () => {
       });
       setShowRuleSetEditor(true);
     }
+  };
+
+  const updateConstraint = (constraintIndex: number, patch: Partial<CardinalityConstraint>) => {
+    setEditingRuleSet({
+      ...editingRuleSet,
+      constraints: (editingRuleSet.constraints ?? []).map((constraint, i) => (i === constraintIndex ? { ...constraint, ...patch } : constraint)),
+    });
   };
 
   const handleSaveRuleSet = () => {
@@ -227,27 +239,21 @@ const RulesTab: React.FC = () => {
                   aria-label="Constraint kind"
                   value={c.kind}
                   onChange={(e) => {
-                    const constraints = [...(editingRuleSet.constraints ?? [])];
-                    constraints[ci] = { ...c, kind: e.target.value as CardinalityConstraint['kind'] };
-                    setEditingRuleSet({ ...editingRuleSet, constraints });
+                    const kind = CONSTRAINT_KINDS.find((option) => option.value === e.target.value)?.value;
+                    if (kind) updateConstraint(ci, { kind });
                   }}
                   className="px-2 py-1.5 bg-surface-1 border rounded text-sm text-text-primary"
                 >
-                  <option value="exactly-one">Exactly one of</option>
-                  <option value="at-least-one">At least one of</option>
-                  <option value="at-most-one">At most one of</option>
-                  <option value="all-or-none">All or none of</option>
+                  {CONSTRAINT_KINDS.map(({ value, label }) => (
+                    <option key={value} value={value}>{label}</option>
+                  ))}
                 </select>
                 <input
                   type="text"
                   aria-label="Constraint fields (comma-separated)"
                   placeholder="FieldA, FieldB, FieldC"
                   value={c.fields.join(', ')}
-                  onChange={(e) => {
-                    const constraints = [...(editingRuleSet.constraints ?? [])];
-                    constraints[ci] = { ...c, fields: e.target.value.split(',').map(s => s.trim()).filter(Boolean) };
-                    setEditingRuleSet({ ...editingRuleSet, constraints });
-                  }}
+                  onChange={(e) => updateConstraint(ci, { fields: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
                   className="flex-1 min-w-[10rem] px-3 py-1.5 bg-surface-1 border rounded text-sm"
                 />
                 <Button

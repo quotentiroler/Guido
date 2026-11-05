@@ -60,6 +60,13 @@ interface CustomRegistryEntry {
   enabled: boolean;
 }
 
+interface RegistrySearchSource {
+  definition: RegistryDefinition;
+  source: SearchResultItem['source'];
+  registryName: string;
+  failureMessage: string;
+}
+
 const STORAGE_KEY = 'custom-registries';
 const REGISTRY_TOGGLES_KEY = 'registry-toggles';
 
@@ -284,105 +291,64 @@ const useRegistry = () => {
   /**
    * Search all enabled registries and return unified results
    */
-  const searchAllRegistries = async (query: string): Promise<void> => {
+  const searchAllRegistries = async (query: string): Promise<SearchResultItem[]> => {
     if (!query.trim()) {
       setSearchResults([]);
-      return;
+      return [];
     }
 
     setIsLoading(true);
     try {
-      const searchPromises: Promise<SearchResultItem[]>[] = [];
-
-      // Search built-in registries
-      if (isGitHubEnabled && registryDefinitions.has('github')) {
-        const def = registryDefinitions.get('github')!;
-        searchPromises.push(
-          searchRegistry(def, query)
-            .then(result => result.items.map((item): SearchResultItem => ({
-              ...item,
-              source: 'github',
-              registryName: def.name,
-            })))
-            .catch(error => {
-              logger.error('GitHub search failed', error);
-              return [];
-            })
-        );
+      const registrySources: RegistrySearchSource[] = [];
+      const builtInRegistries: [boolean, BuiltInRegistryType, string][] = [
+        [isGitHubEnabled, 'github', 'GitHub'],
+        [isNpmEnabled, 'npm', 'NPM'],
+        [isFhirEnabled, 'simplifier', 'Simplifier'],
+      ];
+      for (const [enabled, source, label] of builtInRegistries) {
+        const definition = registryDefinitions.get(source);
+        if (enabled && definition) {
+          registrySources.push({ definition, source, registryName: definition.name, failureMessage: `${label} search failed` });
+        }
       }
-
-      if (isNpmEnabled && registryDefinitions.has('npm')) {
-        const def = registryDefinitions.get('npm')!;
-        searchPromises.push(
-          searchRegistry(def, query)
-            .then(result => result.items.map((item): SearchResultItem => ({
-              ...item,
-              source: 'npm',
-              registryName: def.name,
-            })))
-            .catch(error => {
-              logger.error('NPM search failed', error);
-              return [];
-            })
-        );
-      }
-
-      if (isFhirEnabled && registryDefinitions.has('simplifier')) {
-        const def = registryDefinitions.get('simplifier')!;
-        searchPromises.push(
-          searchRegistry(def, query)
-            .then(result => result.items.map((item): SearchResultItem => ({
-              ...item,
-              source: 'simplifier',
-              registryName: def.name,
-            })))
-            .catch(error => {
-              logger.error('Simplifier search failed', error);
-              return [];
-            })
-        );
-      }
-
-      // Search custom registries
       for (const customReg of customRegistries) {
         if (customReg.enabled && customReg.definition) {
-          searchPromises.push(
-            searchRegistry(customReg.definition, query)
-              .then(result => result.items.map(item => ({
-                ...item,
-                source: 'custom' as const,
-                registryName: customReg.definition?.name || 'Custom',
-              })))
-              .catch(error => {
-                logger.error(`Custom registry search failed: ${customReg.url}`, error);
-                return [];
-              })
-          );
+          registrySources.push({
+            definition: customReg.definition,
+            source: 'custom',
+            registryName: customReg.definition.name || 'Custom',
+            failureMessage: `Custom registry search failed: ${customReg.url}`,
+          });
         }
       }
 
-      const results = await Promise.all(searchPromises);
-      let allResults = results.flat();
-      
-      // Search built-in templates (synchronous, no network call)
-      if (isBuiltInEnabled) {
-        const builtInResults = searchBuiltInTemplates(query);
-        const builtInItems: SearchResultItem[] = builtInResults.map(entry => ({
-          name: entry.name,
-          description: entry.template?.description || '',
-          source: 'builtIn',
-          registryName: 'Built-in Templates',
-          // Store the path for fetching later
-          downloadUrl: entry.path,
-        }));
-        allResults = [...builtInItems, ...allResults]; // Built-in templates first
-      }
-      
+      const results = await Promise.all(registrySources.map(({ definition, source, registryName, failureMessage }) =>
+        searchRegistry(definition, query)
+          .then(result => result.items.map((item): SearchResultItem => ({ ...item, source, registryName })))
+          .catch((error: unknown) => {
+            logger.error(failureMessage, error);
+            return [];
+          })
+      ));
+
+      const builtInItems: SearchResultItem[] = isBuiltInEnabled
+        ? searchBuiltInTemplates(query).map(entry => ({
+            name: entry.name,
+            description: entry.template?.description || '',
+            source: 'builtIn',
+            registryName: 'Built-in Templates',
+            downloadUrl: entry.path,
+          }))
+        : [];
+      const allResults = [...builtInItems, ...results.flat()];
+
       setSearchResults(allResults);
-      logger.info(`Search completed: ${allResults.length} results from ${searchPromises.length + (isBuiltInEnabled ? 1 : 0)} sources`);
+      logger.info(`Search completed: ${allResults.length} results from ${registrySources.length + (isBuiltInEnabled ? 1 : 0)} sources`);
+      return allResults;
     } catch (error) {
       logger.error('Search failed', error);
       setSearchResults([]);
+      return [];
     } finally {
       setIsLoading(false);
     }

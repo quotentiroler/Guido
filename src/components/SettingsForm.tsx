@@ -11,7 +11,7 @@ import SettingsTabs from "./SettingsTabs";
 import ChangeHistory from "./ChangeHistory";
 import GuidoMascot from "./GuidoMascot";
 import guidoImage from "@/assets/guido.png";
-import { type HistoryEntry } from "@/hooks/useHistory";
+import { type HistoryEntry } from "@/context/HistoryContext";
 
 const SettingsForm: React.FC = () => {
   const { isEmpty, fields } = useTemplateContext();

@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef, useCallback } from "react";
 import Tooltip from "./shared/ToolTip";
 import TooltipContent from "./shared/TooltipContent";
-import AddFieldModal from "./AddFieldModal";
+import AddFieldModal from "@/components/modals/AddFieldModal";
 import {
   translateRule,
   validateValue,

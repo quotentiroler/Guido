@@ -5,7 +5,7 @@ import { useAI } from "@/hooks/useAI";
 import { useTheme } from "@/hooks/useTheme";
 import useRegistry, { type SearchResultItem, NoGuidoTemplatesError, type AlternativeFile } from "@/hooks/useRegistry";
 import SearchInput from "./SearchInput";
-import AIChatInput from "./AIChatInput";
+import AIChatInput from "@/components/aiChat/AIChatInput";
 import DropdownItems from "./SearchDropdown";
 import { type Template } from "@quotentiroler/guido-types";
 import { mergeTemplates } from "@quotentiroler/guido-core";
@@ -212,11 +212,13 @@ const TemplateSearch: React.FC<TemplateSearchProps> = ({ showAIChat = true }) =>
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target;
       if (
+        target instanceof Node &&
         inputRef.current &&
-        !inputRef.current.contains(event.target as Node) &&
+        !inputRef.current.contains(target) &&
         dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
+        !dropdownRef.current.contains(target)
       ) {
         setShowDropdown(false);
         setSelectedPackage(undefined);

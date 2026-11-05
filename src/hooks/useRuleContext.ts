@@ -1,10 +1,4 @@
-import { useContext } from 'react';
-import { RuleContext, type RuleContextProps } from '@/context/RuleContext';
+import { createContextHook } from '@/utils/createContextHook';
+import { RuleContext } from '@/context/RuleContext';
 
-export const useRuleContext = (): RuleContextProps => {
-  const context = useContext(RuleContext);
-  if (!context) {
-    throw new Error('useRuleContext must be used within a RuleProvider');
-  }
-  return context;
-};
+export const useRuleContext = createContextHook(RuleContext, 'useRuleContext', 'RuleProvider');

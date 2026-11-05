@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, type ReactNode } from "react";
-import { HistoryContext, type HistoryEntry, type FieldChangeInput, type TriggerAction, UNDOABLE_ACTIONS } from "@/context/HistoryContext";
+import { UNDOABLE_ACTIONS, type FieldChange, type TriggerAction } from "@quotentiroler/guido-logger";
+import { HistoryContext, type HistoryEntry } from "@/context/HistoryContext";
 import { logger } from "@/utils/logger";
 
 interface HistoryProviderProps {
@@ -13,7 +14,7 @@ export const HistoryProvider: React.FC<HistoryProviderProps> = ({
 }) => {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
 
-  const addEntry = useCallback((trigger: TriggerAction, changes: FieldChangeInput[]) => {
+  const addEntry = useCallback((trigger: TriggerAction, changes: FieldChange[]) => {
     if (changes.length === 0) return;
 
     const timestamp = new Date();
