@@ -2,7 +2,8 @@
  * Change tracking tools
  */
 import { z } from 'zod';
-import { type ToolContext } from './types.js';
+import { type ToolContext, textResult } from './types.js';
+import { optBoolean, optString } from '../handlers/args.js';
 import { type Field } from '@quotentiroler/guido-types';
 
 
@@ -21,8 +22,8 @@ export function registerChangeTrackingTools({ server, store, tracker }: ToolCont
       },
     },
     async (args) => {
-      const filePath = args.filePath as string | undefined;
-      const includeDetails = (args.includeDetails as boolean | undefined) ?? false;
+      const filePath = optString(args, 'filePath');
+      const includeDetails = optBoolean(args, 'includeDetails') ?? false;
 
       const tRef = store.resolveRef(filePath);
       const changes = await tracker.changes(tRef);
@@ -71,12 +72,7 @@ export function registerChangeTrackingTools({ server, store, tracker }: ToolCont
         result.changes = changes;
       }
 
-      return {
-        content: [{
-          type: 'text' as const,
-          text: JSON.stringify(result, null, 2),
-        }],
-      };
+      return textResult(result);
     }
   );
 
@@ -93,21 +89,16 @@ export function registerChangeTrackingTools({ server, store, tracker }: ToolCont
       },
     },
     async (args) => {
-      const filePath = args.filePath as string | undefined;
+      const filePath = optString(args, 'filePath');
       const tRef = store.resolveRef(filePath);
       
       const previousCount = (await tracker.changes(tRef)).length;
       await tracker.clear(tRef);
 
-      return {
-        content: [{
-          type: 'text' as const,
-          text: JSON.stringify({
-            success: true,
-            clearedEntries: previousCount,
-          }, null, 2),
-        }],
-      };
+      return textResult({
+        success: true,
+        clearedEntries: previousCount,
+      });
     }
   );
 
@@ -124,22 +115,17 @@ export function registerChangeTrackingTools({ server, store, tracker }: ToolCont
       },
     },
     async (args) => {
-      const filePath = args.filePath as string | undefined;
+      const filePath = optString(args, 'filePath');
       const tRef = store.resolveRef(filePath);
       
       const snapshot = await tracker.snapshot(tRef);
       const current = await store.load(tRef);
 
       if (!snapshot) {
-        return {
-          content: [{
-            type: 'text' as const,
-            text: JSON.stringify({
-              message: 'No snapshot available - template was just loaded',
-              hasDifferences: false,
-            }, null, 2),
-          }],
-        };
+        return textResult({
+          message: 'No snapshot available - template was just loaded',
+          hasDifferences: false,
+        });
       }
 
       const originalFields = new Map<string, Field>(snapshot.template.fields.map((f: Field) => [f.name, f]));
@@ -173,17 +159,12 @@ export function registerChangeTrackingTools({ server, store, tracker }: ToolCont
         }
       }
 
-      return {
-        content: [{
-          type: 'text' as const,
-          text: JSON.stringify({
-            loadedAt: snapshot.loadedAt,
-            hasDifferences: differences.length > 0,
-            differenceCount: differences.length,
-            differences,
-          }, null, 2),
-        }],
-      };
+      return textResult({
+        loadedAt: snapshot.loadedAt,
+        hasDifferences: differences.length > 0,
+        differenceCount: differences.length,
+        differences,
+      });
     }
   );
 }

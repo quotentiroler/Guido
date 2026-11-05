@@ -4,8 +4,9 @@
 import { z } from 'zod';
 import * as fs from 'fs';
 import * as path from 'path';
-import { CONFIG_FORMATS, detectFormat, parseSettings, serializeFields, type ConfigFormat } from '@quotentiroler/guido-core';
-import { type ToolContext } from './types.js';
+import { CONFIG_FORMATS, detectFormat, parseSettings, serializeFields } from '@quotentiroler/guido-core';
+import { type ToolContext, errorResult, messageOf, textResult } from './types.js';
+import { optArg, optBoolean, optString, reqArg, reqString } from '../handlers/args.js';
 import type { Field, FieldValue } from '@quotentiroler/guido-types';
 import { applyRulesToFields } from '../template-utils.js';
 
@@ -34,11 +35,11 @@ export function registerImportExportTools({ server, store }: ToolContext) {
       },
     },
     async (args) => {
-      const filePath = args.filePath as string | undefined;
-      const settingsPath = args.settingsPath as string;
-      const format = (args.format as string | undefined) ?? 'auto';
-      const mergeMode = (args.mergeMode as string | undefined) ?? 'update';
-      const applyRulesAfter = (args.applyRulesAfter as boolean | undefined) ?? true;
+      const filePath = optString(args, 'filePath');
+      const settingsPath = reqString(args, 'settingsPath');
+      const format = optString(args, 'format') ?? 'auto';
+      const mergeMode = optString(args, 'mergeMode') ?? 'update';
+      const applyRulesAfter = optBoolean(args, 'applyRulesAfter') ?? true;
 
       const tRef = store.resolveRef(filePath);
       const template = await store.load(tRef);
@@ -46,31 +47,25 @@ export function registerImportExportTools({ server, store }: ToolContext) {
       // Resolve settings path
       const absoluteSettingsPath = path.resolve(settingsPath);
       if (!fs.existsSync(absoluteSettingsPath)) {
-        return {
-          content: [{ type: 'text' as const, text: `Settings file not found: ${absoluteSettingsPath}` }],
-          isError: true,
-        };
+        return errorResult(`Settings file not found: ${absoluteSettingsPath}`);
       }
 
       const content = fs.readFileSync(absoluteSettingsPath, 'utf-8');
 
       const detectedFormat =
-        format === 'auto' ? detectFormat(path.basename(settingsPath)) ?? 'json' : (format as ConfigFormat);
+        format === 'auto' ? detectFormat(path.basename(settingsPath)) ?? 'json' : reqArg(args, 'format', FORMAT_ENUM);
 
       let settings: Record<string, FieldValue>;
       try {
         settings = parseSettings(content, detectedFormat);
       } catch (error) {
-        return {
-          content: [{ type: 'text' as const, text: `Parse error: ${(error as Error).message}` }],
-          isError: true,
-        };
+        return errorResult(`Parse error: ${messageOf(error)}`);
       }
 
       // Track changes
       const changes = {
-        updated: [] as string[],
-        added: [] as string[],
+        updated: new Array<string>(),
+        added: new Array<string>(),
         unchanged: 0,
       };
 
@@ -130,22 +125,17 @@ export function registerImportExportTools({ server, store }: ToolContext) {
 
       await store.save(tRef, template);
 
-      return {
-        content: [{
-          type: 'text' as const,
-          text: JSON.stringify({
-            success: true,
-            format: detectedFormat,
-            settingsImported: Object.keys(settings).length,
-            updated: changes.updated.length,
-            added: changes.added.length,
-            unchanged: changes.unchanged,
-            updatedFields: changes.updated,
-            addedFields: changes.added,
-            rulesApplied: appliedRulesInfo.length,
-          }, null, 2),
-        }],
-      };
+      return textResult({
+        success: true,
+        format: detectedFormat,
+        settingsImported: Object.keys(settings).length,
+        updated: changes.updated.length,
+        added: changes.added.length,
+        unchanged: changes.unchanged,
+        updatedFields: changes.updated,
+        addedFields: changes.added,
+        rulesApplied: appliedRulesInfo.length,
+      });
     }
   );
 
@@ -169,11 +159,11 @@ export function registerImportExportTools({ server, store }: ToolContext) {
       },
     },
     async (args) => {
-      const filePath = args.filePath as string | undefined;
-      const format = (args.format as ConfigFormat | undefined) ?? 'json';
-      const onlyChecked = (args.onlyChecked as boolean | undefined) ?? true;
-      const arrayStyle = args.arrayStyle as 'nargs' | 'repeat' | undefined;
-      const outputPath = args.outputPath as string | undefined;
+      const filePath = optString(args, 'filePath');
+      const format = optArg(args, 'format', FORMAT_ENUM) ?? 'json';
+      const onlyChecked = optBoolean(args, 'onlyChecked') ?? true;
+      const arrayStyle = optArg(args, 'arrayStyle', z.enum(['nargs', 'repeat']));
+      const outputPath = optString(args, 'outputPath');
 
       const template = await store.load(store.resolveRef(filePath));
       const fieldsToExport = onlyChecked
@@ -186,17 +176,12 @@ export function registerImportExportTools({ server, store }: ToolContext) {
       if (outputPath) {
         const absoluteOutput = path.resolve(outputPath);
         fs.writeFileSync(absoluteOutput, output, 'utf-8');
-        return {
-          content: [{
-            type: 'text' as const,
-            text: JSON.stringify({
-              success: true,
-              format,
-              fieldCount: fieldsToExport.length,
-              outputPath: absoluteOutput,
-            }, null, 2),
-          }],
-        };
+        return textResult({
+          success: true,
+          format,
+          fieldCount: fieldsToExport.length,
+          outputPath: absoluteOutput,
+        });
       }
 
       return {
