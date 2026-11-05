@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { useTheme } from "@/hooks/useTheme";
 import { useEasterEgg } from "@/hooks/useEasterEgg";
 import { useAI } from "@/hooks/useAI";
 import SpaceStars from "@/components/shared/SpaceStars";
-import MarsCliffBackground from "@/components/MarsCliffBackground";
-import OlympusMons from "@/components/shared/OlympusMons";
+import MarsCliffBackground from "@/components/mars/MarsCliffBackground";
+import OlympusMons from "@/components/mars/OlympusMons";
 
 interface GuidoEasterEggProps {
   isActive: boolean;
@@ -87,19 +88,12 @@ const GuidoEasterEgg: React.FC<GuidoEasterEggProps> = ({ isActive, onComplete })
   const [animationComplete, setAnimationComplete] = useState(false);
   const [wheelRotation, setWheelRotation] = useState(0);
   const [showOverlay, setShowOverlay] = useState(false); // Delay overlay to let MarsBackground render first
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useIsMobile();
   const [isDescending, setIsDescending] = useState(false); // For canyon descent animation
   
   // Track previous isActive state to detect deactivation
   const wasActiveRef = useRef(isActive);
   
-  // Detect mobile viewport
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 640);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
   
   // Pre-generate dust particles
   const dustParticles = useMemo(() => generateDustParticles(20), []);

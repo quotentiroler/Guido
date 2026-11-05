@@ -6,7 +6,6 @@ import localforage from 'localforage';
 import { useAlert } from '@/hooks/useAlert';
 import useRegistry from '@/hooks/useRegistry';
 
-// Ensure template has at least one ruleset (add default if empty)
 const ensureRuleSets = (template: Template): Template => {
   if (!template.ruleSets || template.ruleSets.length === 0) {
     return {
@@ -16,6 +15,16 @@ const ensureRuleSets = (template: Template): Template => {
   }
   return template;
 };
+
+const stringifyArrayValues = (fields: Field[]): Field[] =>
+  fields.map((field) => ({
+    ...field,
+    value: Array.isArray(field.value) ? JSON.stringify(field.value) : field.value,
+  }));
+
+const hasTemplateContent = (template: Template, ruleSets: RuleSet[]) =>
+  template.name !== '' || template.fileName !== '' || template.version !== '' || template.description !== '' || template.owner !== '' ||
+  ruleSets.some(rs => rs.rules.length > 0);
 
 export const TemplateProvider: React.FC<{ children: ReactNode }> = ({ children }): ReactElement => {
 
@@ -37,16 +46,18 @@ export const TemplateProvider: React.FC<{ children: ReactNode }> = ({ children }
   
   const [template, setTemplate] = useState<Template>(emptyTemplate);
   
-  const isEmpty = useCallback((newTemplate?: Template) => {
-    if (newTemplate) {
-      const hasRules = newTemplate.ruleSets?.some(rs => rs.rules.length > 0) ?? false;
-      return newTemplate.name === '' && newTemplate.fileName === '' && newTemplate.version === '' && newTemplate.description === '' && newTemplate.owner === '' && !hasRules;
-    }
-    else {
-      const hasRules = ruleSets.some(rs => rs.rules.length > 0);
-      return template.name === '' && template.fileName === '' && template.version === '' && template.description === '' && template.owner === '' && !hasRules;
-    }
-  }, [ruleSets, template]);
+  const isEmpty = useCallback((newTemplate?: Template) => (
+    newTemplate
+      ? !hasTemplateContent(newTemplate, newTemplate.ruleSets ?? [])
+      : !hasTemplateContent(template, ruleSets)
+  ), [ruleSets, template]);
+
+  const applyTemplateState = useCallback((normalized: Template, templateFields: Field[]) => {
+    setTemplate(normalized);
+    setRuleSets(normalized.ruleSets);
+    setSelectedRuleSetIndex(0);
+    setFields(templateFields);
+  }, []);
 
   useEffect(() => {
     const loadTemplate = async () => {
@@ -54,13 +65,7 @@ export const TemplateProvider: React.FC<{ children: ReactNode }> = ({ children }
         const storedTemplate = await localforage.getItem<Template>('template');
         if (storedTemplate && !isEmpty(storedTemplate)) {
           const normalized = ensureRuleSets(storedTemplate);
-          setTemplate(normalized);
-          setRuleSets(normalized.ruleSets);
-          setSelectedRuleSetIndex(0);
-          setFields((normalized.fields || []).map((field) => ({
-            ...field,
-            value: Array.isArray(field.value) ? JSON.stringify(field.value) : field.value,
-          })));
+          applyTemplateState(normalized, stringifyArrayValues(normalized.fields || []));
         }
         else {
           const response = await fetch('/Guido/templates/registry.guido.json');
@@ -72,13 +77,7 @@ export const TemplateProvider: React.FC<{ children: ReactNode }> = ({ children }
             throw new Error('Invalid template format');
           }
           const normalized = ensureRuleSets(jsonData);
-          setTemplate(normalized);
-          setRuleSets(normalized.ruleSets);
-          setSelectedRuleSetIndex(0);
-          setFields(normalized.fields.map((field: Field) => ({
-            ...field,
-            value: Array.isArray(field.value) ? JSON.stringify(field.value) : field.value,
-          })));
+          applyTemplateState(normalized, stringifyArrayValues(normalized.fields));
         }
       } catch (error) {
         console.error('Error loading template from localforage:', error);
@@ -92,14 +91,7 @@ export const TemplateProvider: React.FC<{ children: ReactNode }> = ({ children }
   useEffect(() => {
     const updateLocalforageTemplate = async () => {
       try {
-        const updatedTemplate: Template = {
-          ...template,
-          ruleSets,
-          fields: fields.map((field) => ({
-            ...field,
-            value: field.value,
-          })),
-        };
+        const updatedTemplate: Template = { ...template, ruleSets, fields };
 
         const currentTemplate = await localforage.getItem<Template>('template');
         if (JSON.stringify(currentTemplate) !== JSON.stringify(updatedTemplate)) {
@@ -116,21 +108,15 @@ export const TemplateProvider: React.FC<{ children: ReactNode }> = ({ children }
   }, [ruleSets, fields, template]);
 
   const removeTemplate = useCallback(() => {
-    setTemplate(emptyTemplate);
-    setRuleSets([createDefaultRuleSet()]);
-    setSelectedRuleSetIndex(0);
-    setFields([]);
+    applyTemplateState(emptyTemplate, []);
     void localforage.removeItem('template');
-  }, [emptyTemplate]);
+  }, [applyTemplateState, emptyTemplate]);
 
   const updateTemplate = useCallback((newTemplate: Template) => {
     const normalized = ensureRuleSets(newTemplate);
-    setTemplate(normalized);
-    setRuleSets(normalized.ruleSets);
-    setSelectedRuleSetIndex(0);
-    setFields(normalized.fields || []);
+    applyTemplateState(normalized, normalized.fields || []);
     void localforage.setItem('template', normalized);
-  }, []);
+  }, [applyTemplateState]);
 
   useEffect(() => {
     let hasRetried = false;
@@ -151,7 +137,7 @@ export const TemplateProvider: React.FC<{ children: ReactNode }> = ({ children }
             if (!response.ok) {
               throw new Error(`Failed to fetch template from URL: ${templateUrl}`);
             }
-            loadedTemplate = await response.json() as unknown;
+            loadedTemplate = await response.json();
           } else if (packageUrl) {
             loadedTemplate = await fetchTarballFromUrl(packageUrl);
           }
@@ -191,8 +177,8 @@ export const TemplateProvider: React.FC<{ children: ReactNode }> = ({ children }
       reader.onload = (e) => {
         try {
           const content = e.target?.result;
-          if (content) {
-            const parsed: unknown = JSON.parse(content as string);
+          if (typeof content === 'string' && content) {
+            const parsed: unknown = JSON.parse(content);
             if (!parsed || typeof parsed !== 'object' || !('fields' in parsed) || !Array.isArray((parsed).fields)) {
               alert('Invalid template format');
               return;
@@ -200,13 +186,9 @@ export const TemplateProvider: React.FC<{ children: ReactNode }> = ({ children }
             const importedTemplate = parsed as Template;
             const processedTemplate: Template = {
               ...importedTemplate,
-              fields: importedTemplate.fields.map((field) => ({
-                ...field,
-                value: Array.isArray(field.value) ? JSON.stringify(field.value) : field.value,
-              })),
+              fields: stringifyArrayValues(importedTemplate.fields),
             };
-            
-            // Check if current template has content
+
             if (!isEmpty()) {
               const currentName = template.name || 'current template';
               const incomingName = processedTemplate.name || 'imported template';
@@ -227,7 +209,6 @@ export const TemplateProvider: React.FC<{ children: ReactNode }> = ({ children }
                 }
               );
             } else {
-              // No existing template, just load
               updateTemplate(processedTemplate);
             }
           }
@@ -238,7 +219,6 @@ export const TemplateProvider: React.FC<{ children: ReactNode }> = ({ children }
       };
       reader.readAsText(file);
     }
-    // Reset the input so the same file can be selected again
     event.target.value = '';
   }, [alert, choice, isEmpty, template, updateTemplate]);
 

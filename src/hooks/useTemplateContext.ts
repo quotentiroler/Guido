@@ -1,10 +1,4 @@
-import { TemplateContext, type TemplateContextProps } from "@/context/TemplateContext";
-import { useContext } from "react";
+import { createContextHook } from '@/utils/createContextHook';
+import { TemplateContext } from '@/context/TemplateContext';
 
-export const useTemplateContext = (): TemplateContextProps => {
-    const context = useContext(TemplateContext);
-    if (!context) {
-      throw new Error('useTemplateContext must be used within a TemplateProvider');
-    }
-    return context;
-  };
+export const useTemplateContext = createContextHook(TemplateContext, 'useTemplateContext', 'TemplateProvider');

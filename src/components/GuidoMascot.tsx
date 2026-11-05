@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import guidoImage from "@/assets/guido.png";
 import { useAI } from "@/hooks/useAI";
-import AISetupModal from "./AISetupModal";
+import AISetupModal from "@/components/modals/AISetupModal";
 
 // Different emotes Guido can do
 const emotes = [

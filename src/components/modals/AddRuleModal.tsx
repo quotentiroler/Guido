@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import Button from "./shared/Button";
-import Portal from "./shared/Portal";
-import RuleDomainItem from "./AddRuleDomainItem";
+import Button from "@/components/shared/Button";
+import RuleDomainItem from "@/components/AddRuleDomainItem";
 import { useRuleContext } from "@/hooks/useRuleContext";
 import AddRequiredModal from "./RequiredFieldsModal";
+import ModalShell from "./ModalShell";
 import { useTemplateContext } from "@/hooks/useTemplateContext";
-import { type Rule, RuleState, type RuleDomain } from "@quotentiroler/guido-types";
+import { type Rule, type RuleDomain } from "@quotentiroler/guido-types";
+import { createEmptyRule, createEmptyRuleDomain } from "@/utils/drafts";
 
 interface AddRuleModalProps {
   edit?: boolean;
@@ -14,6 +15,10 @@ interface AddRuleModalProps {
   setNewRule: React.Dispatch<React.SetStateAction<Rule>>;
   handleClose: () => void;
 }
+
+type DomainList = "conditions" | "targets";
+
+const negateDomains = (domains: RuleDomain[]) => domains.map((domain) => ({ ...domain, not: !domain.not }));
 
 const AddOrEditRuleModal: React.FC<AddRuleModalProps> = ({
   edit,
@@ -26,109 +31,45 @@ const AddOrEditRuleModal: React.FC<AddRuleModalProps> = ({
   const { fields } = useTemplateContext();
   const [showRequiredModal, setShowRequiredModal] = useState(false);
 
-  const handleAddTarget = () => {
-    setNewRule({
-      ...newRule,
-      targets: [
-        { name: "", state: RuleState.Set, not: false },
-        ...newRule.targets,
-      ],
-    });
+  const updateDomains = (list: DomainList, update: (domains: RuleDomain[]) => RuleDomain[]) => {
+    setNewRule({ ...newRule, [list]: update(newRule[list] ?? []) });
   };
 
-  const handleRemoveTarget = (index: number) => {
-    const updatedTargets = newRule.targets.filter((_, i) => i !== index);
-    setNewRule({
-      ...newRule,
-      targets: updatedTargets,
-    });
-  };
+  const addDomain = (list: DomainList) => updateDomains(list, (domains) => [createEmptyRuleDomain(), ...domains]);
 
-  const handleTargetChange = (index: number, updatedTarget: RuleDomain) => {
-    const updatedTargets = [...newRule.targets];
-    updatedTargets[index] = updatedTarget;
-    setNewRule({ ...newRule, targets: updatedTargets });
-  };
+  const removeDomain = (list: DomainList) => (domainIndex: number) =>
+    updateDomains(list, (domains) => domains.filter((_, i) => i !== domainIndex));
 
-  const handleAddCondition = () => {
-    setNewRule({
-      ...newRule,
-      conditions: [
-        { name: "", state: RuleState.Set, not: false },
-        ...(newRule.conditions || [])
-      ],
-    });
-  };
+  const changeDomain = (list: DomainList) => (domainIndex: number, updated: RuleDomain) =>
+    updateDomains(list, (domains) => domains.map((domain, i) => (i === domainIndex ? updated : domain)));
 
-  const handleRemoveCondition = (index: number) => {
-    const updatedConditions = (newRule.conditions || []).filter(
-      (_, i) => i !== index
-    );
-    setNewRule({
-      ...newRule,
-      conditions: updatedConditions,
-    });
-  };
-
-  const handleConditionChange = (
-    index: number,
-    updatedCondition: RuleDomain
-  ) => {
-    const updatedConditions = [...(newRule.conditions || [])];
-    updatedConditions[index] = updatedCondition;
-    setNewRule({ ...newRule, conditions: updatedConditions });
+  const closeAndReset = () => {
+    handleClose();
+    setNewRule(createEmptyRule());
   };
 
   const handleSaveRule = () => {
-    handleAddOrEditRule(newRule, edit ? index : undefined, () => {
-      handleClose();
-      if (!edit)
-        setNewRule({
-          targets: [{ name: "", state: RuleState.Set, not: false }],
-        });
-    });
-  };
-
-  const handleCancelEdit = () => {
-    handleClose();
-    setNewRule({
-      targets: [{ name: "", state: RuleState.Set, not: false }],
-    });
+    handleAddOrEditRule(newRule, edit ? index : undefined, edit ? handleClose : closeAndReset);
   };
 
   const handleAddContrapositive = () => {
     const contrapositiveRule: Rule = {
       ...newRule,
-      conditions: (newRule.conditions ?? []).map((condition) => ({
-        ...condition,
-        not: !condition.not,
-      })),
-      targets:
-        newRule.targets.map((target) => ({
-          ...target,
-          not: !target.not,
-        })) || [],
+      conditions: negateDomains(newRule.conditions ?? []),
+      targets: negateDomains(newRule.targets),
     };
     if (edit) {
-      handleAddOrEditRule(contrapositiveRule, undefined, () => {
-        handleClose();
-      });
+      handleAddOrEditRule(contrapositiveRule, undefined, handleClose);
     } else {
       handleAddOrEditRule(contrapositiveRule, undefined, () => {
-        handleAddOrEditRule(newRule, undefined, () => {
-          handleClose();
-          setNewRule({
-            targets: [{ name: "", state: RuleState.Set, not: false }],
-          });
-        });
+        handleAddOrEditRule(newRule, undefined, closeAndReset);
       });
-    };
-  }
+    }
+  };
 
   return (
-    <Portal>
-      <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-        <div className="bg-surface-0 p-6 rounded-default shadow-lg w-full max-w-xl max-h-[85vh] overflow-y-auto flex flex-col mx-4">
+    <>
+      <ModalShell panelClassName="bg-surface-0 p-6 rounded-default shadow-lg w-full max-w-xl max-h-[85vh] overflow-y-auto flex flex-col mx-4">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-text-primary">{edit ? "Edit" : "Add"} Rule</h2>
           <Button
@@ -142,7 +83,7 @@ const AddOrEditRuleModal: React.FC<AddRuleModalProps> = ({
         <div className="flex justify-between items-center my-4">
           <h3 className="text-lg font-semibold mb-2 text-text-primary">Conditions (IF)</h3>
           <Button
-            onClick={handleAddCondition}
+            onClick={() => addDomain("conditions")}
             type="secondary-text"
             size="small"
           >
@@ -164,14 +105,14 @@ const AddOrEditRuleModal: React.FC<AddRuleModalProps> = ({
           </div>
         )}
         <div className="flex-grow overflow-y-auto">
-          {(newRule.conditions || []).map((condition, index) => (
+          {(newRule.conditions || []).map((condition, conditionIndex) => (
             <RuleDomainItem
-              key={index}
+              key={conditionIndex}
               item={condition}
-              index={index}
+              index={conditionIndex}
               role="condition"
-              onChange={handleConditionChange}
-              onRemove={handleRemoveCondition}
+              onChange={changeDomain("conditions")}
+              onRemove={removeDomain("conditions")}
             />
           ))}
           {newRule.conditions?.length === 0 && (
@@ -180,7 +121,7 @@ const AddOrEditRuleModal: React.FC<AddRuleModalProps> = ({
 
           <div className="flex justify-between items-center mt-4">
             <h3 className="text-lg font-semibold mb-2 text-text-primary">Targets (THEN)</h3>
-            <Button onClick={handleAddTarget} type="secondary-text" size="small">
+            <Button onClick={() => addDomain("targets")} type="secondary-text" size="small">
               +
             </Button>
           </div>
@@ -189,20 +130,20 @@ const AddOrEditRuleModal: React.FC<AddRuleModalProps> = ({
               No targets. Add at least one target
             </p>
           )}
-          {newRule.targets.map((target, index) => (
+          {newRule.targets.map((target, targetIndex) => (
             <RuleDomainItem
-              key={index}
+              key={targetIndex}
               item={target}
-              index={index}
+              index={targetIndex}
               role="target"
-              onChange={handleTargetChange}
-              onRemove={handleRemoveTarget}
+              onChange={changeDomain("targets")}
+              onRemove={removeDomain("targets")}
             />
           ))}
         </div>
         <div className="flex justify-end mt-8 gap-4">
           <Button
-            onClick={edit ? handleClose : handleCancelEdit}
+            onClick={edit ? handleClose : closeAndReset}
             type="primary-text"
           >
             Cancel
@@ -215,15 +156,14 @@ const AddOrEditRuleModal: React.FC<AddRuleModalProps> = ({
             )}
           <Button onClick={handleSaveRule}>Save</Button>
         </div>
-      </div>
+      </ModalShell>
       {showRequiredModal && (
         <AddRequiredModal
           handleClose={handleClose}
           fieldNames={fields.map((field) => field.name)}
         />
       )}
-    </div>
-    </Portal>
+    </>
   );
 };
 

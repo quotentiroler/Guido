@@ -1,10 +1,4 @@
-import { useContext } from 'react';
-import { FieldContext, type FieldContextProps } from '@/context/FieldContext';
+import { createContextHook } from '@/utils/createContextHook';
+import { FieldContext } from '@/context/FieldContext';
 
-export const useFieldContext = (): FieldContextProps => {
-  const context = useContext(FieldContext);
-  if (!context) {
-    throw new Error('useFieldContext must be used within a FieldProvider');
-  }
-  return context;
-};
+export const useFieldContext = createContextHook(FieldContext, 'useFieldContext', 'FieldProvider');

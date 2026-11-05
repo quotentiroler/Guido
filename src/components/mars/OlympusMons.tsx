@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 /**
  * Olympus Mons Component - The largest volcano in the solar system
@@ -101,14 +102,8 @@ const OlympusMons: React.FC<OlympusMonsProps> = ({
   scale = 1,
   opacity = 1,
 }) => {
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useIsMobile();
 
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 640);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
 
   // Pre-generate particles
   const lavaParticles = useMemo(

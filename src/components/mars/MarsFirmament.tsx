@@ -1,4 +1,5 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo } from "react";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { useTheme } from "@/hooks/useTheme";
 
 /**
@@ -59,15 +60,8 @@ const MarsFirmament: React.FC<MarsFirmamentProps> = ({
   starFieldHeight = 50 
 }) => {
   const { themeBlend } = useTheme();
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useIsMobile();
   
-  // Detect mobile viewport
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 640);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
   
   // Use provided blend or context value
   const progress = (blend ?? themeBlend) / 100;
