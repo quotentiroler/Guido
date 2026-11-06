@@ -162,7 +162,10 @@ Each field describes a configuration option:
 | `integer[]`             | Array of integers                        |
 | `string[min..max]`      | Array with size limits (e.g., `string[1..10]`) |
 | `opt1\|\|opt2\|\|opt3`    | Must match one of the options            |
-| `^regex$`               | Must match the regex pattern             |
+| `(opt1\|\|opt2)[]`       | Array of options (`(opt1\|\|opt2)[min..max]` limits its size) |
+| `^regex$`               | Must match the regex pattern; a range anchored with `^` or `$` is always a regex |
+
+In flat settings files (`.env`, `.properties`, `.ini`, `.txt`, command-line args) an array-typed field is written as a comma list: `SPRING_PROFILES_ACTIVE=production,metrics`. An empty value (`KEY=`) counts as unset.
 
 ### Rule Definition
 

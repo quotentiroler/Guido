@@ -141,7 +141,7 @@ When listing rules with `includeInherited: true`, inherited rules are shown with
 - `validate_settings` - Validate a settings file against the template
 
 ### Import/Export
-- `import_settings` - Import settings from a file (.json, .yaml, .properties, .env)
+- `import_settings` - Import settings from a file (json, yaml, ini, args, properties, env, txt)
 - `export_config` - Export the template as target configuration (e.g., appsettings.json)
 
 ### Analysis
