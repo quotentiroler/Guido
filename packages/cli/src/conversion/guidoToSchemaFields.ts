@@ -1,125 +1,47 @@
-import { type Field, type FieldValue, type JSONSchema } from '@quotentiroler/guido-types';
+import { parseRange, type Field, type FieldValue, type JSONSchema } from '@quotentiroler/guido-types';
 
-/** Guido range DSL → JSON Schema constraints (parseRange() in guido-types yields ParsedRange instead). */
+const looksLikeRegex = (range: string): boolean => range.startsWith('^') || range.endsWith('$') || range.includes('\\');
+
+const sizeBounds = (minItems?: number, maxItems?: number): Partial<JSONSchema> => ({
+  ...(minItems !== undefined ? { minItems } : {}),
+  ...(maxItems !== undefined ? { maxItems } : {}),
+});
+
 function rangeToJsonSchema(range: string): Partial<JSONSchema> {
-  if (!range || range === 'string') {
-    return { type: 'string' };
-  }
+  if (!range) return { type: 'string' };
+  if (range === 'object') return { type: 'object' };
 
-  // Boolean
-  if (range === 'boolean') {
-    return { type: 'boolean' };
+  const parsed = parseRange(range);
+  switch (parsed.rangeType) {
+    case 'scalar':
+      if (parsed.dataType === 'boolean') return { type: 'boolean' };
+      if (parsed.dataType === 'url') return { type: 'string', format: 'uri' };
+      if (parsed.dataType === 'integer') {
+        return {
+          type: 'integer',
+          ...(parsed.min !== undefined ? { minimum: parsed.min } : {}),
+          ...(parsed.max !== undefined ? { maximum: parsed.max } : {}),
+        };
+      }
+      return {
+        type: 'string',
+        ...(parsed.min !== undefined ? { minLength: parsed.min } : {}),
+        ...(parsed.max !== undefined ? { maxLength: parsed.max } : {}),
+      };
+    case 'array':
+      return { type: 'array', items: { type: parsed.itemType }, ...sizeBounds(parsed.minSize, parsed.maxSize) };
+    case 'enum-array':
+      return {
+        type: 'array',
+        items: { type: 'string', enum: parsed.options.map((o) => o.trim()) },
+        uniqueItems: true,
+        ...sizeBounds(parsed.minSize, parsed.maxSize),
+      };
+    case 'enum':
+      return { type: 'string', enum: parsed.options.map((o) => o.trim()) };
+    case 'pattern':
+      return looksLikeRegex(range) ? { type: 'string', pattern: range } : { type: 'string' };
   }
-
-  // URL
-  if (range === 'url') {
-    return { type: 'string', format: 'uri' };
-  }
-
-  // Unbounded string
-  if (range === 'string') {
-    return { type: 'string' };
-  }
-
-  // Integer with bounds: integer(min..max), integer(min..), integer(..max)
-  const intRangeMatch = range.match(/^integer\((?:(\d+)\.\.|(\d+)\.\.(\d+)|\.\.?(\d+))\)$/);
-  if (intRangeMatch) {
-    const result: Partial<JSONSchema> = { type: 'integer' };
-    if (intRangeMatch[1] !== undefined) {
-      // integer(min..)
-      result.minimum = parseInt(intRangeMatch[1]);
-    } else if (intRangeMatch[2] !== undefined && intRangeMatch[3] !== undefined) {
-      // integer(min..max)
-      result.minimum = parseInt(intRangeMatch[2]);
-      result.maximum = parseInt(intRangeMatch[3]);
-    } else if (intRangeMatch[4] !== undefined) {
-      // integer(..max)
-      result.maximum = parseInt(intRangeMatch[4]);
-    }
-    return result;
-  }
-
-  // Integer (unbounded)
-  if (range === 'integer') {
-    return { type: 'integer' };
-  }
-
-  // String with length bounds: string(min..max), string(min..), string(..max)
-  const strRangeMatch = range.match(/^string\((?:(\d+)\.\.|(\d+)\.\.(\d+)|\.\.?(\d+))\)$/);
-  if (strRangeMatch) {
-    const result: Partial<JSONSchema> = { type: 'string' };
-    if (strRangeMatch[1] !== undefined) {
-      // string(min..)
-      result.minLength = parseInt(strRangeMatch[1]);
-    } else if (strRangeMatch[2] !== undefined && strRangeMatch[3] !== undefined) {
-      // string(min..max)
-      result.minLength = parseInt(strRangeMatch[2]);
-      result.maxLength = parseInt(strRangeMatch[3]);
-    } else if (strRangeMatch[4] !== undefined) {
-      // string(..max)
-      result.maxLength = parseInt(strRangeMatch[4]);
-    }
-    return result;
-  }
-
-  // Enum array: (opt1||opt2||opt3)[] or (opt1||opt2)[min..max]
-  const enumArrayMatch = range.match(/^\(([^)]+)\)\[(\d*)\.\.?(\d*)\]$/);
-  if (enumArrayMatch) {
-    const options = enumArrayMatch[1].split('||').map(o => o.trim());
-    const result: Partial<JSONSchema> = {
-      type: 'array',
-      items: { type: 'string', enum: options },
-      uniqueItems: true, // Enum arrays typically shouldn't have duplicates
-    };
-    if (enumArrayMatch[2]) {
-      result.minItems = parseInt(enumArrayMatch[2]);
-    }
-    if (enumArrayMatch[3]) {
-      result.maxItems = parseInt(enumArrayMatch[3]);
-    }
-    return result;
-  }
-
-  // Array types: string[], integer[], string[min..max], integer[min..max]
-  const arrayMatch = range.match(/^(string|integer)\[(?:(\d+)\.\.|(\d+)\.\.(\d+)|\.\.?(\d+))?\]$/);
-  if (arrayMatch) {
-    const itemType = arrayMatch[1];
-    const result: Partial<JSONSchema> = { 
-      type: 'array', 
-      items: { type: itemType } 
-    };
-    if (arrayMatch[2] !== undefined) {
-      // type[min..]
-      result.minItems = parseInt(arrayMatch[2]);
-    } else if (arrayMatch[3] !== undefined && arrayMatch[4] !== undefined) {
-      // type[min..max]
-      result.minItems = parseInt(arrayMatch[3]);
-      result.maxItems = parseInt(arrayMatch[4]);
-    } else if (arrayMatch[5] !== undefined) {
-      // type[..max]
-      result.maxItems = parseInt(arrayMatch[5]);
-    }
-    return result;
-  }
-
-  // Object
-  if (range === 'object') {
-    return { type: 'object' };
-  }
-
-  // Options (|| separated) → enum
-  if (range.includes('||')) {
-    const options = range.split('||').map(o => o.trim());
-    return { type: 'string', enum: options };
-  }
-
-  // Regex pattern (if it looks like a regex)
-  if (range.startsWith('^') || range.endsWith('$') || range.includes('\\')) {
-    return { type: 'string', pattern: range };
-  }
-
-  // Default to string
-  return { type: 'string' };
 }
 
 /**
