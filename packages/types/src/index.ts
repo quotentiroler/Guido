@@ -67,6 +67,20 @@ export type {
 
 export type { JSONSchema, SchemaConversionContext } from './JSONSchema.js';
 
+export type {
+  ContractConfig,
+  ContractGenerate,
+  ContractSource,
+  ContractTarget,
+  ComposeSource,
+  MergeSource,
+  ScanConfig,
+  ScanFiles,
+  ScanPattern,
+  ScanPreset,
+  SecretNames,
+} from './contract.js';
+
 // ============================================================================
 // Runtime Values (no Zod dependency)
 // ============================================================================
