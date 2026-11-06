@@ -17,8 +17,13 @@ export {
   findRuleSetIndex,
   getChildRuleSets,
   hasChildRuleSets,
+  selectRuleSets,
+  listRuleSetTags,
 } from './rulesetUtils.js';
-export type { InheritanceValidationResult } from './rulesetUtils.js';
+export type { InheritanceValidationResult, RuleSetSelection } from './rulesetUtils.js';
+
+export { validateSettings } from './settingsValidation.js';
+export type { SettingsValidationIssue, SettingsValidationResult } from './settingsValidation.js';
 
 // Rule application
 export { 

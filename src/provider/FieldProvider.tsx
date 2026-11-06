@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { type Field, type FieldValue } from "@quotentiroler/guido-types";
-import { resolveRuleSetRules } from "@quotentiroler/guido-core";
+import { resolveRuleSetRules, isFieldRequired } from "@quotentiroler/guido-core";
 import { saveSettingsFields } from "@/utils/settingsUtils";
 import { FieldContext } from "@/context/FieldContext";
-import { applyRules, isFieldRequired } from "@/utils/applyRules";
+import { applyRules } from "@/utils/applyRules";
 import { useAlert } from "@/hooks/useAlert";
 import { useTemplateContext } from "@/hooks/useTemplateContext";
-import { type TriggerAction } from "@/context/HistoryContext";
+import { type TriggerAction } from "@quotentiroler/guido-logger";
 
 interface FieldProviderProps {
   children: React.ReactNode;
@@ -74,6 +74,15 @@ export const FieldProvider: React.FC<FieldProviderProps> = ({ children }) => {
     setFields(newFields);
   }, [setFields]);
 
+  const applyFieldChange = useCallback((name: string, value: FieldValue, checked: boolean, trigger?: TriggerAction) => {
+    const updatedFields = fields.map((field) =>
+      field.name === name ? { ...field, value, checked } : field
+    );
+    const { updatedFields: newFields, disabledReasons: newDisabledReasons } = applyRules(updatedFields, rules, trigger);
+    handleUpdateFields(newFields);
+    setDisabledReasons(newDisabledReasons);
+  }, [fields, rules, handleUpdateFields]);
+
   const handleFieldChange = useCallback((name: string, value: FieldValue, checked: boolean, aiTool?: string) => {
     // Find the original field to detect what changed
     const originalField = fields.find(f => f.name === name);
@@ -110,32 +119,12 @@ export const FieldProvider: React.FC<FieldProviderProps> = ({ children }) => {
     } else {
       trigger = { type: 'rules_changed' };
     }
-    
-    const updatedFields = fields.map((field) =>
-      field.name === name ? { ...field, value, checked } : field
-    );
-    const { updatedFields: newFields, disabledReasons: newDisabledReasons } = applyRules(
-      updatedFields,
-      rules,
-      trigger
-    );
-    handleUpdateFields(newFields);
-    setDisabledReasons(newDisabledReasons);
-  }, [fields, rules, handleUpdateFields]);
+    applyFieldChange(name, value, checked, trigger);
+  }, [fields, applyFieldChange]);
 
-  // Silent version that doesn't create history entries (for undo operations)
   const handleFieldChangeSilent = useCallback((name: string, value: FieldValue, checked: boolean) => {
-    const updatedFields = fields.map((field) =>
-      field.name === name ? { ...field, value, checked } : field
-    );
-    // Apply rules without trigger to avoid creating history entry
-    const { updatedFields: newFields, disabledReasons: newDisabledReasons } = applyRules(
-      updatedFields,
-      rules
-    );
-    handleUpdateFields(newFields);
-    setDisabledReasons(newDisabledReasons);
-  }, [fields, rules, handleUpdateFields]);
+    applyFieldChange(name, value, checked);
+  }, [applyFieldChange]);
 
   const handleUpdateField = useCallback((updatedField: Field) => {
     const updatedFields = fields.map((field) =>

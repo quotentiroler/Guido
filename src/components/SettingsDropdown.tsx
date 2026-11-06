@@ -4,6 +4,31 @@ import { useTheme } from "@/hooks/useTheme";
 import { useAlert } from "@/hooks/useAlert";
 import GearIcon from "@/assets/svg/gear.svg";
 
+const MENU_ITEM_CLASS = "w-full px-4 py-2 text-left text-base text-text-secondary hover:bg-surface-hover flex items-center";
+
+interface BackgroundOptionProps {
+  icon: string;
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}
+
+const BackgroundOption: React.FC<BackgroundOptionProps> = ({ icon, label, active, onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="w-full flex items-center justify-between text-sm text-text-secondary hover:text-text-primary"
+  >
+    <span className="flex items-center gap-2">
+      <span>{icon}</span>
+      <span>{label}</span>
+    </span>
+    <span className={`text-sm ${active ? 'text-success-700' : 'text-text-disabled'}`}>
+      {active ? '✓' : ''}
+    </span>
+  </button>
+);
+
 interface SettingsDropdownProps {
   onOpenRegistries: () => void;
   isExpertMode: boolean;
@@ -28,10 +53,27 @@ const SettingsDropdown: React.FC<SettingsDropdownProps> = ({
   const { themeBlend, setThemeBlend, marsBackground, setMarsBackground, secretSpaceMode, setSecretSpaceMode } = useTheme();
   const { alert, confirm } = useAlert();
 
-  // Close dropdown when clicking outside
+  const closeMenu = () => {
+    setIsOpen(false);
+    setShowThemeSubmenu(false);
+  };
+
+  const openFromMenu = (open: () => void) => () => {
+    closeMenu();
+    open();
+  };
+
+  const stopAnimation = () => {
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+      animationRef.current = null;
+    }
+    setIsAnimating(false);
+  };
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (dropdownRef.current && event.target instanceof Node && !dropdownRef.current.contains(event.target)) {
         setIsOpen(false);
         setShowThemeSubmenu(false);
       }
@@ -41,7 +83,6 @@ const SettingsDropdown: React.FC<SettingsDropdownProps> = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Cleanup animation on unmount
   useEffect(() => {
     return () => {
       if (animationRef.current) {
@@ -50,20 +91,12 @@ const SettingsDropdown: React.FC<SettingsDropdownProps> = ({
     };
   }, []);
 
-  // Day/Night cycle animation
   const startAnimation = () => {
     if (isAnimating) {
-      // Stop animation
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-        animationRef.current = null;
-      }
-      setIsAnimating(false);
+      stopAnimation();
       return;
     }
 
-    // Determine direction based on current themeBlend position, not stored direction
-    // If closer to light (< 50), go to dark. If closer to dark (>= 50), go to light.
     const goingForward = themeBlend < 50;
     const targetValue = goingForward ? 100 : 0;
     
@@ -100,24 +133,13 @@ const SettingsDropdown: React.FC<SettingsDropdownProps> = ({
     animationRef.current = requestAnimationFrame(animate);
   };
 
-  // Stop animation when slider is manually changed
   const handleBlendChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Cancel any running animation when user manually moves slider
     if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
-      animationRef.current = null;
-      setIsAnimating(false);
+      stopAnimation();
     }
     setThemeBlend(parseInt(e.target.value, 10));
   };
 
-  const handleRegistriesClick = () => {
-    setIsOpen(false);
-    setShowThemeSubmenu(false);
-    onOpenRegistries();
-  };
-
-  // Get label for current blend state (4 zones)
   const getBlendLabel = () => {
     if (themeBlend <= 25) return "Light";
     if (themeBlend <= 50) return "Light+ 💎";
@@ -150,7 +172,7 @@ const SettingsDropdown: React.FC<SettingsDropdownProps> = ({
             onClick={() => {
               onToggleExpertMode();
             }}
-            className="w-full px-4 py-2 text-left text-base text-text-secondary hover:bg-surface-hover flex items-center justify-between"
+            className={`${MENU_ITEM_CLASS} justify-between`}
           >
             <span className="flex items-center gap-2">
               <span>🔧</span>
@@ -165,8 +187,8 @@ const SettingsDropdown: React.FC<SettingsDropdownProps> = ({
           {isExpertMode && (
             <button
               type="button"
-              onClick={handleRegistriesClick}
-              className="w-full px-4 py-2 text-left text-base text-text-secondary hover:bg-surface-hover flex items-center gap-2"
+              onClick={openFromMenu(onOpenRegistries)}
+              className={`${MENU_ITEM_CLASS} gap-2`}
             >
               <span>📦</span>
               <span>Registries</span>
@@ -181,12 +203,8 @@ const SettingsDropdown: React.FC<SettingsDropdownProps> = ({
 
               <button
                 type="button"
-                onClick={() => {
-                  setIsOpen(false);
-                  setShowThemeSubmenu(false);
-                  onOpenAISetup();
-                }}
-                className="w-full px-4 py-2 text-left text-base text-text-secondary hover:bg-surface-hover flex items-center gap-2"
+                onClick={openFromMenu(onOpenAISetup)}
+                className={`${MENU_ITEM_CLASS} gap-2`}
               >
                 <span>🤖</span>
                 <span>AI Setup</span>
@@ -197,12 +215,8 @@ const SettingsDropdown: React.FC<SettingsDropdownProps> = ({
           {/* Chat History */}
           <button
             type="button"
-            onClick={() => {
-              setIsOpen(false);
-              setShowThemeSubmenu(false);
-              onOpenChatHistory();
-            }}
-            className="w-full px-4 py-2 text-left text-base text-text-secondary hover:bg-surface-hover flex items-center gap-2"
+            onClick={openFromMenu(onOpenChatHistory)}
+            className={`${MENU_ITEM_CLASS} gap-2`}
           >
             <span>💬</span>
             <span>Chat History</span>
@@ -252,7 +266,7 @@ const SettingsDropdown: React.FC<SettingsDropdownProps> = ({
             <button
               type="button"
               onClick={() => setShowThemeSubmenu(!showThemeSubmenu)}
-              className="w-full px-4 py-2 text-left text-base text-text-secondary hover:bg-surface-hover flex items-center justify-between"
+              className={`${MENU_ITEM_CLASS} justify-between`}
             >
               <span className="flex items-center gap-2">
                 <span>🎨</span>
@@ -304,57 +318,28 @@ const SettingsDropdown: React.FC<SettingsDropdownProps> = ({
 
                 {/* Mars Background Controls */}
                 <div className="mt-3 pt-3 border-t border-border space-y-2">
-                  {/* Secret Cliff View - only visible once unlocked */}
                   {secretSpaceMode && (
-                    <button
-                      type="button"
-                      onClick={() => {/* Already active */}}
-                      className="w-full flex items-center justify-between text-sm text-text-secondary hover:text-text-primary"
-                    >
-                      <span className="flex items-center gap-2">
-                        <span>🏜️</span>
-                        <span>Guido's Chill Spot</span>
-                      </span>
-                      <span className="text-sm text-success-700">✓</span>
-                    </button>
+                    <BackgroundOption icon="🏜️" label="Guido's Chill Spot" active onClick={() => undefined} />
                   )}
-                  
-                  {/* Mars Plains option */}
-                  <button
-                    type="button"
+                  <BackgroundOption
+                    icon="🔴"
+                    label="Mars Plains"
+                    active={!secretSpaceMode && marsBackground}
                     onClick={() => {
                       setSecretSpaceMode(false);
                       setMarsBackground(true);
                     }}
-                    className="w-full flex items-center justify-between text-sm text-text-secondary hover:text-text-primary"
-                  >
-                    <span className="flex items-center gap-2">
-                      <span>🔴</span>
-                      <span>Mars Plains</span>
-                    </span>
-                    <span className={`text-sm ${!secretSpaceMode && marsBackground ? 'text-success-700' : 'text-text-disabled'}`}>
-                      {!secretSpaceMode && marsBackground ? '✓' : ''}
-                    </span>
-                  </button>
-
-                  {/* Disable background option */}
-                  <button
-                    type="button"
+                  />
+                  <BackgroundOption
+                    icon="🚫"
+                    label="No Background"
+                    active={!secretSpaceMode && !marsBackground}
                     onClick={() => {
                       setSecretSpaceMode(false);
                       setMarsBackground(false);
                     }}
-                    className="w-full flex items-center justify-between text-sm text-text-secondary hover:text-text-primary"
-                  >
-                    <span className="flex items-center gap-2">
-                      <span>🚫</span>
-                      <span>No Background</span>
-                    </span>
-                    <span className={`text-sm ${!secretSpaceMode && !marsBackground ? 'text-success-700' : 'text-text-disabled'}`}>
-                      {!secretSpaceMode && !marsBackground ? '✓' : ''}
-                    </span>
-                  </button>
-                  
+                  />
+
                   <p className="text-xs text-text-disabled pl-6">
                     {secretSpaceMode ? 'You found Guido\'s secret spot! 🤖' : 'Disable for better performance'}
                   </p>

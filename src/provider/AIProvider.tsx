@@ -2,7 +2,7 @@ import React, { useState, useEffect, type ReactNode, useCallback, useRef, useMem
 import localforage from 'localforage';
 import { AIContext, type LLMConfig, type ChatPosition, type ChatPhase, type ChatHistoryItem } from '@/context/AIContext';
 import type { ChatMessageWithTools } from '@/services/llmService';
-import { useSpeechSynthesis } from '@/hooks/useSpeechSynthesis';
+import { useSpeechSynthesis } from '@/hooks/ai/useSpeechSynthesis';
 import { useTheme } from '@/hooks/useTheme';
 
 const STORAGE_KEY = 'guido-ai-config';

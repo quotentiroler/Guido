@@ -8,7 +8,7 @@ import { applyRules } from "@/utils/applyRules";
 import { type Field, type Rule } from "@quotentiroler/guido-types";
 import { resolveRuleSetRules } from "@quotentiroler/guido-core";
 import { useTemplateContext } from "@/hooks/useTemplateContext";
-import { type TriggerAction } from "@/context/HistoryContext";
+import { type TriggerAction } from "@quotentiroler/guido-logger";
 
 interface SettingsFieldsListProps {
   fields: Field[];

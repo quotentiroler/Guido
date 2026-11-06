@@ -2,7 +2,8 @@
  * Analysis and discovery tools for templates
  */
 import { z } from 'zod';
-import { type ToolContext } from './types.js';
+import { type ToolContext, textResult } from './types.js';
+import { optBoolean, optNumber, optString, optStrings, reqString } from '../handlers/args.js';
 import type { Field } from '@quotentiroler/guido-types';
 import { translateRangeToHumanReadable, isFieldRequired } from '@quotentiroler/guido-core';
 
@@ -21,7 +22,7 @@ export function registerAnalysisTools({ server, store }: ToolContext) {
       },
     },
     async (args) => {
-      const filePath = args.filePath as string | undefined;
+      const filePath = optString(args, 'filePath');
       const template = await store.load(store.resolveRef(filePath));
       const rules = template.ruleSets?.[0]?.rules ?? [];
 
@@ -34,15 +35,10 @@ export function registerAnalysisTools({ server, store }: ToolContext) {
           info: field.info,
         }));
 
-      return {
-        content: [{
-          type: 'text' as const,
-          text: JSON.stringify({
-            count: requiredFields.length,
-            fields: requiredFields,
-          }, null, 2),
-        }],
-      };
+      return textResult({
+        count: requiredFields.length,
+        fields: requiredFields,
+      });
     }
   );
 
@@ -62,10 +58,10 @@ export function registerAnalysisTools({ server, store }: ToolContext) {
       },
     },
     async (args) => {
-      const filePath = args.filePath as string | undefined;
-      const checkInfo = (args.checkInfo as boolean | undefined) ?? true;
-      const checkExample = (args.checkExample as boolean | undefined) ?? true;
-      const checkRange = (args.checkRange as boolean | undefined) ?? true;
+      const filePath = optString(args, 'filePath');
+      const checkInfo = optBoolean(args, 'checkInfo') ?? true;
+      const checkExample = optBoolean(args, 'checkExample') ?? true;
+      const checkRange = optBoolean(args, 'checkRange') ?? true;
 
       const template = await store.load(store.resolveRef(filePath));
 
@@ -82,18 +78,13 @@ export function registerAnalysisTools({ server, store }: ToolContext) {
       const completeCount = template.fields.length - incompleteFields.length;
       const completenessPercent = Math.round((completeCount / template.fields.length) * 100);
 
-      return {
-        content: [{
-          type: 'text' as const,
-          text: JSON.stringify({
-            totalFields: template.fields.length,
-            completeFields: completeCount,
-            incompleteFields: incompleteFields.length,
-            completenessPercent,
-            incomplete: incompleteFields,
-          }, null, 2),
-        }],
-      };
+      return textResult({
+        totalFields: template.fields.length,
+        completeFields: completeCount,
+        incompleteFields: incompleteFields.length,
+        completenessPercent,
+        incomplete: incompleteFields,
+      });
     }
   );
 
@@ -115,10 +106,10 @@ export function registerAnalysisTools({ server, store }: ToolContext) {
       },
     },
     async (args) => {
-      const filePath = args.filePath as string | undefined;
-      const query = (args.query as string).toLowerCase();
-      const searchIn = (args.searchIn as string[] | undefined) ?? ['name', 'info', 'example', 'range', 'value'];
-      const limit = args.limit as number | undefined;
+      const filePath = optString(args, 'filePath');
+      const query = reqString(args, 'query').toLowerCase();
+      const searchIn = optStrings(args, 'searchIn') ?? ['name', 'info', 'example', 'range', 'value'];
+      const limit = optNumber(args, 'limit');
 
       const template = await store.load(store.resolveRef(filePath));
 
@@ -160,16 +151,11 @@ export function registerAnalysisTools({ server, store }: ToolContext) {
         results = results.slice(0, limit);
       }
 
-      return {
-        content: [{
-          type: 'text' as const,
-          text: JSON.stringify({
-            query,
-            resultCount: results.length,
-            results,
-          }, null, 2),
-        }],
-      };
+      return textResult({
+        query,
+        resultCount: results.length,
+        results,
+      });
     }
   );
 
@@ -189,10 +175,10 @@ export function registerAnalysisTools({ server, store }: ToolContext) {
       },
     },
     async (args) => {
-      const filePath = args.filePath as string | undefined;
-      const prefix = (args.prefix as string).toLowerCase();
-      const limit = (args.limit as number | undefined) ?? 10;
-      const onlyUnchecked = args.onlyUnchecked as boolean | undefined;
+      const filePath = optString(args, 'filePath');
+      const prefix = reqString(args, 'prefix').toLowerCase();
+      const limit = optNumber(args, 'limit') ?? 10;
+      const onlyUnchecked = optBoolean(args, 'onlyUnchecked');
 
       const template = await store.load(store.resolveRef(filePath));
 
@@ -212,16 +198,11 @@ export function registerAnalysisTools({ server, store }: ToolContext) {
           rangeHint: translateRangeToHumanReadable(field.range || ''),
         }));
 
-      return {
-        content: [{
-          type: 'text' as const,
-          text: JSON.stringify({
-            prefix,
-            count: suggestions.length,
-            suggestions,
-          }, null, 2),
-        }],
-      };
+      return textResult({
+        prefix,
+        count: suggestions.length,
+        suggestions,
+      });
     }
   );
 
@@ -241,10 +222,10 @@ export function registerAnalysisTools({ server, store }: ToolContext) {
       },
     },
     async (args) => {
-      const filePath1 = args.filePath1 as string;
-      const filePath2 = args.filePath2 as string;
-      const compareFields = (args.compareFields as boolean | undefined) ?? true;
-      const compareRules = (args.compareRules as boolean | undefined) ?? true;
+      const filePath1 = reqString(args, 'filePath1');
+      const filePath2 = reqString(args, 'filePath2');
+      const compareFields = optBoolean(args, 'compareFields') ?? true;
+      const compareRules = optBoolean(args, 'compareRules') ?? true;
 
       const template1 = await store.load(store.resolveRef(filePath1));
       const template2 = await store.load(store.resolveRef(filePath2));
@@ -310,12 +291,7 @@ export function registerAnalysisTools({ server, store }: ToolContext) {
         };
       }
 
-      return {
-        content: [{
-          type: 'text' as const,
-          text: JSON.stringify(result, null, 2),
-        }],
-      };
+      return textResult(result);
     }
   );
 }

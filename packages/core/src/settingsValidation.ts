@@ -1,21 +1,11 @@
-/**
- * Validates a settings object against a Guido template, for the validate-settings CLI.
- */
-import {
-  applyRules,
-  validateValue,
-  validateCardinality,
-  isFieldRequired,
-  translateRangeToHumanReadable,
-  resolveRuleSetRules,
-  getRuleSetInheritanceChain,
-  conditionHolds,
-  ruleConditionsHold,
-  describeCondition,
-} from '@quotentiroler/guido-core';
 import { RuleState, type Template, type FieldValue, type RuleSet, type Field, type Rule } from '@quotentiroler/guido-types';
+import { applyRules, isFieldRequired, conditionHolds, ruleConditionsHold } from './applyRules.js';
+import { validateValue, translateRangeToHumanReadable } from './fieldUtils.js';
+import { validateCardinality } from './validateRules.js';
+import { resolveRuleSetRules, getRuleSetInheritanceChain } from './rulesetUtils.js';
+import { describeCondition } from './ruleTranslation.js';
 
-export interface ValidationIssue {
+export interface SettingsValidationIssue {
   field: string;
   type: 'missing' | 'invalid' | 'warning';
   message: string;
@@ -23,9 +13,9 @@ export interface ValidationIssue {
   actual?: string;
 }
 
-export interface ValidationResult {
+export interface SettingsValidationResult {
   isValid: boolean;
-  issues: ValidationIssue[];
+  issues: SettingsValidationIssue[];
   summary: {
     totalFields: number;
     validFields: number;
@@ -39,9 +29,9 @@ export interface ValidationResult {
 const VALUE_STATES: ReadonlySet<string> = new Set([RuleState.SetToValue, RuleState.Contains]);
 
 /** Value targets of rules whose conditions the settings meet, which the settings do not satisfy. */
-function valueRuleViolations(rules: Rule[], fields: Field[]): ValidationIssue[] {
+function valueRuleViolations(rules: Rule[], fields: Field[]): SettingsValidationIssue[] {
   const fieldMap = new Map(fields.map((f) => [f.name, f]));
-  const issues: ValidationIssue[] = [];
+  const issues: SettingsValidationIssue[] = [];
   for (const rule of rules) {
     if (!ruleConditionsHold(rule, fieldMap)) continue;
     for (const target of rule.targets) {
@@ -60,17 +50,13 @@ function valueRuleViolations(rules: Rule[], fields: Field[]): ValidationIssue[] 
   return issues;
 }
 
-/**
- * A field is required when the template marks it `checked`, an unconditional rule targets it,
- * or a rule whose conditions the settings meet enables it. A field the settings leave out is
- * otherwise optional: its default applies.
- */
+/** Required: `checked` in the template, targeted unconditionally, or enabled by a rule the settings trigger. */
 export function validateSettings(
   template: Template,
   settings: Record<string, FieldValue>,
   ruleSet: RuleSet | null
-): ValidationResult {
-  const issues: ValidationIssue[] = [];
+): SettingsValidationResult {
+  const issues: SettingsValidationIssue[] = [];
   const rules = ruleSet ? resolveRuleSetRules(template, ruleSet.name) : [];
   const constraints = ruleSet
     ? getRuleSetInheritanceChain(template, ruleSet.name).flatMap(

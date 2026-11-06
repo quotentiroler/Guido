@@ -65,3 +65,6 @@ export function buildInputSchema(inputs: Record<string, { type: string; required
   }
   return schema;
 }
+
+export { templateToolHandlers, type HandlerContext, type ToolHandler, type ToolArgs } from './handlers/index.js';
+export { optArg, reqArg, optString, reqString, optNumber, reqNumber, optBoolean, optStrings } from './handlers/args.js';

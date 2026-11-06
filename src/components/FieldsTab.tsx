@@ -4,23 +4,19 @@ import SettingsFieldsList from "./SettingsFieldsList";
 import { useFieldContext } from "@/hooks/useFieldContext";
 import { useAppContext } from "@/hooks/useAppContext";
 import { type Field } from "@quotentiroler/guido-types";
-import AddFieldModal from "./AddFieldModal";
+import AddFieldModal from "@/components/modals/AddFieldModal";
 import { useTemplateContext } from "@/hooks/useTemplateContext";
+import { createEmptyField } from "@/utils/drafts";
 
 const FieldsTab: React.FC = () => {
   const { handleDeleteFields } = useFieldContext();
   const { fields } = useTemplateContext();
   const { isExpertMode } = useAppContext();
   const [showFieldModal, setShowFieldModal] = useState(false);
-    const [newField, setNewField] = useState<Field>({
-      name: "",
-      value: "",
-      info: "",
-      example: "",
-      range: "",
-    });
+  const [newField, setNewField] = useState<Field>(createEmptyField);
   return (
-    <>      {showFieldModal && (
+    <>
+      {showFieldModal && (
         <AddFieldModal
           newField={newField}
           setNewField={setNewField}

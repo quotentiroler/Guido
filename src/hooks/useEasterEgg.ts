@@ -1,10 +1,4 @@
-import { useContext } from "react";
-import { EasterEggContext, type EasterEggContextType } from "@/context/EasterEggContext";
+import { createContextHook } from '@/utils/createContextHook';
+import { EasterEggContext } from '@/context/EasterEggContext';
 
-export const useEasterEgg = (): EasterEggContextType => {
-  const context = useContext(EasterEggContext);
-  if (context === undefined) {
-    throw new Error("useEasterEgg must be used within an EasterEggProvider");
-  }
-  return context;
-};
+export const useEasterEgg = createContextHook(EasterEggContext, 'useEasterEgg', 'EasterEggProvider');

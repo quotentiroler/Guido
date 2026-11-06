@@ -8,6 +8,25 @@ import FileInput from "./shared/FileInput";
 import { CopyButton, PasteButton } from "./shared/ClipboardButtons";
 import { downloadTemplate } from "@/utils/settingsUtils";
 
+const INPUT_CLASS = "mt-1 p-2 border rounded-default w-full bg-surface-0 text-text-primary";
+
+const EDITABLE_PROPERTIES: {
+  key: "name" | "application" | "version" | "owner" | "fileName" | "description" | "command" | "docs";
+  label: string;
+  type?: "text" | "url";
+  multiline?: boolean;
+  placeholder?: string;
+}[] = [
+  { key: "name", label: "Name" },
+  { key: "application", label: "Application" },
+  { key: "version", label: "Version" },
+  { key: "owner", label: "Owner" },
+  { key: "fileName", label: "File Name" },
+  { key: "description", label: "Description", multiline: true },
+  { key: "command", label: "Command" },
+  { key: "docs", label: "Documentation URL", type: "url", placeholder: "https://docs.example.com/..." },
+];
+
 const TemplateMetadata: React.FC = () => {
   const { alert, confirm } = useAlert();
   const { isExpertMode } = useAppContext();
@@ -34,12 +53,16 @@ const TemplateMetadata: React.FC = () => {
     ruleSets: [],
   });
 
-  const handleCommandClick = () => {
-    if (!template) return;
+  const isClipboardAvailable = () => {
     if (!navigator.clipboard) {
       alert("Clipboard API not available");
-      return;
+      return false;
     }
+    return true;
+  };
+
+  const handleCommandClick = () => {
+    if (!template || !isClipboardAvailable()) return;
     if (!template.command) {
       alert("No command to copy");
       return;
@@ -88,11 +111,7 @@ const TemplateMetadata: React.FC = () => {
   };
 
   const handleCopyTemplate = async () => {
-    if (!template) return;
-    if (!navigator.clipboard) {
-      alert("Clipboard API not available");
-      return;
-    }
+    if (!template || !isClipboardAvailable()) return;
 
     try {
       const templateText = JSON.stringify(template, null, 2);
@@ -105,16 +124,12 @@ const TemplateMetadata: React.FC = () => {
   };
 
   const handlePasteTemplate = async () => {
-    if (!navigator.clipboard) {
-      alert("Clipboard API not available");
-      return;
-    }
+    if (!isClipboardAvailable()) return;
 
     try {
       const text = await navigator.clipboard.readText();
       const parsedTemplate = JSON.parse(text) as Template;
-      
-      // Validate it's a template
+
       if (!parsedTemplate.fields || !Array.isArray(parsedTemplate.fields)) {
         alert("Invalid template format in clipboard. Please copy a valid Guido template.");
         return;
@@ -167,94 +182,30 @@ const TemplateMetadata: React.FC = () => {
       </div>
       {isEditing ? (
         <div className="flex flex-col gap-4 mb-4">
-          <label htmlFor="template-name" className="text-text-primary">
-            <strong>Name:</strong>
-            <input
-              id="template-name"
-              type="text"
-              name="name"
-              value={editableTemplate.name}
-              onChange={handleChange}
-              className="mt-1 p-2 border rounded-default w-full bg-surface-0 text-text-primary"
-            />
-          </label>
-          <label htmlFor="template-application" className="text-text-primary">
-            <strong>Application:</strong>
-            <input
-              id="template-application"
-              type="text"
-              name="application"
-              value={editableTemplate.application}
-              onChange={handleChange}
-              className="mt-1 p-2 border rounded-default w-full bg-surface-0 text-text-primary"
-            />
-          </label>
-          <label htmlFor="template-version" className="text-text-primary">
-            <strong>Version:</strong>
-            <input
-              id="template-version"
-              type="text"
-              name="version"
-              value={editableTemplate.version}
-              onChange={handleChange}
-              className="mt-1 p-2 border rounded-default w-full bg-surface-0 text-text-primary"
-            />
-          </label>
-          <label htmlFor="template-owner" className="text-text-primary">
-            <strong>Owner:</strong>
-            <input
-              id="template-owner"
-              type="text"
-              name="owner"
-              value={editableTemplate.owner}
-              onChange={handleChange}
-              className="mt-1 p-2 border rounded-default w-full bg-surface-0 text-text-primary"
-            />
-          </label>
-          <label htmlFor="template-fileName" className="text-text-primary">
-            <strong>File Name:</strong>
-            <input
-              id="template-fileName"
-              type="text"
-              name="fileName"
-              value={editableTemplate.fileName}
-              onChange={handleChange}
-              className="mt-1 p-2 border rounded-default w-full bg-surface-0 text-text-primary"
-            />
-          </label>
-          <label htmlFor="template-description" className="text-text-primary">
-            <strong>Description:</strong>
-            <textarea
-              id="template-description"
-              name="description"
-              value={editableTemplate.description}
-              onChange={handleChange}
-              className="mt-1 p-2 border rounded-default w-full h-24 bg-surface-0 text-text-primary"
-            />
-          </label>
-          <label htmlFor="template-command" className="text-text-primary">
-            <strong>Command:</strong>
-            <input
-              id="template-command"
-              type="text"
-              name="command"
-              value={editableTemplate.command}
-              onChange={handleChange}
-              className="mt-1 p-2 border rounded-default w-full bg-surface-0 text-text-primary"
-            />
-          </label>
-          <label htmlFor="template-docs" className="text-text-primary">
-            <strong>Documentation URL:</strong>
-            <input
-              id="template-docs"
-              type="url"
-              name="docs"
-              value={editableTemplate.docs || ''}
-              onChange={handleChange}
-              placeholder="https://docs.example.com/..."
-              className="mt-1 p-2 border rounded-default w-full bg-surface-0 text-text-primary"
-            />
-          </label>
+          {EDITABLE_PROPERTIES.map(({ key, label, type = "text", multiline, placeholder }) => (
+            <label key={key} htmlFor={`template-${key}`} className="text-text-primary">
+              <strong>{label}:</strong>
+              {multiline ? (
+                <textarea
+                  id={`template-${key}`}
+                  name={key}
+                  value={editableTemplate[key] ?? ""}
+                  onChange={handleChange}
+                  className={`${INPUT_CLASS} h-24`}
+                />
+              ) : (
+                <input
+                  id={`template-${key}`}
+                  type={type}
+                  name={key}
+                  value={editableTemplate[key] ?? ""}
+                  onChange={handleChange}
+                  placeholder={placeholder}
+                  className={INPUT_CLASS}
+                />
+              )}
+            </label>
+          ))}
         </div>
       ) : (
         <>

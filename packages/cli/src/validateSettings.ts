@@ -1,19 +1,14 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
-/**
- * @quotentiroler/guido-cli - Validate Settings CLI
- * 
- * Validates a settings file against a Guido template.
- * - Applies rules to determine which fields should be set
- * - Validates field values against their range constraints
- * - Reports missing required fields and invalid values
- */
-import { readFileSync, existsSync } from 'fs';
-import { resolve, extname } from 'path';
-import { flattenObject, parseKeyValueFormat, toFieldValues } from '@quotentiroler/guido-core';
-import { validateSettings, type ValidationIssue } from './settingsValidation.js';
-import type { Template, FieldValue, RuleSet } from '@quotentiroler/guido-types';
-import * as yaml from 'js-yaml';
+import {
+  listRuleSetTags,
+  selectRuleSets,
+  validateSettings,
+  type SettingsValidationIssue,
+} from '@quotentiroler/guido-core';
+import type { Template, RuleSet } from '@quotentiroler/guido-types';
+import { parseArgv, wantsHelp } from './cliArgs.js';
+import { exitWithUsage, isEntryPoint, loadSettings, loadTemplate } from './cliIO.js';
 
 interface ValidateOptions {
   templatePath: string;
@@ -24,8 +19,7 @@ interface ValidateOptions {
   json: boolean;
 }
 
-function printUsage() {
-  console.log(`
+const USAGE = `
 Usage: guido-validate-settings <template-file> <settings-file> [options]
 
 Validates a settings file against a Guido template by:
@@ -59,124 +53,61 @@ Examples:
 
   # Output as JSON for CI/CD
   guido-validate-settings template.guido.json settings.json --json
-  `);
-}
+  `;
 
-function parseArgs(args: string[]): ValidateOptions | null {
-  if (args.length === 0 || args.includes('--help') || args.includes('-h')) {
+export function parseValidateSettingsArgs(args: readonly string[]): ValidateOptions | null {
+  if (args.length === 0 || wantsHelp(args)) {
     return null;
   }
 
-  const options: ValidateOptions = {
-    templatePath: '',
-    settingsPath: '',
-    strict: false,
-    json: false,
-  };
+  const parsed = parseArgv(args, {
+    values: [
+      { key: 'ruleset', names: ['--ruleset'], ignoreWithoutValue: true },
+      { key: 'tag', names: ['--tag'], ignoreWithoutValue: true },
+    ],
+    flags: [
+      { key: 'strict', names: ['--strict'] },
+      { key: 'json', names: ['--json'] },
+    ],
+  });
+  const [templatePath = '', settingsPath = ''] = parsed.positionals.filter((arg) => arg !== '');
 
-  let i = 0;
-  while (i < args.length) {
-    const arg = args[i];
-
-    if (arg === '--ruleset' && args[i + 1]) {
-      options.rulesetName = args[++i];
-    } else if (arg === '--tag' && args[i + 1]) {
-      options.rulesetTag = args[++i];
-    } else if (arg === '--strict') {
-      options.strict = true;
-    } else if (arg === '--json') {
-      options.json = true;
-    } else if (!arg.startsWith('-')) {
-      if (!options.templatePath) {
-        options.templatePath = arg;
-      } else if (!options.settingsPath) {
-        options.settingsPath = arg;
-      }
-    }
-    i++;
-  }
-
-  if (!options.templatePath) {
+  if (!templatePath) {
     console.error('Error: Template file is required');
     return null;
   }
-  if (!options.settingsPath) {
+  if (!settingsPath) {
     console.error('Error: Settings file is required');
     return null;
   }
 
-  return options;
-}
-
-function loadTemplate(path: string): Template {
-  const absolutePath = resolve(path);
-  if (!existsSync(absolutePath)) {
-    throw new Error(`Template file not found: ${absolutePath}`);
-  }
-  const content = readFileSync(absolutePath, 'utf-8');
-  return JSON.parse(content) as Template;
-}
-
-function loadSettings(path: string): Record<string, FieldValue> {
-  const absolutePath = resolve(path);
-  if (!existsSync(absolutePath)) {
-    throw new Error(`Settings file not found: ${absolutePath}`);
-  }
-  const content = readFileSync(absolutePath, 'utf-8');
-  const ext = extname(path).toLowerCase();
-  
-  if (ext === '.json') {
-    const parsed = JSON.parse(content) as Record<string, unknown>;
-    const flattened = flattenObject(parsed);
-    return toFieldValues(flattened);
-  }
-  
-  if (ext === '.yaml' || ext === '.yml') {
-    const parsed = yaml.load(content) as Record<string, unknown>;
-    const flattened = flattenObject(parsed);
-    return toFieldValues(flattened);
-  }
-  
-  if (ext === '.properties' || ext === '.env' || ext === '.txt') {
-    const parsed = parseKeyValueFormat(content);
-    return toFieldValues(parsed);
-  }
-  
-  throw new Error(`Unsupported settings format: ${ext}. Supported: .json, .yaml, .yml, .properties, .env`);
+  return {
+    templatePath,
+    settingsPath,
+    rulesetName: parsed.value('ruleset'),
+    rulesetTag: parsed.value('tag'),
+    strict: parsed.flag('strict'),
+    json: parsed.flag('json'),
+  };
 }
 
 function findRuleSet(template: Template, options: ValidateOptions): RuleSet | null {
   const allRuleSets = template.ruleSets || [];
-  
   if (allRuleSets.length === 0) {
     return null;
   }
-  
+
+  const found = selectRuleSets(template, { rulesetName: options.rulesetName, tag: options.rulesetTag }).at(0);
+  if (found) {
+    return found;
+  }
   if (options.rulesetName) {
-    const found = allRuleSets.find(rs => 
-      rs.name.toLowerCase() === options.rulesetName!.toLowerCase()
-    );
-    if (!found) {
-      throw new Error(`RuleSet "${options.rulesetName}" not found. Available: ${allRuleSets.map(rs => rs.name).join(', ')}`);
-    }
-    return found;
+    throw new Error(`RuleSet "${options.rulesetName}" not found. Available: ${allRuleSets.map(rs => rs.name).join(', ')}`);
   }
-  
-  if (options.rulesetTag) {
-    const found = allRuleSets.find(rs => 
-      rs.tags?.some(t => t.toLowerCase() === options.rulesetTag!.toLowerCase())
-    );
-    if (!found) {
-      const allTags = [...new Set(allRuleSets.flatMap(rs => rs.tags || []))];
-      throw new Error(`No rulesets found with tag "${options.rulesetTag}". Available tags: ${allTags.join(', ') || '(none)'}`);
-    }
-    return found;
-  }
-  
-  return allRuleSets[0];
+  throw new Error(`No rulesets found with tag "${options.rulesetTag}". Available tags: ${listRuleSetTags(template).join(', ') || '(none)'}`);
 }
 
-function formatIssue(issue: ValidationIssue): string {
+function formatIssue(issue: SettingsValidationIssue): string {
   const icon = issue.type === 'missing' ? '❌' : issue.type === 'invalid' ? '🔴' : '⚠️';
   let msg = `${icon} ${issue.field}: ${issue.message}`;
   if (issue.expected) {
@@ -190,15 +121,13 @@ function formatIssue(issue: ValidationIssue): string {
 
 function main() {
   const args = process.argv.slice(2);
-  const options = parseArgs(args);
+  const options = parseValidateSettingsArgs(args);
   
   if (!options) {
-    printUsage();
-    process.exit(args.includes('--help') || args.includes('-h') ? 0 : 2);
+    exitWithUsage(USAGE, wantsHelp(args), 2);
   }
   
   try {
-    // Load template and settings
     const template = loadTemplate(options.templatePath);
     const settings = loadSettings(options.settingsPath);
     
@@ -207,22 +136,18 @@ function main() {
       console.error(`📁 Settings: ${options.settingsPath} (${Object.keys(settings).length} fields)`);
     }
     
-    // Find the ruleset to use
     const ruleSet = findRuleSet(template, options);
     if (!options.json && ruleSet) {
       console.error(`📦 RuleSet: "${ruleSet.name}" (${ruleSet.rules.length} rules)`);
     }
     
-    // Validate
     const result = validateSettings(template, settings, ruleSet);
     
-    // Output
     if (options.json) {
       console.log(JSON.stringify(result, null, 2));
     } else {
       console.error('');
       
-      // Show issues
       const errors = result.issues.filter(i => i.type !== 'warning');
       const warnings = result.issues.filter(i => i.type === 'warning');
       
@@ -238,7 +163,6 @@ function main() {
         console.error('');
       }
       
-      // Summary
       const { summary } = result;
       console.error(`Summary: ${summary.validFields}/${summary.totalFields} valid fields`);
       if (summary.missingRequired > 0) {
@@ -258,7 +182,6 @@ function main() {
       }
     }
     
-    // Exit code
     if (!result.isValid) {
       process.exit(1);
     }
@@ -277,4 +200,4 @@ function main() {
   }
 }
 
-main();
+if (isEntryPoint(import.meta.url)) main();

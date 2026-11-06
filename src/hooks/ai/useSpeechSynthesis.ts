@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { logger } from '@/utils/logger';
 
 export interface Voice {
   name: string;
@@ -97,7 +98,7 @@ export function useSpeechSynthesis(): UseSpeechSynthesisReturn {
       setVoices(mappedVoices);
       
       // Log all available voices for debugging
-      console.log('[Guido TTS] Available voices:', mappedVoices.map(v => `${v.name} (${v.lang})`));
+      logger.debug('[TTS] Available voices:', mappedVoices.map(v => `${v.name} (${v.lang})`));
       
       // Auto-select a good English voice for Guido - prefer male/robotic sounding
       if (mappedVoices.length > 0 && !selectedVoice) {
@@ -124,7 +125,7 @@ export function useSpeechSynthesis(): UseSpeechSynthesisReturn {
         const defaultVoice = mappedVoices.find(v => v.default);
         
         const selected = maleVoice || googleMaleVoice || googleVoice || englishVoice || defaultVoice || mappedVoices[0];
-        console.log('[Guido TTS] Selected voice:', selected?.name, '| from options:', {
+        logger.debug('[TTS] Selected voice:', selected?.name, '| from options:', {
           maleVoice: maleVoice?.name,
           googleMaleVoice: googleMaleVoice?.name,
           googleVoice: googleVoice?.name,
@@ -193,7 +194,7 @@ export function useSpeechSynthesis(): UseSpeechSynthesisReturn {
       const matchingVoice = availableVoices.find(v => v.name === selectedVoice.name);
       if (matchingVoice) {
         utterance.voice = matchingVoice;
-        console.log('[Guido TTS] speak() using pre-selected voice:', matchingVoice.name);
+        logger.debug('[TTS] speak() using pre-selected voice:', matchingVoice.name);
       }
     } else if (availableVoices.length > 0) {
       // Fallback: Priority: Microsoft David > Microsoft Mark > Google US > any male-sounding > any English
@@ -206,7 +207,7 @@ export function useSpeechSynthesis(): UseSpeechSynthesisReturn {
       
       if (preferredVoice) {
         utterance.voice = preferredVoice;
-        console.log('[Guido TTS] speak() using fallback voice:', preferredVoice.name);
+        logger.debug('[TTS] speak() using fallback voice:', preferredVoice.name);
       }
     }
     
@@ -254,7 +255,7 @@ export function useSpeechSynthesis(): UseSpeechSynthesisReturn {
         const matchingVoice = availableVoices.find(v => v.name === selectedVoice.name);
         if (matchingVoice) {
           utterance.voice = matchingVoice;
-          console.log('[Guido TTS] Using pre-selected voice:', matchingVoice.name);
+          logger.debug('[TTS] Using pre-selected voice:', matchingVoice.name);
         }
       } else if (availableVoices.length > 0) {
         // Fallback: find a preferred voice directly
@@ -267,7 +268,7 @@ export function useSpeechSynthesis(): UseSpeechSynthesisReturn {
         
         if (preferredVoice) {
           utterance.voice = preferredVoice;
-          console.log('[Guido TTS] Using fallback voice:', preferredVoice.name);
+          logger.debug('[TTS] Using fallback voice:', preferredVoice.name);
         }
       }
       

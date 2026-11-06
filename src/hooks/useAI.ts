@@ -1,10 +1,4 @@
-import { useContext } from 'react';
-import { AIContext, type AIContextType } from '@/context/AIContext';
+import { createContextHook } from '@/utils/createContextHook';
+import { AIContext } from '@/context/AIContext';
 
-export const useAI = (): AIContextType => {
-  const context = useContext(AIContext);
-  if (!context) {
-    throw new Error('useAI must be used within an AIProvider');
-  }
-  return context;
-};
+export const useAI = createContextHook(AIContext, 'useAI', 'AIProvider');

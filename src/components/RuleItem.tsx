@@ -1,7 +1,7 @@
 import React from "react";
 import { translateRule } from "@quotentiroler/guido-core";
 import IconWithTooltip from "./shared/FancyIcon";
-import AddOrEditRuleModal from "./AddRuleModal";
+import AddOrEditRuleModal from "@/components/modals/AddRuleModal";
 import { type Rule } from "@quotentiroler/guido-types";
 import { useAppContext } from "@/hooks/useAppContext";
 

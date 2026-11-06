@@ -53,3 +53,15 @@ export type ToolResult = {
   content: Array<{ type: 'text'; text: string }>;
   isError?: boolean;
 };
+
+export function textResult(value: unknown): ToolResult {
+  return { content: [{ type: 'text', text: typeof value === 'string' ? value : JSON.stringify(value, null, 2) }] };
+}
+
+export function messageOf(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+export function errorResult(error: unknown): ToolResult {
+  return { content: [{ type: 'text', text: messageOf(error) }], isError: true };
+}
