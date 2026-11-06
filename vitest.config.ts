@@ -1,5 +1,7 @@
 import { defineConfig } from 'vitest/config';
+import { defaultServerConditions } from 'vite';
 import path from 'path';
+import { SOURCE_CONDITION } from './vite.config';
 
 export default defineConfig({
   test: {
@@ -27,6 +29,11 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+    },
+  },
+  ssr: {
+    resolve: {
+      conditions: [SOURCE_CONDITION, ...defaultServerConditions],
     },
   },
 });

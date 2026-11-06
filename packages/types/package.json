@@ -1,19 +1,19 @@
 {
   "name": "@quotentiroler/guido-types",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Shared TypeScript types for Guido configuration templates",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "@quotentiroler/guido-source": "./src/index.ts",
       "types": "./dist/index.d.ts",
-      "development": "./src/index.ts",
       "default": "./dist/index.js"
     },
     "./schemas": {
+      "@quotentiroler/guido-source": "./src/schemas.ts",
       "types": "./dist/schemas.d.ts",
-      "development": "./src/schemas.ts",
       "default": "./dist/schemas.js"
     }
   },

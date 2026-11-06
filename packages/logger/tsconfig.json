@@ -13,7 +13,10 @@
     "declaration": true,
     "declarationMap": true,
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "customConditions": [
+      "@quotentiroler/guido-source"
+    ]
   },
   "include": [
     "src/**/*"

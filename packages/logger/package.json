@@ -1,14 +1,14 @@
 {
   "name": "@quotentiroler/guido-logger",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Logging utilities for Guido packages",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "@quotentiroler/guido-source": "./src/index.ts",
       "types": "./dist/index.d.ts",
-      "development": "./src/index.ts",
       "default": "./dist/index.js"
     }
   },

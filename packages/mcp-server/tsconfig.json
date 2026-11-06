@@ -18,7 +18,10 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "customConditions": [
+      "@quotentiroler/guido-source"
+    ]
   },
   "include": [
     "src/**/*"

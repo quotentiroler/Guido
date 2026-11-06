@@ -1,6 +1,6 @@
 {
   "name": "@quotentiroler/guido-cli",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "CLI tools for Guido template validation and schema conversion",
   "type": "module",
   "main": "./dist/index.js",
@@ -14,33 +14,33 @@
   },
   "exports": {
     ".": {
+      "@quotentiroler/guido-source": "./src/index.ts",
       "types": "./dist/index.d.ts",
-      "development": "./src/index.ts",
       "default": "./dist/index.js"
     },
     "./validateTemplate": {
+      "@quotentiroler/guido-source": "./src/validateTemplate.ts",
       "types": "./dist/validateTemplate.d.ts",
-      "development": "./src/validateTemplate.ts",
       "default": "./dist/validateTemplate.js"
     },
     "./validateSettings": {
+      "@quotentiroler/guido-source": "./src/validateSettings.ts",
       "types": "./dist/validateSettings.d.ts",
-      "development": "./src/validateSettings.ts",
       "default": "./dist/validateSettings.js"
     },
     "./applyRules": {
+      "@quotentiroler/guido-source": "./src/applyRules.ts",
       "types": "./dist/applyRules.d.ts",
-      "development": "./src/applyRules.ts",
       "default": "./dist/applyRules.js"
     },
     "./schemaToGuido": {
+      "@quotentiroler/guido-source": "./src/schemaToGuido.ts",
       "types": "./dist/schemaToGuido.d.ts",
-      "development": "./src/schemaToGuido.ts",
       "default": "./dist/schemaToGuido.js"
     },
     "./guidoToSchema": {
+      "@quotentiroler/guido-source": "./src/guidoToSchema.ts",
       "types": "./dist/guidoToSchema.d.ts",
-      "development": "./src/guidoToSchema.ts",
       "default": "./dist/guidoToSchema.js"
     }
   },

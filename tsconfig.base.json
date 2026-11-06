@@ -12,6 +12,7 @@
     "noFallthroughCasesInSwitch": true,
     "module": "esnext",
     "moduleResolution": "bundler",
+    "customConditions": ["@quotentiroler/guido-source"],
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": false,

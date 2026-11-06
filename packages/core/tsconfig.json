@@ -15,7 +15,10 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "customConditions": [
+      "@quotentiroler/guido-source"
+    ]
   },
   "include": [
     "src/**/*"

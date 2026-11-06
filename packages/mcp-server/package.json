@@ -1,43 +1,43 @@
 {
   "name": "@quotentiroler/guido-mcp-server",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "MCP Server for Guido template management - CRUD operations for fields and rules",
   "type": "module",
   "main": "./dist/index.js",
   "exports": {
     ".": {
+      "@quotentiroler/guido-source": "./src/index.ts",
       "types": "./dist/index.d.ts",
-      "development": "./src/index.ts",
       "default": "./dist/index.js"
     },
     "./definitions": {
+      "@quotentiroler/guido-source": "./src/exports.ts",
       "types": "./dist/exports.d.ts",
-      "development": "./src/exports.ts",
       "default": "./dist/exports.js"
     },
     "./store": {
+      "@quotentiroler/guido-source": "./src/store/index.ts",
       "types": "./dist/store/index.d.ts",
-      "development": "./src/store/index.ts",
       "default": "./dist/store/index.js"
     },
     "./store/types": {
+      "@quotentiroler/guido-source": "./src/store/types.ts",
       "types": "./dist/store/types.d.ts",
-      "development": "./src/store/types.ts",
       "default": "./dist/store/types.js"
     },
     "./store/memory": {
+      "@quotentiroler/guido-source": "./src/store/memory-store.ts",
       "types": "./dist/store/memory-store.d.ts",
-      "development": "./src/store/memory-store.ts",
       "default": "./dist/store/memory-store.js"
     },
     "./store/change-tracker": {
+      "@quotentiroler/guido-source": "./src/store/change-tracker.ts",
       "types": "./dist/store/change-tracker.d.ts",
-      "development": "./src/store/change-tracker.ts",
       "default": "./dist/store/change-tracker.js"
     },
     "./template-utils": {
+      "@quotentiroler/guido-source": "./src/template-utils.ts",
       "types": "./dist/template-utils.d.ts",
-      "development": "./src/template-utils.ts",
       "default": "./dist/template-utils.js"
     }
   },
