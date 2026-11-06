@@ -1,6 +1,6 @@
 import type { FieldValue, Template } from '@quotentiroler/guido-types';
 import { selectValidationRuleSets, type RuleSetSelection } from './rulesetUtils.js';
-import { validateSettings, type SettingsValidationResult } from './settingsValidation.js';
+import { validateSettings, type SettingsValidationOptions, type SettingsValidationResult } from './settingsValidation.js';
 
 export interface RuleSetSettingsValidation {
   ruleSet: string | null;
@@ -9,7 +9,7 @@ export interface RuleSetSettingsValidation {
   passed: boolean;
 }
 
-export interface SettingsSelectionOptions {
+export interface SettingsSelectionOptions extends SettingsValidationOptions {
   strict?: boolean;
 }
 
@@ -23,7 +23,7 @@ export function validateSettingsSelection(
   const ruleSets = selectValidationRuleSets(template, selection);
   const targets = ruleSets.length > 0 ? ruleSets : [null];
   return targets.map((ruleSet) => {
-    const result = validateSettings(template, settings, ruleSet);
+    const result = validateSettings(template, settings, ruleSet, { deployTimeKeys: options.deployTimeKeys });
     return {
       ruleSet: ruleSet?.name ?? null,
       result,
