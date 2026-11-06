@@ -15,6 +15,11 @@
       "@quotentiroler/guido-source": "./src/schemas.ts",
       "types": "./dist/schemas.d.ts",
       "default": "./dist/schemas.js"
+    },
+    "./contract": {
+      "@quotentiroler/guido-source": "./src/contract.ts",
+      "types": "./dist/contract.d.ts",
+      "default": "./dist/contract.js"
     }
   },
   "publishConfig": {

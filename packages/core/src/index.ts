@@ -25,7 +25,7 @@ export {
 export type { InheritanceValidationResult, RuleSetSelection } from './rulesetUtils.js';
 
 export { validateSettings } from './settingsValidation.js';
-export type { SettingsValidationIssue, SettingsValidationResult } from './settingsValidation.js';
+export type { SettingsValidationIssue, SettingsValidationOptions, SettingsValidationResult } from './settingsValidation.js';
 export { validateSettingsSelection } from './settingsSelection.js';
 export type { RuleSetSettingsValidation, SettingsSelectionOptions } from './settingsSelection.js';
 

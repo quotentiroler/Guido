@@ -14,6 +14,11 @@ export interface SettingsValidationIssue {
   actual?: string;
 }
 
+export interface SettingsValidationOptions {
+  /** Keys supplied at deploy time: present and non-empty, but their value is unknown, so value checks skip them. */
+  deployTimeKeys?: Iterable<string>;
+}
+
 export interface SettingsValidationResult {
   isValid: boolean;
   issues: SettingsValidationIssue[];
@@ -29,6 +34,12 @@ export interface SettingsValidationResult {
 /** Targets that constrain a value; a plain `set` target is a requirement, checked as such. */
 const VALUE_STATES: ReadonlySet<string> = new Set([RuleState.SetToValue, RuleState.Contains]);
 
+/** NaN equals nothing and is not empty: a deploy-time field counts as set but meets no value condition. */
+const UNKNOWN_VALUE = Number.NaN;
+
+const shownValue = (field: Field | undefined, value: FieldValue | undefined): string | undefined =>
+  field?.secret ? undefined : String(value);
+
 const constrainsValue = (target: RuleDomain): boolean =>
   VALUE_STATES.has(target.state) || (target.state === RuleState.Set && target.not === true);
 
@@ -39,19 +50,23 @@ function targetFieldNames(target: RuleDomain, fieldMap: Map<string, Field>): str
   return [...fieldMap.keys()].filter((name) => name.startsWith(prefix));
 }
 
-/** Value targets the settings do not satisfy; a field already reported missing is not reported again. */
-function valueRuleViolations(rules: Rule[], fieldMap: Map<string, Field>, missing: ReadonlySet<string>): SettingsValidationIssue[] {
+/** Value targets the settings do not satisfy; a field already reported missing, or supplied at deploy time, is skipped. */
+function valueRuleViolations(
+  rules: Rule[],
+  fieldMap: Map<string, Field>,
+  skip: ReadonlySet<string>
+): SettingsValidationIssue[] {
   const issues: SettingsValidationIssue[] = [];
   for (const rule of rules) {
     for (const target of rule.targets) {
-      if (!constrainsValue(target) || missing.has(target.name) || conditionHolds(target, fieldMap)) continue;
+      if (!constrainsValue(target) || skip.has(target.name) || conditionHolds(target, fieldMap)) continue;
       const field = fieldMap.get(target.name);
       issues.push({
         field: target.name,
         type: 'invalid',
         message: `Violates rule "${rule.description ?? 'unnamed'}"`,
         expected: describeCondition(target),
-        actual: isFieldSet(field) ? String(field?.value) : '(not set)',
+        actual: isFieldSet(field) ? shownValue(field, field?.value) : '(not set)',
       });
     }
   }
@@ -65,7 +80,8 @@ function valueRuleViolations(rules: Rule[], fieldMap: Map<string, Field>, missin
 export function validateSettings(
   template: Template,
   settings: Record<string, FieldValue>,
-  ruleSet: RuleSet | null
+  ruleSet: RuleSet | null,
+  options: SettingsValidationOptions = {}
 ): SettingsValidationResult {
   const issues: SettingsValidationIssue[] = [];
   const rules = ruleSet ? resolveRuleSetRules(template, ruleSet.name) : [];
@@ -74,13 +90,15 @@ export function validateSettings(
         (name) => template.ruleSets.find((rs) => rs.name === name)?.constraints ?? []
       )
     : [];
-  const settingsKeys = new Set(Object.keys(settings));
+  const deployTime = new Set(options.deployTimeKeys ?? []);
+  const settingsKeys = new Set([...Object.keys(settings), ...deployTime]);
 
-  const fields: Field[] = template.fields.map((field) =>
-    settingsKeys.has(field.name)
+  const fields: Field[] = template.fields.map((field) => {
+    if (deployTime.has(field.name)) return { ...field, value: UNKNOWN_VALUE, checked: true };
+    return settingsKeys.has(field.name)
       ? { ...field, value: settings[field.name], checked: !isFieldValueEmpty(settings[field.name]) }
-      : { ...field, checked: false }
-  );
+      : { ...field, checked: false };
+  });
   const fieldMap = new Map(fields.map((f) => [f.name, f]));
   const activeRules = rules.filter((rule) => ruleConditionsHold(rule, fieldMap));
   const required = new Set([
@@ -114,6 +132,10 @@ export function validateSettings(
       if (settingsKeys.has(field.name)) validFields++;
       continue;
     }
+    if (deployTime.has(field.name)) {
+      validFields++;
+      continue;
+    }
 
     if (field.range && field.range !== 'string' && !validateValue(field.value, field.range)) {
       issues.push({
@@ -121,7 +143,7 @@ export function validateSettings(
         type: 'invalid',
         message: `Value does not match expected range`,
         expected: translateRangeToHumanReadable(field.range),
-        actual: String(field.value),
+        actual: shownValue(field, field.value),
       });
       invalidValues++;
       continue;
@@ -140,7 +162,7 @@ export function validateSettings(
     }
   }
 
-  for (const issue of valueRuleViolations(activeRules, fieldMap, missing)) {
+  for (const issue of valueRuleViolations(activeRules, fieldMap, new Set([...missing, ...deployTime]))) {
     issues.push(issue);
     invalidValues++;
   }

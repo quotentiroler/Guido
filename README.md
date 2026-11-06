@@ -147,6 +147,7 @@ Each field describes a configuration option:
 | `range`   | string                                 | Validation rule (see below)                                        |
 | `link`    | string?                                | URL to documentation                                               |
 | `checked` | boolean?                               | Whether field is enabled for export                                |
+| `secret`  | boolean?                               | Never printed with a value in generated files or messages          |
 
 **Range Types:**
 
@@ -255,6 +256,40 @@ npm run schema-to-guido "schema.json" -o "output.guido.json" \
 ```bash
 npm run guido-to-schema "template.guido.json" -o "output.schema.json"
 ```
+
+### Configuration Contract
+
+`guido-contract` keeps a template, the code that reads its settings, the docs and env example generated from it, and every environment's settings in agreement. It reads `guido.contract.json` (`--config` to override; `guido-contract schema` prints its JSON Schema):
+
+```json
+{
+  "template": "app.guido.json",
+  "scan": {
+    "files": [{ "include": ["src/**/*.ts"], "exclude": ["**/*.test.ts"], "patterns": ["process-env", "workers-env"] }],
+    "ignore": ["CI"],
+    "ignoreBindingsFrom": ["wrangler.toml"]
+  },
+  "generate": {
+    "docs": { "path": "docs/environment-variables.md" },
+    "envExample": { "path": ".env.example", "requiredRuleset": "Deployed" }
+  },
+  "targets": [
+    { "name": "prod", "source": { "type": "compose", "path": "docker-compose.prod.yml", "service": "api" }, "ruleset": "Deployed", "strict": true },
+    { "name": "edge", "source": { "type": "wrangler", "path": "wrangler.toml", "env": "production", "secrets": { "file": "secrets.json" } }, "tag": "edge" }
+  ]
+}
+```
+
+```bash
+guido-contract check     # generated files current, code reads match the template's fields
+guido-contract generate  # rewrite <!-- guido:fields #anchor --> tables and the env example
+guido-contract validate [--target prod]
+guido-contract all
+```
+
+- **Scan patterns**: `process-env`, `env-helper-call` (`intEnv('X')`), `workers-env` (`env.X`, `c.env.X`, destructuring), `import-meta-env`, `spring-placeholder`, `java-getenv`, or `{ "regex": "...", "flags": "m" }` with one capture group.
+- **Sources**: `dotenv`, `file` (json, yaml, ini, properties, ... via `format`), `compose` (`${X:-d}` gives `d`, `${X}` is supplied at deploy time; `interpolate` resolves references from another source), `wrangler` (toml/json/jsonc vars of the top level or one `env`), `spring` (`dir`, layered `profiles`), `secrets` (names only), `values` (literals) and `merge`. Every source takes `secrets` (names supplied at deploy time, inline or from a file such as `wrangler secret list --format json`), `select` (keep and rename keys) and `excludePrefixes`.
+- Keys supplied at deploy time count as present; their values are not range- or rule-checked. Paths resolve against `root` (default: the config's directory). With `GITHUB_ACTIONS` set, problems print as `::error::` annotations.
 
 ## Available Scripts
 
