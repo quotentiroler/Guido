@@ -196,6 +196,9 @@ export const FieldSchema = z.object({
   
   /** Whether the field is checked/selected */
   checked: z.boolean().optional(),
+
+  /** Secret fields are never printed with a value in generated files or validation messages (default false) */
+  secret: z.boolean().optional().describe('Whether the value is a secret: generated files and messages never show it. Defaults to false.'),
 });
 
 /**

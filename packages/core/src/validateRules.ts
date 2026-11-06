@@ -1,5 +1,6 @@
 import { RuleState, type Rule, type RuleDomain, type Field, type CardinalityConstraint } from '@quotentiroler/guido-types';
-import { validateValue, translateRangeToHumanReadable } from './fieldUtils.js';
+import { isFieldSet, validateValue } from './fieldUtils.js';
+import { translateRangeToHumanReadable } from './rangeDescription.js';
 import { describeCondition } from './ruleTranslation.js';
 import { hasItem } from './membership.js';
 
@@ -460,15 +461,6 @@ export function validateRulesAgainstFields(rules: Rule[], fields: Field[]): Vali
 
   return { isValid: errors.length === 0, errors, warnings: [] };
 }
-/** A field counts as "set" for cardinality: enabled with a non-empty value. */
-function isSet(field: Field | undefined): boolean {
-  if (!field || field.checked !== true) return false;
-  const v = field.value;
-  if (v === undefined || v === null) return false;
-  if (typeof v === 'string') return v.trim() !== '';
-  if (Array.isArray(v)) return v.length > 0;
-  return true;
-}
 
 /**
  * Validate cardinality constraints against the current field values: each constraint
@@ -479,14 +471,14 @@ export function validateCardinality(constraints: CardinalityConstraint[], fields
   const byName = new Map(fields.map((f) => [f.name, f]));
   const errors: string[] = [];
   for (const c of constraints) {
-    const setCount = c.fields.filter((name) => isSet(byName.get(name))).length;
+    const setCount = c.fields.filter((name) => isFieldSet(byName.get(name))).length;
     const label = c.fields.map((f) => `"${f}"`).join(', ');
     if (c.kind === 'exactly-one' && setCount !== 1) {
       errors.push(`Exactly one of ${label} must be set, but ${setCount} are.`);
     } else if (c.kind === 'at-least-one' && setCount < 1) {
       errors.push(`At least one of ${label} must be set, but none are.`);
     } else if (c.kind === 'all-or-none' && setCount > 0 && setCount < c.fields.length) {
-      const unset = c.fields.filter((name) => !isSet(byName.get(name))).map((f) => `"${f}"`).join(', ');
+      const unset = c.fields.filter((name) => !isFieldSet(byName.get(name))).map((f) => `"${f}"`).join(', ');
       errors.push(`${label} must be set together or not at all, but ${unset} ${c.fields.length - setCount === 1 ? 'is' : 'are'} missing.`);
     } else if (c.kind === 'at-most-one' && setCount > 1) {
       errors.push(`At most one of ${label} may be set, but ${setCount} are.`);

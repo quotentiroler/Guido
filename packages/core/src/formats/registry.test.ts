@@ -35,6 +35,10 @@ describe('detectFormat', () => {
     expect(detectFormat(filename)).toBe(expected);
   });
 
+  it.each(['.env.example', '.env.local', '.env.production'])('reads the dotenv variant %s as env', (filename) => {
+    expect(detectFormat(filename)).toBe('env');
+  });
+
   it('is case insensitive', () => {
     expect(detectFormat('CONFIG.INI')).toBe('ini');
   });
@@ -119,5 +123,51 @@ describe('parseSettings', () => {
     for (const format of CONFIG_FORMATS) {
       expect(parseSettings('', format)).toEqual({});
     }
+  });
+});
+
+describe('parseSettings rejects a malformed document', () => {
+  it('throws on invalid JSON instead of returning no settings', () => {
+    expect(() => parseSettings('{"Server": ', 'json')).toThrow(/JSON/);
+  });
+
+  it('throws on a document that is not an object', () => {
+    expect(() => parseSettings('["a"]', 'json')).toThrow(/object/);
+    expect(() => parseSettings('- a\n- b\n', 'yaml')).toThrow(/object/);
+  });
+
+  it('still accepts comments and trailing commas in JSON', () => {
+    expect(parseSettings('{\n  // note\n  "A": 1,\n}', 'json')).toEqual({ A: 1 });
+  });
+});
+
+describe('parseSettings with template fields', () => {
+  const typed = (name: string, range: string): Field => ({ ...f(name, ''), range });
+  const fields = [typed('CRON_JOBS', '(a||b)[]'), typed('PORTS', 'integer[]'), typed('TAGS', 'string[1..]'), typed('NAME', 'string')];
+
+  it('splits a comma list for an array-typed field read from a flat format', () => {
+    expect(parseSettings('CRON_JOBS=a,b\nPORTS=80, 443\nTAGS=x\nNAME=x,y', 'env', { fields })).toEqual({
+      CRON_JOBS: ['a', 'b'],
+      PORTS: [80, 443],
+      TAGS: ['x'],
+      NAME: 'x,y',
+    });
+  });
+
+  it.each(['properties', 'txt'] as const)('splits in %s too', (format) => {
+    expect(parseSettings('CRON_JOBS=a, b', format, { fields })).toEqual({ CRON_JOBS: ['a', 'b'] });
+  });
+
+  it('splits ini and args values', () => {
+    expect(parseSettings('CRON_JOBS = a,b', 'ini', { fields })).toEqual({ CRON_JOBS: ['a', 'b'] });
+    expect(parseSettings('--CRON_JOBS a,b --PORTS 80 443', 'args', { fields })).toEqual({ CRON_JOBS: ['a', 'b'], PORTS: [80, 443] });
+  });
+
+  it('keeps a JSON array string and an empty value as written', () => {
+    expect(parseSettings('CRON_JOBS=["a"]\nPORTS=', 'env', { fields })).toEqual({ CRON_JOBS: '["a"]', PORTS: '' });
+  });
+
+  it('leaves structured formats alone', () => {
+    expect(parseSettings('{"CRON_JOBS":"a,b"}', 'json', { fields })).toEqual({ CRON_JOBS: 'a,b' });
   });
 });

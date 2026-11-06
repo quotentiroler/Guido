@@ -57,7 +57,7 @@ export function registerImportExportTools({ server, store }: ToolContext) {
 
       let settings: Record<string, FieldValue>;
       try {
-        settings = parseSettings(content, detectedFormat);
+        settings = parseSettings(content, detectedFormat, { fields: template.fields });
       } catch (error) {
         return errorResult(`Parse error: ${messageOf(error)}`);
       }

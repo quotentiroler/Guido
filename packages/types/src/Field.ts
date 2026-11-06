@@ -50,11 +50,16 @@ import type { DataType, ParsedRange } from './schemas.js';
  * 
  * ## Enum Options
  * - `"opt1||opt2||opt3"` - Must match one option
+ * - `"(opt1||opt2)[]"` / `"(opt1||opt2)[min..max]"` - Array of options
  * 
  * ## Custom Patterns
- * - A regex pattern (e.g., `"^[A-Z]{3}$"`)
+ * - A regex pattern (e.g., `"^[A-Z]{3}$"`); one anchored with `^` or `$` stays a pattern even with `||`
  */
 export type FieldRange = string;
+
+const isAnchoredPattern = (range: FieldRange): boolean => range.startsWith('^') || range.endsWith('$');
+
+const isEnumList = (range: FieldRange): boolean => range.includes('||') && !isAnchoredPattern(range);
 
 /**
  * Parse a FieldRange DSL string into a structured ParsedRange object.
@@ -93,7 +98,7 @@ export function parseRange(range: FieldRange): ParsedRange {
   }
 
   // Handle bounded arrays: "string[min..max]" or "integer[min..max]"
-  const arrayMatch = range.match(/^(string|integer)\[(\d*)\.\.?(\d*)\]$/);
+  const arrayMatch = range.match(/^(string|integer)\[(?:(\d*)\.\.?(\d*))?\]$/);
   if (arrayMatch) {
     return {
       rangeType: 'array',
@@ -104,7 +109,7 @@ export function parseRange(range: FieldRange): ParsedRange {
   }
 
   // Handle enum arrays: "(opt1||opt2||opt3)[]" or "(opt1||opt2||opt3)[min..max]"
-  const enumArrayMatch = range.match(/^\(([^)]+)\)\[(\d*)\.\.?(\d*)\]$/);
+  const enumArrayMatch = range.match(/^\(([^)]+)\)\[(?:(\d*)\.\.?(\d*))?\]$/);
   if (enumArrayMatch) {
     const optionsStr = enumArrayMatch[1];
     const options = optionsStr.split('||');
@@ -117,7 +122,7 @@ export function parseRange(range: FieldRange): ParsedRange {
   }
 
   // Handle enum options: "opt1||opt2||opt3"
-  if (range.includes('||')) {
+  if (isEnumList(range)) {
     return { rangeType: 'enum', options: range.split('||') };
   }
 

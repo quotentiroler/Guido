@@ -1,6 +1,6 @@
 {
   "name": "@quotentiroler/guido-types",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Shared TypeScript types for Guido configuration templates",
   "type": "module",
   "main": "./dist/index.js",
@@ -15,6 +15,11 @@
       "@quotentiroler/guido-source": "./src/schemas.ts",
       "types": "./dist/schemas.d.ts",
       "default": "./dist/schemas.js"
+    },
+    "./contract": {
+      "@quotentiroler/guido-source": "./src/contract.ts",
+      "types": "./dist/contract.d.ts",
+      "default": "./dist/contract.js"
     }
   },
   "publishConfig": {

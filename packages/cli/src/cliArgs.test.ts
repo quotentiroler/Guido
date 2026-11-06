@@ -32,6 +32,10 @@ describe('guido-apply-rules arguments', () => {
     expect(parseApplyRulesArgs(['', 't.json', 's.json'])).toMatchObject({ templatePath: 't.json', settingsPath: 's.json' });
   });
 
+  it('reads the ruleset to apply', () => {
+    expect(parseApplyRulesArgs(['t.json', '--ruleset', 'Production'])).toMatchObject({ rulesetName: 'Production' });
+  });
+
   it('reads short and long options', () => {
     const expected = { templatePath: 't.json', settingsPath: 's.json', outputPath: 'out.json', format: 'diff', dryRun: true };
     expect(parseApplyRulesArgs(['t.json', 's.json', '-o', 'out.json', '-f', 'diff', '-d'])).toEqual(expected);

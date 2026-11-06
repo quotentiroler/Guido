@@ -6,8 +6,10 @@ import {
   parseKeyValueFormat,
   validateValue,
   mergeSettingsIntoFields,
-  fieldsToNestedObject
+  fieldsToNestedObject,
+  validateSettingsSelection,
 } from '@quotentiroler/guido-core';
+import { settingsReport } from './validateSettings.js';
 
 describe('validateSettings CLI logic', () => {
   const mockTemplate: Template = {
@@ -278,5 +280,44 @@ key3=value3
       expect(result.defined).toBe('value');
       expect(result.undef).toBe('');
     });
+  });
+});
+
+describe('settingsReport', () => {
+  const template: Template = {
+    name: 'Workers',
+    fileName: '.env',
+    version: '1.0.0',
+    description: '',
+    owner: '',
+    fields: [
+      { name: 'PAGES_URL', value: '', info: '', example: '', range: 'string' },
+      { name: 'CRON_SCHEDULE', value: '', info: '', example: '', range: 'string' },
+    ],
+    ruleSets: [
+      { name: 'Pages Beta', description: '', tags: ['beta'], rules: [{ targets: [{ name: 'PAGES_URL', state: RuleState.Set }] }] },
+      { name: 'Cron Beta', description: '', tags: ['beta'], rules: [{ targets: [{ name: 'CRON_SCHEDULE', state: RuleState.Set }] }] },
+    ],
+  };
+
+  it('states a strict failure and its cause instead of "passed"', () => {
+    const validations = validateSettingsSelection(template, { CRON_SCHEDULE: 'x', EXTRA: '1' }, { rulesetName: 'Cron Beta' }, { strict: true });
+    const { lines, exitCode } = settingsReport(template, validations, true);
+    const text = lines.join('\n');
+    expect(exitCode).toBe(1);
+    expect(text).not.toContain('Validation passed');
+    expect(text).toContain('--strict');
+    expect(text).toContain('1 warning');
+    expect(text).toContain('EXTRA');
+  });
+
+  it('reports every ruleset a tag selects and fails when one fails', () => {
+    const validations = validateSettingsSelection(template, { CRON_SCHEDULE: 'x' }, { tag: 'beta' });
+    const { lines, exitCode } = settingsReport(template, validations, false);
+    const text = lines.join('\n');
+    expect(exitCode).toBe(1);
+    expect(text).toContain('RuleSet: "Pages Beta"');
+    expect(text).toContain('RuleSet: "Cron Beta"');
+    expect(text).toContain('1 of 2 rulesets');
   });
 });

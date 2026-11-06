@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isFieldRequired } from '@quotentiroler/guido-core';
+import { checkCondition, isFieldRequired, validateCardinality } from '@quotentiroler/guido-core';
 import { applyRules } from '../utils/applyRules';
 import { RuleState, type Field, type Rule } from '@quotentiroler/guido-types';
 
@@ -328,6 +328,11 @@ describe('isFieldRequired', () => {
     expect(isFieldRequired('Field1', rules)).toBe(true);
   });
 
+  it.each([RuleState.Set, RuleState.SetToValue, RuleState.Contains])('should return false for a negated unconditional %s target', (state) => {
+    const rules: Rule[] = [{ targets: [{ name: 'Field1', state, value: 'beta', not: true }] }];
+    expect(isFieldRequired('Field1', rules)).toBe(false);
+  });
+
   it('should return false for conditional rule', () => {
     const rules: Rule[] = [
       {
@@ -346,5 +351,18 @@ describe('isFieldRequired', () => {
       },
     ];
     expect(isFieldRequired('Field1', rules)).toBe(false);
+  });
+});
+
+describe('an empty value is unset everywhere', () => {
+  const blank = (value: Field['value']): Field => ({ name: 'Key', value, checked: true, info: '', example: '', range: '' });
+
+  it.each([[''], ['   '], [[]]])('a set condition does not hold for %j', (value) => {
+    expect(checkCondition(blank(value), { name: 'Key', state: RuleState.Set })).toBe(false);
+  });
+
+  it.each([[''], ['   '], [[]]])('cardinality agrees with the set condition for %j', (value) => {
+    const fields = [blank(value), { ...blank('x'), name: 'Other' }];
+    expect(validateCardinality([{ kind: 'exactly-one', fields: ['Key', 'Other'] }], fields).isValid).toBe(true);
   });
 });

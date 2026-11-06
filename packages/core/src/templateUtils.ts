@@ -4,8 +4,10 @@
  * Pure functions for template manipulation.
  */
 
-import { type Template, type RuleSet } from '@quotentiroler/guido-types';
-import { hasNestedFields, flattenNestedFields } from './fieldUtils.js';
+import { type Field, type FieldValue, type Template, type RuleSet } from '@quotentiroler/guido-types';
+import { hasNestedFields, flattenNestedFields, isFieldValueEmpty, validateValue } from './fieldUtils.js';
+import { listValueForRange } from './formats/lists.js';
+import { translateRangeToHumanReadable } from './rangeDescription.js';
 
 /**
  * Default empty ruleset - first ruleset is always the default
@@ -82,3 +84,30 @@ export const normalizeTemplateFields = (template: Template): Template => {
     fields: flattenNestedFields(template.fields),
   };
 };
+
+export interface FieldSampleIssue {
+  field: string;
+  property: 'example' | 'value';
+  value: FieldValue;
+  range: string;
+  message: string;
+}
+
+/** Examples and default values that do not fit their field's range; an empty one is unset and passes. */
+export const validateFieldSamples = (fields: readonly Field[]): FieldSampleIssue[] =>
+  fields.flatMap((field) => {
+    if (!field.range) return [];
+    const samples: Array<['example' | 'value', FieldValue]> = [
+      ['example', field.example],
+      ['value', field.value],
+    ];
+    return samples
+      .filter(([, value]) => !isFieldValueEmpty(value) && !validateValue(listValueForRange(value, field.range), field.range))
+      .map(([property, value]) => ({
+        field: field.name,
+        property,
+        value,
+        range: field.range,
+        message: `Field "${field.name}": ${property} ${JSON.stringify(value)} does not match range "${field.range}" (${translateRangeToHumanReadable(field.range)})`,
+      }));
+  });

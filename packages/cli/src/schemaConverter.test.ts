@@ -585,6 +585,30 @@ describe('Guido to Schema Converter', () => {
       });
     });
 
+    it('should convert an enum array range to an array of enum items', () => {
+      const template: Template = {
+        name: 'Enum Array Test',
+        version: '1.0.0',
+        description: '',
+        owner: '',
+        fileName: '',
+        fields: [
+          { name: 'profiles', value: '', info: '', example: '', range: '(production||metrics)[]' },
+          { name: 'pair', value: '', info: '', example: '', range: '(a||b)[1..2]' },
+        ],
+        ruleSets: [{ name: 'Default', description: '', tags: [], rules: [] }],
+      };
+
+      assertValidGuidoTemplate(template);
+      const { schema } = guidoToJsonSchema(template);
+
+      expect(schema.properties?.profiles).toMatchObject({
+        type: 'array',
+        items: { type: 'string', enum: ['production', 'metrics'] },
+      });
+      expect(schema.properties?.pair).toMatchObject({ type: 'array', minItems: 1, maxItems: 2 });
+    });
+
     it('should convert nested field paths to objects', () => {
       const template: Template = {
         name: 'Nested Test',

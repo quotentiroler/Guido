@@ -2,10 +2,10 @@
 /* eslint-disable no-console */
 import { writeFileSync } from 'fs';
 import { resolve } from 'path';
-import { applyRules, fieldsToNestedObject, mergeSettingsIntoFields } from '@quotentiroler/guido-core';
-import type { Field } from '@quotentiroler/guido-types';
+import { applyRules, fieldsToNestedObject, mergeSettingsIntoFields, requireRuleSets, resolveRuleSetRules } from '@quotentiroler/guido-core';
+import type { Field, Rule, Template } from '@quotentiroler/guido-types';
 import { parseArgv, wantsHelp } from './cliArgs.js';
-import { exitWithUsage, isEntryPoint, loadSettings, loadTemplate } from './cliIO.js';
+import { SETTINGS_EXTENSIONS, exitWithUsage, isEntryPoint, loadSettings, loadTemplate } from './cliIO.js';
 
 type OutputFormat = 'json' | 'fields' | 'diff';
 
@@ -13,6 +13,7 @@ interface ApplyOptions {
   templatePath: string;
   settingsPath?: string;
   outputPath?: string;
+  rulesetName?: string;
   format: OutputFormat;
   dryRun: boolean;
 }
@@ -28,9 +29,10 @@ Applies Guido template rules to a settings file or template fields.
 Arguments:
   <template-file>     Path to the Guido template (.guido.json)
   [settings-file]     Path to settings file - if omitted, uses template fields
-                      Supported formats: .json, .yaml, .yml, .properties, .env, .txt
+                      Supported formats: ${SETTINGS_EXTENSIONS}
 
 Options:
+  --ruleset <name>     Apply this ruleset and the rules it inherits (default: first ruleset)
   -o, --output <file>  Output file path (default: stdout)
   -f, --format <fmt>   Output format: json | fields | diff (default: json)
   -d, --dry-run        Show what would change without writing
@@ -65,6 +67,7 @@ export function parseApplyRulesArgs(args: readonly string[]): ApplyOptions | nul
     values: [
       { key: 'output', names: ['-o', '--output'] },
       { key: 'format', names: ['-f', '--format'] },
+      { key: 'ruleset', names: ['--ruleset'], ignoreWithoutValue: true },
     ],
     flags: [{ key: 'dryRun', names: ['-d', '--dry-run'] }],
   });
@@ -86,9 +89,16 @@ export function parseApplyRulesArgs(args: readonly string[]): ApplyOptions | nul
     templatePath,
     settingsPath,
     outputPath: parsed.value('output'),
+    rulesetName: parsed.value('ruleset'),
     format: validFormats.at(-1) ?? 'json',
     dryRun: parsed.flag('dryRun'),
   };
+}
+
+/** The rules a ruleset applies, inherited ones included; the first ruleset by default. */
+export function rulesToApply(template: Template, rulesetName?: string): Rule[] {
+  const [ruleSet] = rulesetName ? requireRuleSets(template, { rulesetName }) : template.ruleSets;
+  return ruleSet ? resolveRuleSetRules(template, ruleSet.name) : [];
 }
 
 function formatDiff(before: Field[], after: Field[]): string {
@@ -127,12 +137,12 @@ function main() {
   
   try {
     const template = loadTemplate(options.templatePath);
-    const rules = template.ruleSets?.[0]?.rules ?? [];
+    const rules = rulesToApply(template, options.rulesetName);
     console.error(`📋 Template: ${template.name || 'Unknown'} (${rules.length} rules)`);
     
     let fields: Field[];
     if (options.settingsPath) {
-      const settings = loadSettings(options.settingsPath);
+      const settings = loadSettings(options.settingsPath, template.fields);
       fields = mergeSettingsIntoFields(template.fields, settings);
       console.error(`📁 Settings: ${Object.keys(settings).length} fields from ${options.settingsPath}`);
     } else {

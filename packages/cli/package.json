@@ -1,6 +1,6 @@
 {
   "name": "@quotentiroler/guido-cli",
-  "version": "1.2.2",
+  "version": "1.3.0",
   "description": "CLI tools for Guido template validation and schema conversion",
   "type": "module",
   "main": "./dist/index.js",
@@ -10,7 +10,8 @@
     "guido-validate-settings": "./dist/validateSettings.js",
     "guido-apply-rules": "./dist/applyRules.js",
     "guido-schema-to-guido": "./dist/schemaToGuido.js",
-    "guido-to-schema": "./dist/guidoToSchema.js"
+    "guido-to-schema": "./dist/guidoToSchema.js",
+    "guido-contract": "./dist/guidoContract.js"
   },
   "exports": {
     ".": {
@@ -42,6 +43,16 @@
       "@quotentiroler/guido-source": "./src/guidoToSchema.ts",
       "types": "./dist/guidoToSchema.d.ts",
       "default": "./dist/guidoToSchema.js"
+    },
+    "./contract": {
+      "@quotentiroler/guido-source": "./src/contract/index.ts",
+      "types": "./dist/contract/index.d.ts",
+      "default": "./dist/contract/index.js"
+    },
+    "./guidoContract": {
+      "@quotentiroler/guido-source": "./src/guidoContract.ts",
+      "types": "./dist/guidoContract.d.ts",
+      "default": "./dist/guidoContract.js"
     }
   },
   "publishConfig": {
@@ -54,7 +65,8 @@
     "validate-settings": "node dist/validateSettings.js",
     "apply-rules": "node dist/applyRules.js",
     "schema-to-guido": "node dist/schemaToGuido.js",
-    "guido-to-schema": "node dist/guidoToSchema.js"
+    "guido-to-schema": "node dist/guidoToSchema.js",
+    "contract": "node dist/guidoContract.js"
   },
   "keywords": [
     "guido",
@@ -65,9 +77,12 @@
   ],
   "author": "Maximilian Nussbaumer",
   "dependencies": {
-    "@quotentiroler/guido-core": "^1.3.0",
-    "@quotentiroler/guido-types": "^1.1.0",
-    "js-yaml": "^5.2.1"
+    "@quotentiroler/guido-core": "^1.4.0",
+    "@quotentiroler/guido-types": "^1.2.0",
+    "js-yaml": "^5.2.1",
+    "jsonc-parser": "^3.3.1",
+    "smol-toml": "^1.9.1",
+    "tinyglobby": "^0.2.17"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

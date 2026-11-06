@@ -8,6 +8,7 @@ import { type Field, type FieldValue, type Rule, type RuleDomain, RuleState } fr
 import { type ILogger, type FieldChange, type TriggerAction, logger } from '@quotentiroler/guido-logger';
 import { translateRule } from './ruleTranslation.js';
 import { hasItem, listItems, writeItems } from './membership.js';
+import { isFieldSet, isFieldValueEmpty } from './fieldUtils.js';
 
 export interface ApplyRulesResult {
   updatedFields: Field[];
@@ -189,7 +190,7 @@ export const checkCondition = (field: Field, condition: RuleDomain, fieldMap?: M
     typeof v === 'number' ? String(v) : Array.isArray(v) ? '' : String(v ?? '');
   switch (condition.state) {
     case RuleState.Set:
-      return field.value !== '' && isChecked;
+      return isFieldSet(field);
     case RuleState.SetToValue:
       return isChecked && comparand !== undefined && field.value === comparand;
     case RuleState.Contains:
@@ -273,7 +274,7 @@ export const applyTarget = (field: Field, target: RuleDomain): void => {
       }
       if (items) writeItems(field, items.filter((v) => String(v) !== target.value));
       else if (field.value === target.value) field.value = '';
-      if (listItems(field.value)?.length === 0 || field.value === '') field.checked = false;
+      if (listItems(field.value)?.length === 0 || isFieldValueEmpty(field.value)) field.checked = false;
       break;
     }
     default:
@@ -284,12 +285,14 @@ export const applyTarget = (field: Field, target: RuleDomain): void => {
 /**
  * Check if a field is unconditionally required by any rule
  */
-export const isFieldRequired = (fieldName: string, rules: Rule[]): boolean => {
-  return rules.some((rule) =>
-    rule.targets.some((target) =>
-      target.name === fieldName &&
-      (target.state === RuleState.Set || target.state === RuleState.SetToValue || target.state === RuleState.Contains) &&
-      (!rule.conditions || rule.conditions.length === 0)
-    )
+export const isFieldRequired = (fieldName: string, rules: Rule[]): boolean =>
+  rules.some(
+    (rule) =>
+      (!rule.conditions || rule.conditions.length === 0) &&
+      rule.targets.some((target) => target.name === fieldName && targetRequiresValue(target))
   );
-};
+
+/** A target that needs its field to hold a value: a positive set, set_to_value or contains. A negated one only excludes. */
+export const targetRequiresValue = (target: RuleDomain): boolean =>
+  !target.not &&
+  (target.state === RuleState.Set || target.state === RuleState.SetToValue || target.state === RuleState.Contains);

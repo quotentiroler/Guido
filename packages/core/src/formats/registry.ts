@@ -6,13 +6,14 @@
  * instead of branching on file extension themselves.
  */
 
-import { parse as parseJsonc } from 'jsonc-parser';
+import { parse as parseJsonc, printParseErrorCode, type ParseError } from 'jsonc-parser';
 import * as yaml from 'js-yaml';
 import type { Field, FieldValue } from '@quotentiroler/guido-types';
 import { fieldsToNestedObject, flattenObject, toFieldValues } from '../fieldUtils.js';
 import { serializeIni, parseIni } from './ini.js';
 import { serializeArgs, parseArgs, type ArgsSerializeOptions } from './args.js';
 import { serializeKeyValue, parseKeyValueFormat } from './keyValue.js';
+import { splitListValues } from './lists.js';
 
 export const CONFIG_FORMATS = ['json', 'yaml', 'ini', 'args', 'properties', 'env', 'txt'] as const;
 
@@ -49,6 +50,8 @@ const EXTENSION_TO_FORMAT: Record<string, ConfigFormat> = Object.fromEntries(
   )
 );
 
+const DOTENV_VARIANT = /(?:^|[\\/])\.env\.[^./\\]+$/i;
+
 /** Metadata for a format: MIME type, picker description and file extensions. */
 export const formatMeta = (format: ConfigFormat): FormatMeta => FORMAT_META[format];
 
@@ -59,11 +62,12 @@ export const formatMeta = (format: ConfigFormat): FormatMeta => FORMAT_META[form
  * @example
  * detectFormat('config.ini')          // 'ini'
  * detectFormat('run_nvidia_gpu.bat')  // 'args'
+ * detectFormat('.env.production')     // 'env'
  */
 export const detectFormat = (filename: string): ConfigFormat | undefined => {
   const dot = filename.lastIndexOf('.');
   if (dot < 0) return undefined;
-  return EXTENSION_TO_FORMAT[filename.slice(dot).toLowerCase()];
+  return EXTENSION_TO_FORMAT[filename.slice(dot).toLowerCase()] ?? (DOTENV_VARIANT.test(filename) ? 'env' : undefined);
 };
 
 const selectFields = (fields: Field[], onlyChecked: boolean): Field[] =>
@@ -101,24 +105,29 @@ export const serializeFields = (
   }
 };
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
 const flattenParsed = (parsed: unknown): Record<string, FieldValue> => {
-  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return {};
-  return toFieldValues(flattenObject(parsed as Record<string, unknown>));
+  if (parsed === undefined || parsed === null) return {};
+  if (!isRecord(parsed)) throw new Error('Settings document does not contain an object');
+  return toFieldValues(flattenObject(parsed));
 };
 
-/**
- * Parse configuration text into flat dot-notation settings.
- *
- * @example
- * parseSettings('[default]\nsecurity_level = normal', 'ini')
- * // { 'default.security_level': 'normal' }
- */
-export const parseSettings = (content: string, format: ConfigFormat): Record<string, FieldValue> => {
-  if (content.trim() === '') return {};
+const parseJson = (content: string): unknown => {
+  const errors: ParseError[] = [];
+  const parsed: unknown = parseJsonc(content, errors, { allowTrailingComma: true });
+  const [first] = errors;
+  if (first) throw new Error(`Invalid JSON: ${printParseErrorCode(first.error)} at offset ${first.offset}`);
+  return parsed;
+};
 
+const FLAT_FORMATS: ReadonlySet<ConfigFormat> = new Set(['ini', 'args', 'properties', 'env', 'txt']);
+
+const parseDocument = (content: string, format: ConfigFormat): Record<string, FieldValue> => {
   switch (format) {
     case 'json':
-      return flattenParsed(parseJsonc(content));
+      return flattenParsed(parseJson(content));
     case 'yaml':
       return flattenParsed(yaml.load(content));
     case 'ini':
@@ -130,4 +139,26 @@ export const parseSettings = (content: string, format: ConfigFormat): Record<str
     case 'txt':
       return parseKeyValueFormat(content);
   }
+};
+
+export interface ParseSettingsOptions {
+  /** Template fields; values of array-typed fields in flat formats are read as comma lists. */
+  fields?: readonly Field[];
+}
+
+/**
+ * Parse configuration text into flat dot-notation settings. Throws on a malformed JSON or YAML document.
+ *
+ * @example
+ * parseSettings('[default]\nsecurity_level = normal', 'ini')
+ * // { 'default.security_level': 'normal' }
+ */
+export const parseSettings = (
+  content: string,
+  format: ConfigFormat,
+  options: ParseSettingsOptions = {}
+): Record<string, FieldValue> => {
+  if (content.trim() === '') return {};
+  const settings = parseDocument(content, format);
+  return options.fields && FLAT_FORMATS.has(format) ? splitListValues(settings, options.fields) : settings;
 };

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
 import { resolve } from 'path';
-import { listRuleSetTags, selectRuleSets } from '@quotentiroler/guido-core';
+import { requireRuleSets, validateFieldSamples } from '@quotentiroler/guido-core';
 import { parseArgv } from './cliArgs.js';
 import { exitWithFileError, exitWithUsage, isEntryPoint, readTemplateFile } from './cliIO.js';
 import { validateTemplateRuleSet, ruleSetPasses } from './templateValidation.js';
@@ -16,6 +16,7 @@ Options:
   -h, --help          Show this help message
 
 Validates a Guido template file for:
+  - Field examples and default values outside their range
   - Rule contradictions
   - Circular dependencies
   - Logical conflicts
@@ -86,28 +87,20 @@ function main() {
     console.log(`   File: ${templatePath}`);
     console.log(`   Total rulesets: ${template.ruleSets?.length || 0}\n`);
 
-    const ruleSetsToValidate = selectRuleSets(template, args);
+    const ruleSetsToValidate = requireRuleSets(template, args);
 
-    if (args.rulesetName && ruleSetsToValidate.length === 0) {
-      console.error(`
-❌ RuleSet "${args.rulesetName}" not found.`);
-      console.error(`   Available rulesets: ${(template.ruleSets || []).map(rs => rs.name).join(', ')}
-`);
-      process.exit(1);
+    const sampleIssues = validateFieldSamples(template.fields);
+    let hasErrors = sampleIssues.length > 0;
+    if (hasErrors) {
+      printNumbered('🔴 Field examples and default values outside their range:', sampleIssues.map((issue) => issue.message));
+    } else {
+      console.log(`✅ Field examples and default values: all ${template.fields.length} fields fit their range.\n`);
     }
-    if (args.tag && ruleSetsToValidate.length === 0) {
-      console.error(`
-❌ No rulesets found with tag "${args.tag}".`);
-      console.error(`   Available tags: ${listRuleSetTags(template).join(', ') || '(none)'}
-`);
-      process.exit(1);
-    }
+
     if (ruleSetsToValidate.length === 0) {
       console.log('✅ No rulesets to validate.\n');
-      process.exit(0);
+      process.exit(hasErrors ? 1 : 0);
     }
-
-    let hasErrors = false;
 
     for (const ruleSet of ruleSetsToValidate) {
       console.log(`📦 RuleSet: "${ruleSet.name}"`);
