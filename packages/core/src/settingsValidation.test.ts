@@ -121,6 +121,99 @@ describe('validateSettings', () => {
     });
   });
 
+  describe('a negated value target', () => {
+    const negated: Template = {
+      ...template,
+      fields: [field('ENVIRONMENT'), field('DEBUG')],
+      ruleSets: [{
+        name: 'Live',
+        description: 'live',
+        tags: [],
+        rules: [
+          { description: 'Never beta', targets: [{ name: 'ENVIRONMENT', state: RuleState.SetToValue, value: 'beta', not: true }] },
+          {
+            description: 'Debug is not on in production',
+            conditions: [{ name: 'ENVIRONMENT', state: RuleState.SetToValue, value: 'production' }],
+            targets: [{ name: 'DEBUG', state: RuleState.SetToValue, value: 'true', not: true }],
+          },
+        ],
+      }],
+    };
+    const live = negated.ruleSets[0];
+
+    it('leaves the field optional', () => {
+      expect(validateSettings(negated, {}, live).isValid).toBe(true);
+      expect(validateSettings(negated, { ENVIRONMENT: 'production' }, live).isValid).toBe(true);
+    });
+
+    it('refuses the excluded value once the field is set', () => {
+      expect(validateSettings(negated, { ENVIRONMENT: 'beta' }, live).isValid).toBe(false);
+      expect(validateSettings(negated, { ENVIRONMENT: 'production', DEBUG: 'true' }, live).isValid).toBe(false);
+    });
+  });
+
+  describe('judges the settings as given', () => {
+    const credentials: Template = {
+      ...template,
+      fields: [field('DB_USERNAME'), field('DB_PASSWORD'), field('DB_URL'), field('DB_DRIVER')],
+      ruleSets: [{
+        name: 'Db',
+        description: 'db',
+        tags: [],
+        rules: [
+          { description: 'The app connects as root', targets: [{ name: 'DB_USERNAME', state: RuleState.SetToValue, value: 'root' }] },
+          {
+            description: 'A URL picks the driver',
+            conditions: [{ name: 'DB_URL', state: RuleState.Set }],
+            targets: [{ name: 'DB_DRIVER', state: RuleState.SetToValue, value: 'postgres' }],
+          },
+        ],
+        constraints: [{ kind: 'all-or-none', fields: ['DB_USERNAME', 'DB_PASSWORD'] }],
+      }],
+    };
+    const db = credentials.ruleSets[0];
+
+    it('does not fill a value a rule names before checking constraints', () => {
+      const result = validateSettings(credentials, {}, db);
+      expect(missing(result)).toEqual(['DB_USERNAME']);
+      expect(result.issues.filter((i) => i.field === '(constraint)')).toEqual([]);
+      expect(result.issues.filter((i) => i.field === 'DB_USERNAME')).toHaveLength(1);
+    });
+
+    it('reports the field a set_to_value target requires as missing, once', () => {
+      const result = validateSettings(credentials, { DB_USERNAME: 'root', DB_PASSWORD: 'pw', DB_URL: 'postgres://db' }, db);
+      expect(missing(result)).toEqual(['DB_DRIVER']);
+      expect(result.issues).toHaveLength(1);
+    });
+
+    it('leaves the settings and the template untouched', () => {
+      const settings = { DB_URL: 'postgres://db' };
+      const before = JSON.stringify({ credentials, settings });
+      validateSettings(credentials, settings, db);
+      expect(JSON.stringify({ credentials, settings })).toBe(before);
+    });
+  });
+
+  describe('an empty value is unset', () => {
+    it('reports a required field holding an empty string as missing', () => {
+      expect(missing(validateSettings(template, { BASE_URL: '' }, base))).toEqual(['BASE_URL']);
+      expect(missing(validateSettings(template, { BASE_URL: '   ' }, base))).toEqual(['BASE_URL']);
+    });
+
+    it('does not fire a set condition on an empty value', () => {
+      expect(validateSettings(template, { BASE_URL: 'https://example.org', TLS_CERT_FILE: '' }, base).isValid).toBe(true);
+    });
+
+    it('does not range-check an empty optional value', () => {
+      expect(validateSettings(template, { BASE_URL: 'https://example.org', PORT: '' }, base).isValid).toBe(true);
+    });
+
+    it('counts an empty value as unset for cardinality, like a missing key', () => {
+      const result = validateSettings(template, { BASE_URL: 'https://example.org', KEY_FILE: '', KEY_PEM: 'pem' }, base);
+      expect(result.isValid).toBe(true);
+    });
+  });
+
   it('reports a value outside its range and a key the template does not declare', () => {
     const result = validateSettings(template, { BASE_URL: 'https://example.org', PORT: '70000', PROT: '1' }, base);
     expect(result.issues.find((i) => i.field === 'PORT')?.type).toBe('invalid');

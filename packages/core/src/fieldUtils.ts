@@ -476,3 +476,7 @@ export const isFieldValueEmpty = (value: FieldValue | undefined | null): boolean
   // Numbers and booleans are never considered "empty"
   return false;
 };
+
+/** Whether a field holds a value: enabled and not empty. The one notion of "set" for rules, constraints and requirements. */
+export const isFieldSet = (field: Field | undefined): boolean =>
+  field?.checked === true && !isFieldValueEmpty(field.value);
