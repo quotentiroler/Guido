@@ -1,53 +1,60 @@
 /**
- * Import every built package entry the way a CONSUMER does.
- *
- * `moduleResolution: bundler` lets tsc accept extensionless relative imports and
- * emit them verbatim, which Node's ESM resolver rejects. That shipped once: the
- * published core could not be imported by Node at all, and nothing in this repo
- * noticed because the monorepo resolves to source.
+ * Check every package's exports the way a CONSUMER resolves them: each target
+ * must exist, and each library entry must import under plain Node.
+ * The source condition is skipped; it only resolves inside this monorepo.
  *
  * Run after build:packages, before publish.
  */
 import { pathToFileURL } from 'node:url';
-import { existsSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { resolve, join } from 'node:path';
 
-const ENTRIES = [
-  'packages/types/dist/index.js',
-  'packages/types/dist/schemas.js',
-  'packages/logger/dist/index.js',
-  'packages/core/dist/index.js',
-  'packages/mcp-server/dist/exports.js',
-  'packages/mcp-server/dist/store/types.js',
-  'packages/mcp-server/dist/store/memory-store.js',
-  'packages/mcp-server/dist/store/change-tracker.js',
-  'packages/mcp-server/dist/template-utils.js',
-  'packages/cli/dist/index.js',
-];
+const SOURCE_CONDITION = '@quotentiroler/guido-source';
+const PACKAGES_DIR = resolve('packages');
 
 let failed = 0;
+let checked = 0;
 
-for (const entry of ENTRIES) {
-  const absolute = resolve(entry);
+for (const dir of readdirSync(PACKAGES_DIR)) {
+  const root = join(PACKAGES_DIR, dir);
+  const manifestPath = join(root, 'package.json');
+  if (!existsSync(manifestPath)) continue;
 
-  if (!existsSync(absolute)) {
-    console.error(`MISSING  ${entry}`);
-    failed++;
-    continue;
-  }
+  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+  const bins = new Set(Object.values(manifest.bin ?? {}).map((target) => resolve(root, target)));
 
-  try {
-    await import(pathToFileURL(absolute).href);
-    console.log(`ok       ${entry}`);
-  } catch (error) {
-    console.error(`FAILED   ${entry}\n         ${error.message}`);
-    failed++;
+  for (const [subpath, conditions] of Object.entries(manifest.exports ?? {})) {
+    for (const [condition, target] of Object.entries(conditions)) {
+      if (condition === SOURCE_CONDITION) continue;
+      const label = `${manifest.name}${subpath.slice(1)} [${condition}]`;
+      const absolute = resolve(root, target);
+      checked++;
+
+      if (!existsSync(absolute)) {
+        console.error(`MISSING  ${label} -> ${target}`);
+        failed++;
+        continue;
+      }
+
+      if (condition !== 'default' || bins.has(absolute)) {
+        console.log(`ok       ${label}`);
+        continue;
+      }
+
+      try {
+        await import(pathToFileURL(absolute).href);
+        console.log(`ok       ${label} (imported)`);
+      } catch (error) {
+        console.error(`FAILED   ${label}\n         ${error.message}`);
+        failed++;
+      }
+    }
   }
 }
 
 if (failed > 0) {
-  console.error(`\n${failed} package entry point(s) cannot be imported by Node.`);
+  console.error(`\n${failed} of ${checked} export target(s) are broken for consumers.`);
   process.exit(1);
 }
 
-console.log(`\nAll ${ENTRIES.length} entry points import cleanly.`);
+console.log(`\nAll ${checked} export targets resolve for consumers.`);

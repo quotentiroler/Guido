@@ -1,8 +1,10 @@
-import { defineConfig } from 'vite';
+import { defineConfig, defaultClientConditions } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import tailwindcss from '@tailwindcss/vite';
 import { guidoTemplatesPlugin } from './vite-plugin-templates';
 import { version } from './package.json';
+
+export const SOURCE_CONDITION = '@quotentiroler/guido-source';
 
 export default defineConfig({
   base: '/Guido',
@@ -28,10 +30,6 @@ export default defineConfig({
     alias: {
       '@': '/src',
     },
-    // 'development' resolves workspace packages to their source during dev. We must also
-    // list Vite's default browser conditions here, because `conditions` REPLACES the
-    // defaults: dropping 'browser'/'module' made deps like @vercel/oidc (pulled in by the
-    // AI SDK gateway) resolve to their Node build (os/process) and crash the browser.
-    conditions: ['development', 'module', 'browser'],
+    conditions: [SOURCE_CONDITION, ...defaultClientConditions],
   },
 });
