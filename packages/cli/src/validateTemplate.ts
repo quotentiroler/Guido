@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
 import { resolve } from 'path';
-import { requireRuleSets } from '@quotentiroler/guido-core';
+import { requireRuleSets, validateFieldSamples } from '@quotentiroler/guido-core';
 import { parseArgv } from './cliArgs.js';
 import { exitWithFileError, exitWithUsage, isEntryPoint, readTemplateFile } from './cliIO.js';
 import { validateTemplateRuleSet, ruleSetPasses } from './templateValidation.js';
@@ -16,6 +16,7 @@ Options:
   -h, --help          Show this help message
 
 Validates a Guido template file for:
+  - Field examples and default values outside their range
   - Rule contradictions
   - Circular dependencies
   - Logical conflicts
@@ -88,12 +89,18 @@ function main() {
 
     const ruleSetsToValidate = requireRuleSets(template, args);
 
-    if (ruleSetsToValidate.length === 0) {
-      console.log('✅ No rulesets to validate.\n');
-      process.exit(0);
+    const sampleIssues = validateFieldSamples(template.fields);
+    let hasErrors = sampleIssues.length > 0;
+    if (hasErrors) {
+      printNumbered('🔴 Field examples and default values outside their range:', sampleIssues.map((issue) => issue.message));
+    } else {
+      console.log(`✅ Field examples and default values: all ${template.fields.length} fields fit their range.\n`);
     }
 
-    let hasErrors = false;
+    if (ruleSetsToValidate.length === 0) {
+      console.log('✅ No rulesets to validate.\n');
+      process.exit(hasErrors ? 1 : 0);
+    }
 
     for (const ruleSet of ruleSetsToValidate) {
       console.log(`📦 RuleSet: "${ruleSet.name}"`);

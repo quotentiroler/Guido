@@ -72,7 +72,8 @@ export {
 export { translateRangeToHumanReadable } from './rangeDescription.js';
 
 // Template utilities
-export { normalizeTemplateFields, mergeTemplates, createDefaultRuleSet } from './templateUtils.js';
+export { normalizeTemplateFields, mergeTemplates, createDefaultRuleSet, validateFieldSamples } from './templateUtils.js';
+export type { FieldSampleIssue } from './templateUtils.js';
 
 // Configuration formats (serialize/parse: json, yaml, ini, args, properties, env, txt)
 export {

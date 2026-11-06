@@ -6,6 +6,7 @@ import {
   validateRuleSetInheritance,
   validateRules,
   validateRulesAgainstFields,
+  validateFieldSamples,
   validateValue,
 } from '@quotentiroler/guido-core';
 import type { ToolHandler } from './types.js';
@@ -175,11 +176,9 @@ export const validationHandlers: Record<string, ToolHandler> = {
         if (!field.range) {
           issues.push({ type: 'warning', message: `Field "${field.name}" missing range` });
         }
-
-        // Validate value against range
-        if (field.range && !validateValue(field.value, field.range)) {
-          issues.push({ type: 'error', message: `Field "${field.name}" value doesn't match range "${field.range}"` });
-        }
+      }
+      for (const sample of validateFieldSamples(template.fields)) {
+        issues.push({ type: 'error', message: sample.message });
       }
     }
 
