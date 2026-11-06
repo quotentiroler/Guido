@@ -52,7 +52,6 @@ export type { Explanation, ExplanationStep, ConditionTrace, ConditionSource, Exp
 export {
   validateValue,
   validateWithParsedRange,
-  translateRangeToHumanReadable,
   hasEmptyProperty,
   prioritizeIncompleteFields,
   generateParentPaths,
@@ -66,6 +65,7 @@ export {
   fieldValueToString,
   isFieldValueEmpty,
 } from './fieldUtils.js';
+export { translateRangeToHumanReadable } from './rangeDescription.js';
 
 // Template utilities
 export { normalizeTemplateFields, mergeTemplates, createDefaultRuleSet } from './templateUtils.js';

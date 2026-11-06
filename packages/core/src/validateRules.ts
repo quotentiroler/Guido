@@ -1,5 +1,6 @@
 import { RuleState, type Rule, type RuleDomain, type Field, type CardinalityConstraint } from '@quotentiroler/guido-types';
-import { validateValue, translateRangeToHumanReadable } from './fieldUtils.js';
+import { validateValue } from './fieldUtils.js';
+import { translateRangeToHumanReadable } from './rangeDescription.js';
 import { describeCondition } from './ruleTranslation.js';
 import { hasItem } from './membership.js';
 

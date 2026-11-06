@@ -1,6 +1,7 @@
 import { RuleState, type Template, type FieldValue, type RuleSet, type Field, type Rule } from '@quotentiroler/guido-types';
 import { applyRules, isFieldRequired, conditionHolds, ruleConditionsHold } from './applyRules.js';
-import { validateValue, translateRangeToHumanReadable } from './fieldUtils.js';
+import { validateValue } from './fieldUtils.js';
+import { translateRangeToHumanReadable } from './rangeDescription.js';
 import { validateCardinality } from './validateRules.js';
 import { resolveRuleSetRules, getRuleSetInheritanceChain } from './rulesetUtils.js';
 import { describeCondition } from './ruleTranslation.js';
