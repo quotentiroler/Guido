@@ -7,30 +7,37 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
       "default": "./dist/index.js"
     },
     "./definitions": {
       "types": "./dist/exports.d.ts",
+      "development": "./src/exports.ts",
       "default": "./dist/exports.js"
     },
     "./store": {
       "types": "./dist/store/index.d.ts",
+      "development": "./src/store/index.ts",
       "default": "./dist/store/index.js"
     },
     "./store/types": {
       "types": "./dist/store/types.d.ts",
+      "development": "./src/store/types.ts",
       "default": "./dist/store/types.js"
     },
     "./store/memory": {
       "types": "./dist/store/memory-store.d.ts",
+      "development": "./src/store/memory-store.ts",
       "default": "./dist/store/memory-store.js"
     },
     "./store/change-tracker": {
       "types": "./dist/store/change-tracker.d.ts",
+      "development": "./src/store/change-tracker.ts",
       "default": "./dist/store/change-tracker.js"
     },
     "./template-utils": {
       "types": "./dist/template-utils.d.ts",
+      "development": "./src/template-utils.ts",
       "default": "./dist/template-utils.js"
     }
   },
