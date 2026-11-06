@@ -75,6 +75,25 @@ describe('registerAllTools', () => {
     });
   });
 
+  it('validate_settings checks every ruleset a tag selects', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'guido-settings-'));
+    const settingsPath = join(dir, 'cron.env');
+    writeFileSync(settingsPath, 'cron=0 * * * *');
+    const template = createTemplate([createField('pages'), createField('cron')]);
+    template.ruleSets = [
+      { name: 'Pages Beta', description: '', tags: ['beta'], rules: [{ targets: [{ name: 'pages', state: RuleState.Set }] }] },
+      { name: 'Cron Beta', description: '', tags: ['beta'], rules: [{ targets: [{ name: 'cron', state: RuleState.Set }] }] },
+    ];
+    const { json } = await setup(template).call('validate_settings', { settingsPath, rulesetTag: 'beta' });
+    expect(json).toMatchObject({
+      valid: false,
+      results: [
+        { ruleSet: 'Pages Beta', valid: false },
+        { ruleSet: 'Cron Beta', valid: true },
+      ],
+    });
+  });
+
   it('returns a handler error as an error result', async () => {
     const { call } = setup(createTemplate([]));
     const result = await call('get_field', { name: 'missing' });

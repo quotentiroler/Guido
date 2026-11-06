@@ -426,9 +426,9 @@ export const toolDefinitions: ToolDef[] = [
     category: 'validation',
     inputs: {
       filePath: { type: 'string', required: false, description: 'Path to the guido.json template file' },
-      settingsPath: { type: 'string', required: true, description: 'Path to settings file (.json, .yaml, .properties, .env)' },
+      settingsPath: { type: 'string', required: true, description: 'Path to settings file (json, yaml, ini, args, properties, env or txt)' },
       rulesetName: { type: 'string', required: false, description: 'Use a specific ruleset by name' },
-      rulesetTag: { type: 'string', required: false, description: 'Use rulesets with a specific tag' },
+      rulesetTag: { type: 'string', required: false, description: 'Validate against every ruleset with this tag; returns one result per ruleset when several match' },
       strict: { type: 'boolean', required: false, description: 'Fail on warnings (extra fields not in template)' },
     },
   },

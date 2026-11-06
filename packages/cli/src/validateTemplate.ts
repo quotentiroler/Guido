@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
 import { resolve } from 'path';
-import { listRuleSetTags, selectRuleSets } from '@quotentiroler/guido-core';
+import { requireRuleSets } from '@quotentiroler/guido-core';
 import { parseArgv } from './cliArgs.js';
 import { exitWithFileError, exitWithUsage, isEntryPoint, readTemplateFile } from './cliIO.js';
 import { validateTemplateRuleSet, ruleSetPasses } from './templateValidation.js';
@@ -86,22 +86,8 @@ function main() {
     console.log(`   File: ${templatePath}`);
     console.log(`   Total rulesets: ${template.ruleSets?.length || 0}\n`);
 
-    const ruleSetsToValidate = selectRuleSets(template, args);
+    const ruleSetsToValidate = requireRuleSets(template, args);
 
-    if (args.rulesetName && ruleSetsToValidate.length === 0) {
-      console.error(`
-❌ RuleSet "${args.rulesetName}" not found.`);
-      console.error(`   Available rulesets: ${(template.ruleSets || []).map(rs => rs.name).join(', ')}
-`);
-      process.exit(1);
-    }
-    if (args.tag && ruleSetsToValidate.length === 0) {
-      console.error(`
-❌ No rulesets found with tag "${args.tag}".`);
-      console.error(`   Available tags: ${listRuleSetTags(template).join(', ') || '(none)'}
-`);
-      process.exit(1);
-    }
     if (ruleSetsToValidate.length === 0) {
       console.log('✅ No rulesets to validate.\n');
       process.exit(0);

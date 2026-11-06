@@ -9,10 +9,8 @@ import {
   detectFormat,
   parseSettings,
   CONFIG_FORMATS,
-  listRuleSetTags,
   mergeTemplates,
-  selectRuleSets,
-  validateSettings,
+  validateSettingsSelection,
 } from '@quotentiroler/guido-core';
 import { templateToolHandlers, type ToolHandler } from './handlers/index.js';
 import { optBoolean, optString, reqString } from './handlers/args.js';
@@ -44,22 +42,16 @@ const settingsHandlers: Record<string, ToolHandler> = {
 
     const settings: Record<string, FieldValue> = parseSettings(content, format, { fields: template.fields });
 
-    const [ruleSet] = selectRuleSets(template, { rulesetName, tag: rulesetTag });
-    if (rulesetName && !ruleSet) {
-      throw new Error(`RuleSet "${rulesetName}" not found. Available: ${template.ruleSets.map(rs => rs.name).join(', ')}`);
-    }
-    if (rulesetTag && !ruleSet) {
-      throw new Error(`No rulesets found with tag "${rulesetTag}". Available tags: ${listRuleSetTags(template).join(', ')}`);
-    }
-
-    const result = validateSettings(template, settings, ruleSet ?? null);
-    return {
-      valid: result.isValid && (!strict || result.summary.warnings === 0),
-      settingsFile: settingsPath,
-      ruleSet: ruleSet?.name ?? '(none)',
+    const validations = validateSettingsSelection(template, settings, { rulesetName, tag: rulesetTag }, { strict });
+    const reports = validations.map(({ ruleSet, result, passed }) => ({
+      valid: passed,
+      ruleSet: ruleSet ?? '(none)',
       issues: result.issues,
       summary: result.summary,
-    };
+    }));
+    const [only] = reports;
+    if (reports.length === 1 && only) return { ...only, settingsFile: settingsPath };
+    return { valid: reports.every((r) => r.valid), settingsFile: settingsPath, results: reports };
   },
 };
 

@@ -318,3 +318,20 @@ export function selectRuleSets(template: Template, selection: RuleSetSelection):
 export function listRuleSetTags(template: Template): string[] {
   return [...new Set((template.ruleSets || []).flatMap((rs) => rs.tags || []))];
 }
+
+/** The rulesets a selection names; throws when a given name or tag matches none, listing what exists. */
+export function requireRuleSets(template: Template, selection: RuleSetSelection): RuleSet[] {
+  const selected = selectRuleSets(template, selection);
+  if (selected.length > 0 || (!selection.rulesetName && !selection.tag)) return selected;
+  if (selection.rulesetName) {
+    const available = (template.ruleSets || []).map((rs) => rs.name).join(', ') || '(none)';
+    throw new Error(`RuleSet "${selection.rulesetName}" not found. Available: ${available}`);
+  }
+  throw new Error(`No rulesets found with tag "${selection.tag}". Available tags: ${listRuleSetTags(template).join(', ') || '(none)'}`);
+}
+
+/** Rulesets settings are validated against: every one a name or tag selects, else the first. */
+export function selectValidationRuleSets(template: Template, selection: RuleSetSelection): RuleSet[] {
+  if (selection.rulesetName || selection.tag) return requireRuleSets(template, selection);
+  return (template.ruleSets || []).slice(0, 1);
+}

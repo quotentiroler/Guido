@@ -18,12 +18,16 @@ export {
   getChildRuleSets,
   hasChildRuleSets,
   selectRuleSets,
+  requireRuleSets,
+  selectValidationRuleSets,
   listRuleSetTags,
 } from './rulesetUtils.js';
 export type { InheritanceValidationResult, RuleSetSelection } from './rulesetUtils.js';
 
 export { validateSettings } from './settingsValidation.js';
 export type { SettingsValidationIssue, SettingsValidationResult } from './settingsValidation.js';
+export { validateSettingsSelection } from './settingsSelection.js';
+export type { RuleSetSettingsValidation, SettingsSelectionOptions } from './settingsSelection.js';
 
 // Rule application
 export { 
