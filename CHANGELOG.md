@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Code of Conduct (CODE_OF_CONDUCT.md)
 - Semantic versioning CI workflow with release automation
 - PR validation workflow
+- `guido-contract`: check code, docs and every deployment's settings against a template from one `guido.contract.json` (compose, wrangler, Spring and dotenv sources)
+- `secret` field flag and deploy-time keys: values supplied at deploy time count as set without exposing or range-checking them
 
 ### Changed
 - Improved rule application to update immediately when rules are added/edited
