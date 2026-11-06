@@ -5,7 +5,7 @@ import { resolve } from 'path';
 import { applyRules, fieldsToNestedObject, mergeSettingsIntoFields } from '@quotentiroler/guido-core';
 import type { Field } from '@quotentiroler/guido-types';
 import { parseArgv, wantsHelp } from './cliArgs.js';
-import { exitWithUsage, isEntryPoint, loadSettings, loadTemplate } from './cliIO.js';
+import { SETTINGS_EXTENSIONS, exitWithUsage, isEntryPoint, loadSettings, loadTemplate } from './cliIO.js';
 
 type OutputFormat = 'json' | 'fields' | 'diff';
 
@@ -28,7 +28,7 @@ Applies Guido template rules to a settings file or template fields.
 Arguments:
   <template-file>     Path to the Guido template (.guido.json)
   [settings-file]     Path to settings file - if omitted, uses template fields
-                      Supported formats: .json, .yaml, .yml, .properties, .env, .txt
+                      Supported formats: ${SETTINGS_EXTENSIONS}
 
 Options:
   -o, --output <file>  Output file path (default: stdout)
@@ -132,7 +132,7 @@ function main() {
     
     let fields: Field[];
     if (options.settingsPath) {
-      const settings = loadSettings(options.settingsPath);
+      const settings = loadSettings(options.settingsPath, template.fields);
       fields = mergeSettingsIntoFields(template.fields, settings);
       console.error(`📁 Settings: ${Object.keys(settings).length} fields from ${options.settingsPath}`);
     } else {

@@ -42,7 +42,7 @@ const settingsHandlers: Record<string, ToolHandler> = {
       );
     }
 
-    const settings: Record<string, FieldValue> = parseSettings(content, format);
+    const settings: Record<string, FieldValue> = parseSettings(content, format, { fields: template.fields });
 
     const [ruleSet] = selectRuleSets(template, { rulesetName, tag: rulesetTag });
     if (rulesetName && !ruleSet) {

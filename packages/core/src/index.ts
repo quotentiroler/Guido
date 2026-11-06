@@ -87,6 +87,7 @@ export {
 export type {
   ConfigFormat,
   FormatMeta,
+  ParseSettingsOptions,
   SerializeOptions,
   IniSerializeOptions,
   ArgsSerializeOptions,

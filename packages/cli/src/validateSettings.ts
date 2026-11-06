@@ -8,7 +8,7 @@ import {
 } from '@quotentiroler/guido-core';
 import type { Template, RuleSet } from '@quotentiroler/guido-types';
 import { parseArgv, wantsHelp } from './cliArgs.js';
-import { exitWithUsage, isEntryPoint, loadSettings, loadTemplate } from './cliIO.js';
+import { SETTINGS_EXTENSIONS, exitWithUsage, isEntryPoint, loadSettings, loadTemplate } from './cliIO.js';
 
 interface ValidateOptions {
   templatePath: string;
@@ -30,7 +30,7 @@ Validates a settings file against a Guido template by:
 Arguments:
   <template-file>     Path to the Guido template (.guido.json)
   <settings-file>     Path to settings file to validate
-                      Supported formats: .json, .yaml, .yml, .properties, .env
+                      Supported formats: ${SETTINGS_EXTENSIONS}
 
 Options:
   --ruleset <name>    Use a specific ruleset by name (default: first ruleset)
@@ -129,7 +129,7 @@ function main() {
   
   try {
     const template = loadTemplate(options.templatePath);
-    const settings = loadSettings(options.settingsPath);
+    const settings = loadSettings(options.settingsPath, template.fields);
     
     if (!options.json) {
       console.error(`📋 Template: ${template.name || 'Unknown'}`);

@@ -18,4 +18,4 @@ export {
   detectFormat,
   formatMeta,
 } from './registry.js';
-export type { ConfigFormat, FormatMeta, SerializeOptions } from './registry.js';
+export type { ConfigFormat, FormatMeta, ParseSettingsOptions, SerializeOptions } from './registry.js';
