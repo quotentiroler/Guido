@@ -8,53 +8,30 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import type { Template } from '@quotentiroler/guido-types';
-import {
-  ensureRuleSets,
-  NoTemplateRefError,
-  TemplateNotFoundError,
-  type ChangeTracker,
-  type TemplateStore,
-} from './types.js';
+import { parseTemplate } from '@quotentiroler/guido-types/schemas';
+import { BaseTemplateStore } from './base-store.js';
+import type { ChangeTracker } from './types.js';
 
-export class FsTemplateStore implements TemplateStore {
-  private active: string | undefined;
-
-  constructor(
-    activeRef?: string,
-    private readonly tracker?: ChangeTracker
-  ) {
-    if (activeRef) this.active = path.resolve(activeRef);
+export class FsTemplateStore extends BaseTemplateStore {
+  constructor(activeRef?: string, tracker?: ChangeTracker) {
+    super(tracker);
+    if (activeRef) this.setActiveRef(activeRef);
   }
 
-  resolveRef(ref?: string): string {
-    const resolved = ref ?? this.active;
-    if (!resolved) throw new NoTemplateRefError();
-    return path.resolve(resolved);
+  protected override canonical(ref: string): string {
+    return path.resolve(ref);
   }
 
-  activeRef(): string | undefined {
-    return this.active;
-  }
-
-  setActiveRef(ref: string): void {
-    this.active = path.resolve(ref);
-  }
-
-  async load(ref: string): Promise<Template> {
-    const absolute = path.resolve(ref);
-    if (!fs.existsSync(absolute)) throw new TemplateNotFoundError(absolute);
-
-    const raw = JSON.parse(await fs.promises.readFile(absolute, 'utf-8')) as Template;
-    const template = ensureRuleSets(raw);
-    await this.tracker?.captureSnapshot(absolute, template);
-    return template;
+  protected async read(ref: string): Promise<Template | undefined> {
+    if (!fs.existsSync(ref)) return undefined;
+    return parseTemplate(JSON.parse(await fs.promises.readFile(ref, 'utf-8')), ref);
   }
 
   async save(ref: string, template: Template): Promise<void> {
-    await fs.promises.writeFile(path.resolve(ref), JSON.stringify(template, null, 2), 'utf-8');
+    await fs.promises.writeFile(this.canonical(ref), JSON.stringify(template, null, 2), 'utf-8');
   }
 
   exists(ref: string): Promise<boolean> {
-    return Promise.resolve(fs.existsSync(path.resolve(ref)));
+    return Promise.resolve(fs.existsSync(this.canonical(ref)));
   }
 }

@@ -4,7 +4,7 @@ import { basename, extname, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { CONFIG_FORMATS, detectFormat, formatMeta, parseSettings } from '@quotentiroler/guido-core';
 import type { Field, FieldValue, Template } from '@quotentiroler/guido-types';
-import { TemplateSchema } from '@quotentiroler/guido-types/schemas';
+import { parseTemplate } from '@quotentiroler/guido-types/schemas';
 
 export const SETTINGS_EXTENSIONS = CONFIG_FORMATS.flatMap((format) => formatMeta(format).extensions).join(', ');
 
@@ -24,10 +24,7 @@ export function exitWithUsage(usage: string, help: boolean, failureCode: number)
 }
 
 export function readTemplateFile(absolutePath: string): Template {
-  const parsed = TemplateSchema.safeParse(JSON.parse(readFileSync(absolutePath, 'utf-8')));
-  if (parsed.success) return parsed.data;
-  const problems = parsed.error.issues.map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.message}`);
-  throw new Error(`${absolutePath} is not a valid Guido template:\n  ${problems.join('\n  ')}`);
+  return parseTemplate(JSON.parse(readFileSync(absolutePath, 'utf-8')), absolutePath);
 }
 
 function readExistingFile(path: string, label: string): { absolutePath: string; content: string } {

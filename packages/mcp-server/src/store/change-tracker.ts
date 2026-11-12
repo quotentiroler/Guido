@@ -9,7 +9,6 @@
 import type { Template } from '@quotentiroler/guido-types';
 import type { ChangeEntry, ChangeTracker, ChangeType, TemplateSnapshot } from './types.js';
 
-const deepCopy = (template: Template): Template => JSON.parse(JSON.stringify(template)) as Template;
 
 export class InMemoryChangeTracker implements ChangeTracker {
   private readonly log = new Map<string, ChangeEntry[]>();
@@ -37,7 +36,7 @@ export class InMemoryChangeTracker implements ChangeTracker {
 
   captureSnapshot(ref: string, template: Template): Promise<void> {
     if (!this.snapshots.has(ref)) {
-      this.snapshots.set(ref, { loadedAt: new Date().toISOString(), template: deepCopy(template) });
+      this.snapshots.set(ref, { loadedAt: new Date().toISOString(), template: structuredClone(template) });
     }
     return Promise.resolve();
   }

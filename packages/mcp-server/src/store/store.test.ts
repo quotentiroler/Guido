@@ -111,6 +111,13 @@ describe('FsTemplateStore', () => {
     expect(path.isAbsolute(store.resolveRef('./a.guido.json'))).toBe(true);
   });
 
+  it('rejects a file that is not a Guido template', async () => {
+    const ref = path.join(dir, 'broken.guido.json');
+    fs.writeFileSync(ref, JSON.stringify({ fields: [] }));
+
+    await expect(new FsTemplateStore().load(ref)).rejects.toThrow('is not a valid Guido template');
+  });
+
   it('writes indented JSON a human can diff', async () => {
     const store = new FsTemplateStore();
     const ref = path.join(dir, 'indent.guido.json');

@@ -6,54 +6,26 @@
  */
 
 import type { Template } from '@quotentiroler/guido-types';
-import {
-  ensureRuleSets,
-  NoTemplateRefError,
-  TemplateNotFoundError,
-  type ChangeTracker,
-  type TemplateStore,
-} from './types.js';
+import { BaseTemplateStore } from './base-store.js';
+import type { ChangeTracker } from './types.js';
 
-const deepCopy = (template: Template): Template => JSON.parse(JSON.stringify(template)) as Template;
-
-export class MemoryTemplateStore implements TemplateStore {
+export class MemoryTemplateStore extends BaseTemplateStore {
   private readonly templates = new Map<string, Template>();
-  private active: string | undefined;
 
-  constructor(
-    seed: Record<string, Template> = {},
-    private readonly tracker?: ChangeTracker
-  ) {
+  constructor(seed: Record<string, Template> = {}, tracker?: ChangeTracker) {
+    super(tracker);
     for (const [ref, template] of Object.entries(seed)) {
-      this.templates.set(ref, deepCopy(template));
+      this.templates.set(ref, structuredClone(template));
     }
   }
 
-  resolveRef(ref?: string): string {
-    const resolved = ref ?? this.active;
-    if (!resolved) throw new NoTemplateRefError();
-    return resolved;
-  }
-
-  activeRef(): string | undefined {
-    return this.active;
-  }
-
-  setActiveRef(ref: string): void {
-    this.active = ref;
-  }
-
-  async load(ref: string): Promise<Template> {
+  protected read(ref: string): Promise<Template | undefined> {
     const stored = this.templates.get(ref);
-    if (!stored) throw new TemplateNotFoundError(ref);
-
-    const template = ensureRuleSets(deepCopy(stored));
-    await this.tracker?.captureSnapshot(ref, template);
-    return template;
+    return Promise.resolve(stored && structuredClone(stored));
   }
 
   save(ref: string, template: Template): Promise<void> {
-    this.templates.set(ref, deepCopy(template));
+    this.templates.set(ref, structuredClone(template));
     return Promise.resolve();
   }
 
@@ -63,6 +35,6 @@ export class MemoryTemplateStore implements TemplateStore {
 
   /** Everything held, for handing state back to a stateless caller. */
   entries(): Record<string, Template> {
-    return Object.fromEntries([...this.templates].map(([ref, t]) => [ref, deepCopy(t)]));
+    return Object.fromEntries([...this.templates].map(([ref, t]) => [ref, structuredClone(t)]));
   }
 }

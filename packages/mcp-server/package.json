@@ -1,6 +1,6 @@
 {
   "name": "@quotentiroler/guido-mcp-server",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "MCP Server for Guido template management - CRUD operations for fields and rules",
   "type": "module",
   "main": "./dist/index.js",
@@ -24,6 +24,11 @@
       "@quotentiroler/guido-source": "./src/store/types.ts",
       "types": "./dist/store/types.d.ts",
       "default": "./dist/store/types.js"
+    },
+    "./store/base": {
+      "@quotentiroler/guido-source": "./src/store/base-store.ts",
+      "types": "./dist/store/base-store.d.ts",
+      "default": "./dist/store/base-store.js"
     },
     "./store/memory": {
       "@quotentiroler/guido-source": "./src/store/memory-store.ts",
@@ -60,7 +65,7 @@
   "license": "MIT",
   "dependencies": {
     "@quotentiroler/guido-core": "^1.4.0",
-    "@quotentiroler/guido-types": "^1.2.0",
+    "@quotentiroler/guido-types": "^1.3.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "js-yaml": "^5.2.1",
     "zod": "^4.4.3"
