@@ -283,6 +283,14 @@ export type FieldUpdate = z.infer<typeof FieldUpdateSchema>;
 /** Template type - inferred from schema */
 export type Template = z.infer<typeof TemplateSchema>;
 
+/** A parsed JSON value as a Template, or an error naming `source` and every schema issue. */
+export function parseTemplate(value: unknown, source: string): Template {
+  const parsed = TemplateSchema.safeParse(value);
+  if (parsed.success) return parsed.data;
+  const problems = parsed.error.issues.map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.message}`);
+  throw new Error(`${source} is not a valid Guido template:\n  ${problems.join('\n  ')}`);
+}
+
 // ============================================================================
 // Range Schemas - Parsed representation of field range DSL
 // ============================================================================

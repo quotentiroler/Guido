@@ -16,5 +16,6 @@ export type {
 } from './types.js';
 
 export { InMemoryChangeTracker } from './change-tracker.js';
+export { BaseTemplateStore } from './base-store.js';
 export { MemoryTemplateStore } from './memory-store.js';
 export { FsTemplateStore } from './fs-store.js';
